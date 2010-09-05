@@ -16,7 +16,7 @@ const (
 type BiddingRule struct {
 	name string
 	match *regexp.Regexp
-	score func(t Table, seat int, ms []string) Score 
+	score func(h Hand, ms []string) Score 
 }
 
 var Convention = []BiddingRule{ Opening, Preempt, PassOpening }
@@ -27,7 +27,7 @@ func TableScore(t Table, seat int, bid string) Score {
 		for _,c := range Convention {
 			ms := c.match.FindStringSubmatch(bid)
 			if ms != nil {
-				b := c.score(t, seat, ms)
+				b := c.score(t[seat], ms)
 				badness += b
 				//fmt.Printf("Got badness %g from %s by seat %v\n", b, c.name, Seat(seat))
 			}

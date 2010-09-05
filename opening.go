@@ -19,8 +19,8 @@ func stringToSuit(s string) uint {
 var Opening = BiddingRule{
 	"Opening",
 	regexp.MustCompile("^( P)*1([CDHS])$"),
-	func (t Table, seat int, ms []string) Score {
-		pts := t[seat].PointCount()
+	func (h Hand, ms []string) Score {
+		pts := h.PointCount()
 		badness := Score(0)
 		if pts < 13 {
 			badness += Fudge
@@ -28,10 +28,10 @@ var Opening = BiddingRule{
 		if pts < 12 {
 			badness += Score(12-pts)*PointValueProblem
 		}
-		ls := byte(t[seat] >> 28)
-		lh := byte(t[seat] >> 20) & 15
-		ld := byte(t[seat] >> 12) & 15
-		lc := byte(t[seat] >> 4) & 15
+		ls := byte(h >> 28)
+		lh := byte(h >> 20) & 15
+		ld := byte(h >> 12) & 15
+		lc := byte(h >> 4) & 15
 		switch stringToSuit(ms[2]) {
 		case Spades:
 			if ls < 5 {
@@ -75,22 +75,22 @@ var Opening = BiddingRule{
 var Preempt = BiddingRule{
 	"Preempt",
 	regexp.MustCompile("^( P)*[23]([CDHS])$"),
-	func (t Table, seat int, ms []string) Score {
+	func (h Hand, ms []string) Score {
 		if ms[2] == "2" && ms[3] == "C" {
 			return 0 // it's not a weak two bid
 		}
-		pts := t[seat].PointCount()
-		hcp := t[seat].HCP()
+		pts := h.PointCount()
+		hcp := h.HCP()
 		badness := Score(0)
 		if pts > 12 {
 			badness += Score(pts-12)*PointValueProblem
 		} else if hcp < 5 {
 			badness += Score(5 - hcp)*PointValueProblem
 		}
-		ls := byte(t[seat] >> 28)
-		lh := byte(t[seat] >> 20) & 15
-		ld := byte(t[seat] >> 12) & 15
-		lc := byte(t[seat] >> 4) & 15
+		ls := byte(h >> 28)
+		lh := byte(h >> 20) & 15
+		ld := byte(h >> 12) & 15
+		lc := byte(h >> 4) & 15
 		numinsuit := lc
 		switch stringToSuit(ms[3]) {
 		case Spades: numinsuit = ls
@@ -114,18 +114,18 @@ var Preempt = BiddingRule{
 var PassOpening = BiddingRule{
 	"Pass opening",
 	regexp.MustCompile("^( P)* P$"),
-	func (t Table, seat int, ms []string) Score {
-		pts := t[seat].PointCount()
-		hcp := t[seat].HCP()
+	func (h Hand, ms []string) Score {
+		pts := h.PointCount()
+		hcp := h.HCP()
 		badness := Score(0)
 		if pts > 12 {
 			badness += Score(pts-12)*PointValueProblem
 		}
-		if (byte(t[seat] >> 4) & 15) > 6 && hcp >= 5 { // should bid weak
-			badness += Score((byte(t[seat] >> 4) & 15) - 6)*BigFudge
+		if (byte(h >> 4) & 15) > 6 && hcp >= 5 { // should bid weak
+			badness += Score((byte(h >> 4) & 15) - 6)*BigFudge
 		}
 		for sv:=uint(Diamonds); sv <= Spades; sv++ {
-			l := byte(t[seat] >> (4 + sv*8)) & 15
+			l := byte(h >> (4 + sv*8)) & 15
 			if l > 5 && hcp >= 5 { // should bid weak
 				badness += Score(l - 5)*BigFudge
 			}
