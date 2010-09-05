@@ -8,7 +8,7 @@ TARG=github.com/droundy/bridge
 GOFILES=\
         suit.go\
         hand.go\
-        deal.go\
+        table.go\
         bridge.go\
 
 include $(GOROOT)/src/Make.pkg

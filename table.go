@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type Deal [4]Hand
+type Table [4]Hand
 
 const (
 	South = iota
@@ -19,7 +19,7 @@ func init() {
 	rand.Seed(time.Seconds())
 }
 
-func (d Deal) String() string {
+func (d Table) String() string {
 	out := ""
 	suitletter := []string{"C", "D", "H", "S"}
 	for sv:=uint(Spades); sv<=Spades; sv-- {
@@ -35,9 +35,9 @@ func (d Deal) String() string {
 }
 
 const FullSuit = 15+(13<<4)
-var Sorted = Deal { FullSuit, FullSuit << 8, FullSuit << 16, FullSuit << 24 }
+var Sorted = Table { FullSuit, FullSuit << 8, FullSuit << 16, FullSuit << 24 }
 
-func (d Deal) ShuffleCard(fromwhich int) Deal {
+func (d Table) ShuffleCard(fromwhich int) Table {
 	fromwhich = fromwhich % 52 // Just to be paranoid
 	from := d[fromwhich&3].Nth(fromwhich>>2)
 	towhich := rand.Intn(52)
@@ -47,7 +47,7 @@ func (d Deal) ShuffleCard(fromwhich int) Deal {
 	return d
 }
 
-func Shuffle() Deal {
+func Shuffle() Table {
 	d := Sorted
 	for i:=0; i<52; i++ {
 		d = d.ShuffleCard(i)
