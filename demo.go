@@ -14,7 +14,8 @@ func main() {
 	fmt.Println("This hand has", h.HCP(),"high card points")
 	fmt.Println("This hand has", h.DistPoints(),"distributional points")
 	fmt.Println("This hand has", h.PointCount(),"realistic points")
-	for i:=0; i< 13; i++ {
-		fmt.Printf("Card %d is:\n%s", i, h.Nth(i))
-	}
+	fmt.Printf("Card %d is: %s", 3, h.Nth(3))
+
+	fmt.Println("Watch me shuffle:")
+	fmt.Print("Deal is now:\n", bridge.Shuffle())
 }

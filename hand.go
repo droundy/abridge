@@ -33,11 +33,11 @@ func (h Hand) String() string {
 			s := Suit(h >> (8*sv))
 			if s != 0 {
 				suitletter := []string{"C", "D", "H", "S"}
-				return suitletter[sv]+": "+s.String()+"\n"
+				return fmt.Sprintf("%s: %v\n", suitletter[sv], s)
 			}
 		}
 	}
-	return fmt.Sprintf("S: %s\nH: %s\nD: %s\nC: %s\n", Suit(h>>24), Suit(h>>16), Suit(h>>8), Suit(h))
+	return fmt.Sprintf("S: %v\nH: %v\nD: %v\nC: %v\n", Suit(h>>24), Suit(h>>16), Suit(h>>8), Suit(h))
 }
 func (h *Hand) Scan(st fmt.ScanState, x int) os.Error {
 	str, e := st.Token()

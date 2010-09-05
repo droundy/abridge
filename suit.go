@@ -70,6 +70,16 @@ func init() {
 	}
 }
 
+// We implement fmt.Formatter interface just so we can left-align the cards.
+func (s Suit) Format(f fmt.State, c int) {
+	x := stringTable[s]
+	f.Write([]byte(x))
+	if w,ok := f.Width(); ok {
+		for i:=0; i<w-len(x); i++ {
+			f.Write([]byte{' '})
+		}
+	}
+}
 func (s Suit) String() string {
 	return stringTable[s]
 }
