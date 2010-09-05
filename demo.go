@@ -19,5 +19,5 @@ func main() {
 	fmt.Print("Deal is now:\n", bridge.Shuffle())
 
 	fmt.Print("Valid table for a 1S opener:\n",
-		bridge.ShuffleValidTable(bridge.South, " P P1S"))
+		bridge.ShuffleValidTable(bridge.South, " P P P1S"))
 }

@@ -15,6 +15,17 @@ const (
 	East
 )
 
+type Seat uint
+func (s Seat) String() string {
+	switch s {
+	case South: return "south"
+	case North: return "north"
+	case East:  return "east "
+	case West:  return "west "
+	}
+	return "bugger seat"
+}
+
 func init() {
 	rand.Seed(time.Seconds())
 }

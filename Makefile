@@ -11,6 +11,7 @@ GOFILES=\
         table.go\
         conventions.go\
         bridge.go\
+	opening.go\
 
 include $(GOROOT)/src/Make.pkg
 
