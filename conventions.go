@@ -25,7 +25,7 @@ type BiddingRule struct {
 	score func(h Hand, ms []string) Score 
 }
 
-var Convention = []BiddingRule{ Opening, Preempt, PassOpening, CheapResponse, TwoOverOne }
+var Convention = []BiddingRule{ Opening, Preempt, PassOpening, CheapResponse, TwoOverOne, MajorSupport }
 
 func TableScore(t Table, seat int, bid string) Score {
 	badness := Score(0)
