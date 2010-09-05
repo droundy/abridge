@@ -20,4 +20,8 @@ func main() {
 
 	fmt.Print("Valid table for a 1S opener:\n",
 		bridge.ShuffleValidTable(bridge.South, " P P P1S"))
+	fmt.Print("Valid table for a 1S ... 1N opener:\n",
+		bridge.ShuffleValidTable(bridge.South, " P P1S P1N"))
+	fmt.Print("Valid table for a 1H ... 2C opener:\n",
+		bridge.ShuffleValidTable(bridge.South, " P P1H P2C"))
 }

@@ -12,6 +12,7 @@ GOFILES=\
         conventions.go\
         bridge.go\
 	opening.go\
+	response.go\
 
 include $(GOROOT)/src/Make.pkg
 
