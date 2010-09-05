@@ -5,6 +5,5 @@ set -ev
 make demo
 
 ./demo <<EOF
-aq k ~ aqkjxxxx
-q
+aq kjx ~ aqkjxxxx
 EOF
