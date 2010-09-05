@@ -122,12 +122,12 @@ var PassOpening = BiddingRule{
 			badness += Score(pts-12)*PointValueProblem
 		}
 		if (byte(t[seat] >> 4) & 15) > 6 && hcp >= 5 { // should bid weak
-			badness += Score((byte(t[seat] >> 4) & 15) - 6)*Fudge
+			badness += Score((byte(t[seat] >> 4) & 15) - 6)*BigFudge
 		}
 		for sv:=uint(Diamonds); sv <= Spades; sv++ {
 			l := byte(t[seat] >> (4 + sv*8)) & 15
 			if l > 5 && hcp >= 5 { // should bid weak
-				badness += Score(l - 5)*Fudge
+				badness += Score(l - 5)*BigFudge
 			}
 		}
 		return badness

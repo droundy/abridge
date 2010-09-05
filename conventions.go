@@ -9,6 +9,7 @@ type Score float64
 const (
 	SuitLengthProblem Score = 100
 	PointValueProblem Score = 100
+	BigFudge Score = 3
 	Fudge Score = 1
 )
 
