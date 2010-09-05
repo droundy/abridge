@@ -26,4 +26,6 @@ func main() {
 		bridge.ShuffleValidTable(bridge.South, " P P1H P2C"))
 	fmt.Print("Valid table for a 1H ... 2H opener:\n",
 		bridge.ShuffleValidTable(bridge.South, " P P P1H P2H"))
+	fmt.Print("Valid table for a 1S ... 3S opener:\n",
+		bridge.ShuffleValidTable(bridge.South, " P1S P3S"))
 }

@@ -4,6 +4,30 @@ import (
 	"regexp"
 )
 
+var MajorInvitation = BiddingRule{
+	"Major support",
+	regexp.MustCompile("^( P)*1([HS]) P3([HS])$"),
+	func (h Hand, ms []string) Score {
+		opensuit := stringToSuit(ms[2])
+		mysuit := stringToSuit(ms[3])
+		if mysuit != opensuit {
+			return 0 // This isn't support
+		}
+		pts := h.PointCount()
+		badness := Score(0)
+		if pts < 10 {
+			badness += Score(10-pts)*PointValueProblem
+		} else if pts > 11 {
+			badness += Score(pts-11)*PointValueProblem
+		}
+		mysuitlen := byte(h >> (4 + mysuit*8)) & 15
+		if mysuitlen < 3 {
+			badness += Score(3-mysuitlen)*SuitLengthProblem
+		}
+		return badness
+	},
+}
+
 var MajorSupport = BiddingRule{
 	"Major support",
 	regexp.MustCompile("^( P)*1([HS]) P2([HS])$"),
