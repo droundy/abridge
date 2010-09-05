@@ -9,6 +9,7 @@ func main() {
 	fmt.Println(bridge.Suit(bridge.Ace + bridge.Queen + 5 << 4))
 	var h bridge.Hand
 	fmt.Scanln(&h)
+	fmt.Println("Hand is:")
 	fmt.Println(h)
 	fmt.Println("This hand has", h.HCP(),"high card points")
 	fmt.Println("This hand has", h.DistPoints(),"distributional points")
