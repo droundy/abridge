@@ -6,7 +6,6 @@ import (
 )
 
 func main() {
-	fmt.Println(bridge.Suit(bridge.Ace + bridge.Queen + 5 << 4))
 	var h bridge.Hand
 	fmt.Scanln(&h)
 	fmt.Println("Hand is:")
@@ -18,4 +17,7 @@ func main() {
 
 	fmt.Println("Watch me shuffle:")
 	fmt.Print("Deal is now:\n", bridge.Shuffle())
+
+	fmt.Print("Valid table for a 1S opener:\n",
+		bridge.ShuffleValidTable(bridge.South, " P P1S"))
 }

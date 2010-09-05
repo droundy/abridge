@@ -9,6 +9,7 @@ GOFILES=\
         suit.go\
         hand.go\
         table.go\
+        conventions.go\
         bridge.go\
 
 include $(GOROOT)/src/Make.pkg
