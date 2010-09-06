@@ -15,7 +15,7 @@ func main() {
 	
 	http.HandleFunc("/hello", helloServer)
 	http.HandleFunc("/", helloServer)
-	err := http.ListenAndServe(":12345", nil)
+	err := http.ListenAndServe("0.0.0.0:12345", nil)
 	if err != nil {
 		log.Exit("ListenAndServe: ", err.String())
 	}
