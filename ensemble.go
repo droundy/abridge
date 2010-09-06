@@ -22,6 +22,7 @@ func (e Ensemble) String() string {
 			hcp[i][t[i].HCP()]++
 		}
 	}
+	/*
 	hands := e[0]
 	prob := 0
 	for _,t := range e {
@@ -37,18 +38,23 @@ func (e Ensemble) String() string {
 		}
 	}
 	fmt.Printf("prob is %d out of %d\n", prob-12, 12*(len(e)-1))
-	out += fmt.Sprintf("        (%2d-%2d)\n", Nmin, Nmax)
+*/
+	out += fmt.Sprintf("           (%2d-%2d)\n", Nmin, Nmax)
 	for sv:=uint(Spades); sv>Clubs; sv-- {
-		out += fmt.Sprintf("        %s: %v\n", SuitLetter[sv], Suit(hands[North] >> (8*sv)))
+		out += fmt.Sprintf("          %s: %v\n", SuitLetter[sv], e.SuitLength(North, sv))
 	}
-	out += fmt.Sprintf("(%2d-%2d) C: %6v(%2d-%2d)\n",Wmin,Wmax,Suit(hands[North]),Emin,Emax)
+	out += fmt.Sprintf(" (%2d-%2d)  C: %9v(%2d-%2d)\n",Wmin,Wmax,e.SuitLength(North, Clubs),Emin,Emax)
 	for sv:=uint(Spades); sv>Clubs; sv-- {
-		out += fmt.Sprintf("%s: %13v%s: %v\n", SuitLetter[sv], Suit(hands[West] >> (8*sv)), SuitLetter[sv], Suit(hands[East] >> (8*sv)))
+		out += fmt.Sprintf("%s: %18v%s: %v\n",
+			SuitLetter[sv], e.SuitLength(West, sv),
+			SuitLetter[sv], e.SuitLength(East, sv))
 	}
-	out += fmt.Sprintf("C: %5v(%2d-%2d) C: %v\n",Suit(hands[West]),Smin,Smax,Suit(hands[East]))
+	out += fmt.Sprintf("C: %8v(%2d-%2d)   C: %v\n",e.SuitLength(West, Clubs),Smin,Smax,e.SuitLength(East,Clubs))
 	for sv:=uint(Spades); sv<=Spades; sv-- {
-		out += fmt.Sprintf("        %s: %v\n", SuitLetter[sv], Suit(hands[South] >> (8*sv)))
+		out += fmt.Sprintf("          %s: %v\n", SuitLetter[sv], e.SuitLength(South,sv))
 	}
+	//out += fmt.Sprintf("Spades north: %g\n", e.SuitLength(North, Spades).mean)
+	//out += fmt.Sprintf("Spades south: %g\n", e.SuitLength(South, Spades).mean)
 	return out
 }
 
@@ -80,4 +86,43 @@ func (e Ensemble) PointCount(seat Seat) (min Points, mean float64, max Points) {
 		mean += float64(hcp)
 	}
 	return min, mean/float64(len(e)), max
+}
+
+type Range struct {
+	min, max byte
+	mean float64
+}
+func (r Range) Format(f fmt.State, c int) {
+	i := byte(0)
+	for ; i<r.min; i++ {
+		f.Write([]byte{'X'})
+	}
+	for ; float64(i)+0.5 < r.mean; i++ {
+		f.Write([]byte{'x'})
+	}
+	for ; i < r.max; i++ {
+		f.Write([]byte{'.'})
+	}
+	if w,ok := f.Width(); ok {
+		for ; i < byte(w); i++ {
+			f.Write([]byte{' '})
+		}
+	}
+}
+
+func (e Ensemble) SuitLength(seat Seat, suit uint) (r Range) {
+	suit = suit % 4
+	r.min = byte(100)
+	for _,t := range e {
+		num := byte((t[seat] >> (4+8*suit)) & 15)
+		if num < r.min {
+			r.min = num
+		}
+		if num > r.max {
+			r.max = num
+		}
+		r.mean += float64(num)
+	}
+	r.mean /= float64(len(e))
+	return
 }
