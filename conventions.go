@@ -26,7 +26,7 @@ func (s Score) min(s2 Score) Score {
 type BiddingRule struct {
 	name string
 	match *regexp.Regexp
-	score func(h Hand, ms []string, e Ensemble) (s Score, nothandled bool)
+	score func(bidder Seat, h Hand, ms []string, e Ensemble) (s Score, nothandled bool)
 }
 
 func LastBid(bid string) (val int, s Color) {
@@ -57,7 +57,7 @@ func LastBid(bid string) (val int, s Color) {
 var Convention = []BiddingRule{ Opening, Preempt, PassOpening, CheapResponse, TwoOverOne,
 	CheapRebid,
 	MajorSupport, MajorInvitation, OneNT, TwoNT, Gambling3NT,
-	OneLevelOvercall, PassOvercall }
+	OneLevelOvercall, PassOvercall, Natural }
 
 func subBids(dealer Seat, bid string) (seats []Seat, bids []string) {
 	seats = make([]Seat, len(bid)/2)
@@ -69,11 +69,11 @@ func subBids(dealer Seat, bid string) (seats []Seat, bids []string) {
 	return
 }
 
-func simpleScore(h Hand, bid string, e Ensemble) (badness Score) {
+func simpleScore(bidder Seat, h Hand, bid string, e Ensemble) (badness Score) {
 	for _,c := range Convention {
 		ms := c.match.FindStringSubmatch(bid)
 		if ms != nil {
-			b,unhandled := c.score(h, ms, e)
+			b,unhandled := c.score(bidder, h, ms, e)
 			badness += b
 			if !unhandled {
 				break
@@ -86,7 +86,7 @@ func simpleScore(h Hand, bid string, e Ensemble) (badness Score) {
 
 func TableScore(t Table, bidders []Seat, bids []string, es []Ensemble) (badness Score) {
 	for i, bidder := range bidders {
-		badness += simpleScore(t[bidder], bids[i], es[i])
+		badness += simpleScore(bidder, t[bidder], bids[i], es[i])
 	}
 	return
 }

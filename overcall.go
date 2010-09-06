@@ -7,7 +7,7 @@ import (
 var PassOvercall = BiddingRule{
 	"One-level overcall",
 	regexp.MustCompile("^( P)*1[CDH]( P..)? P$"),
-	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		if pts > 12 {
 			badness += Score(pts-12)*PointValueProblem
@@ -19,7 +19,7 @@ var PassOvercall = BiddingRule{
 var OneLevelOvercall = BiddingRule{
 	"One-level overcall",
 	regexp.MustCompile("^( P)*1[CDH]( P..)?1([DHS])$"),
-	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		if pts < 13 {
 			badness += Fudge

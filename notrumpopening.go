@@ -7,7 +7,7 @@ import (
 var OneNT = BiddingRule{
 	"1NT opening",
 	regexp.MustCompile("^( P)*1N$"),
-	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		hcp := h.HCP()
 		dist := h.DistPoints()
 		if hcp > 17 {
@@ -33,7 +33,7 @@ var OneNT = BiddingRule{
 var TwoNT = BiddingRule{
 	"2NT opening",
 	regexp.MustCompile("^( P)*2N$"),
-	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		hcp := h.HCP()
 		dist := h.DistPoints()
 		if hcp > 22 {
@@ -59,7 +59,7 @@ var TwoNT = BiddingRule{
 var Gambling3NT = BiddingRule{
 	"Gambling 3NT",
 	regexp.MustCompile("^( P)*3N$"),
-	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		hcp := h.HCP()
 		d := Suit(h >> 8)
 		c := Suit(h)

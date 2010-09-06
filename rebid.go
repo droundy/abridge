@@ -7,7 +7,7 @@ import (
 var CheapRebid = BiddingRule{
 	"Cheap response to one",
 	regexp.MustCompile("^( P)*1[CD] P1([DH]) P1([HSN])$"),
-	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		if pts < 6 {
 			badness += Score(6-pts)*PointValueProblem

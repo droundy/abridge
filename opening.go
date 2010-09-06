@@ -19,7 +19,7 @@ func stringToSuitNumber(s string) uint {
 var Opening = BiddingRule{
 	"Opening",
 	regexp.MustCompile("^( P)*1([CDHS])$"),
-	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		if pts < 13 {
 			badness += Fudge
@@ -74,7 +74,7 @@ var Opening = BiddingRule{
 var Preempt = BiddingRule{
 	"Preempt",
 	regexp.MustCompile("^( P)*([23])([CDHS])$"),
-	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		if ms[2] == "2" && ms[3] == "C" {
 			return 0, true // it's not a weak two bid
 		}
@@ -112,7 +112,7 @@ var Preempt = BiddingRule{
 var PassOpening = BiddingRule{
 	"Pass opening",
 	regexp.MustCompile("^( P)* P$"),
-	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		hcp := h.HCP()
 		if pts > 12 {

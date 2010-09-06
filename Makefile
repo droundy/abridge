@@ -17,6 +17,7 @@ GOFILES=\
 	notrumpopening.go\
 	response.go\
 	rebid.go\
+	natural.go\
 
 include $(GOROOT)/src/Make.pkg
 
