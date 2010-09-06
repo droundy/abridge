@@ -33,6 +33,7 @@ func helloServer(c *http.Conn, req *http.Request) {
 			bids = bids + bid[0]
 		} else if _,ok := req.Form["refresh"]; !ok {
 			bids = ""
+			dealer = (dealer + 1) % 4
 		}
 		if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
 			dealer = bridge.StringToSeat(d[0])
@@ -138,10 +139,10 @@ func bidbox(c io.Writer, bids string) os.Error {
 	fmt.Fprintln(c, `</table><input type="submit" value="Clear" />`)
 	fmt.Fprintln(c, `<input type="submit" name="refresh" value="Refresh" />`)
 	if bids == "" {
-		fmt.Fprint(c, `<br/>Dealer: <input type="radio" name="dealer" value="S" /> South
-<input type="radio" name="dealer" value="W" /> West
-<input type="radio" name="dealer" value="N" /> North
-<input type="radio" name="dealer" value="E" /> East<br />
+		fmt.Fprint(c, `<br/>Dealer:<br/> <input type="radio" name="dealer" value="S" /> S
+<input type="radio" name="dealer" value="W" /> W
+<input type="radio" name="dealer" value="N" /> N
+<input type="radio" name="dealer" value="E" /> E<br />
 `)
 	}
 	fmt.Fprintln(c, `</form>`)
