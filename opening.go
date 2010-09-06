@@ -19,9 +19,8 @@ func stringToSuitNumber(s string) uint {
 var Opening = BiddingRule{
 	"Opening",
 	regexp.MustCompile("^( P)*1([CDHS])$"),
-	func (h Hand, ms []string) Score {
+	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
-		badness := Score(0)
 		if pts < 13 {
 			badness += Fudge
 		}
@@ -68,20 +67,19 @@ var Opening = BiddingRule{
 				badness += Score(ld-lc)*SuitLengthProblem
 			}
 		}
-		return badness
+		return
 	},
 }
 
 var Preempt = BiddingRule{
 	"Preempt",
 	regexp.MustCompile("^( P)*([23])([CDHS])$"),
-	func (h Hand, ms []string) Score {
+	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		if ms[2] == "2" && ms[3] == "C" {
-			return 0 // it's not a weak two bid
+			return 0, true // it's not a weak two bid
 		}
 		pts := h.PointCount()
 		hcp := h.HCP()
-		badness := Score(0)
 		if pts > 12 {
 			badness += Score(pts-12)*PointValueProblem
 		} else if hcp < 5 {
@@ -107,17 +105,16 @@ var Preempt = BiddingRule{
 		} else {
 			badness += Score(numinsuit-goal)*Fudge
 		}
-		return badness
+		return
 	},
 }
 
 var PassOpening = BiddingRule{
 	"Pass opening",
 	regexp.MustCompile("^( P)* P$"),
-	func (h Hand, ms []string) Score {
+	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		hcp := h.HCP()
-		badness := Score(0)
 		if pts > 12 {
 			badness += Score(pts-12)*PointValueProblem
 		}
@@ -130,6 +127,6 @@ var PassOpening = BiddingRule{
 				badness += Score(l - 5)*BigFudge
 			}
 		}
-		return badness
+		return
 	},
 }

@@ -7,10 +7,9 @@ import (
 var OneNT = BiddingRule{
 	"1NT opening",
 	regexp.MustCompile("^( P)*1N$"),
-	func (h Hand, ms []string) Score {
+	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		hcp := h.HCP()
 		dist := h.DistPoints()
-		badness := Score(0)
 		if hcp > 17 {
 			badness += Score(hcp-17)*PointValueProblem
 		} else if hcp < 15 {
@@ -27,17 +26,16 @@ var OneNT = BiddingRule{
 		if lh > 4 {
 			badness += Score(lh-4)*SuitLengthProblem
 		}
-		return badness
+		return
 	},
 }
 
 var TwoNT = BiddingRule{
 	"2NT opening",
 	regexp.MustCompile("^( P)*2N$"),
-	func (h Hand, ms []string) Score {
+	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		hcp := h.HCP()
 		dist := h.DistPoints()
-		badness := Score(0)
 		if hcp > 22 {
 			badness += Score(hcp-22)*PointValueProblem
 		} else if hcp < 20 {
@@ -54,18 +52,17 @@ var TwoNT = BiddingRule{
 		if lh > 4 {
 			badness += Score(lh-4)*SuitLengthProblem
 		}
-		return badness
+		return
 	},
 }
 
 var Gambling3NT = BiddingRule{
 	"Gambling 3NT",
 	regexp.MustCompile("^( P)*3N$"),
-	func (h Hand, ms []string) Score {
+	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		hcp := h.HCP()
 		d := Suit(h >> 8)
 		c := Suit(h)
-		badness := Score(0)
 		if hcp > 17 {
 			// Too strong even for strong gambling!
 			badness += Score(hcp-17)*PointValueProblem
@@ -85,6 +82,6 @@ var Gambling3NT = BiddingRule{
 				badness += Score(14 - (c&15))*BigFudge
 			}
 		}
-		return badness
+		return
 	},
 }

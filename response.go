@@ -7,14 +7,13 @@ import (
 var MajorInvitation = BiddingRule{
 	"Major support",
 	regexp.MustCompile("^( P)*1([HS]) P3([HS])$"),
-	func (h Hand, ms []string) Score {
+	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		opensuit := stringToSuitNumber(ms[2])
 		mysuit := stringToSuitNumber(ms[3])
 		if mysuit != opensuit {
-			return 0 // This isn't support
+			return 0, true // This isn't support
 		}
 		pts := h.PointCount()
-		badness := Score(0)
 		if pts < 10 {
 			badness += Score(10-pts)*PointValueProblem
 		} else if pts > 11 {
@@ -24,21 +23,20 @@ var MajorInvitation = BiddingRule{
 		if mysuitlen < 3 {
 			badness += Score(3-mysuitlen)*SuitLengthProblem
 		}
-		return badness
+		return
 	},
 }
 
 var MajorSupport = BiddingRule{
 	"Major support",
 	regexp.MustCompile("^( P)*1([HS]) P2([HS])$"),
-	func (h Hand, ms []string) Score {
+	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		opensuit := stringToSuitNumber(ms[2])
 		mysuit := stringToSuitNumber(ms[3])
 		if mysuit != opensuit {
-			return 0 // This isn't support
+			return 0, true // This isn't support
 		}
 		pts := h.PointCount()
-		badness := Score(0)
 		if pts < 6 {
 			badness += Score(6-pts)*PointValueProblem
 		} else if pts > 9 {
@@ -48,20 +46,19 @@ var MajorSupport = BiddingRule{
 		if mysuitlen < 3 {
 			badness += Score(3-mysuitlen)*SuitLengthProblem
 		}
-		return badness
+		return
 	},
 }
 
 var TwoOverOne = BiddingRule{
 	"Two over one",
 	regexp.MustCompile("^( P)*1([DHS]) P2([CDH])$"),
-	func (h Hand, ms []string) Score {
+	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
-		badness := Score(0)
 		opensuit := stringToSuitNumber(ms[2])
 		mysuit := stringToSuitNumber(ms[3])
 		if mysuit == opensuit {
-			return 0 // This isn't a two-over-one bid
+			return 0, true // This isn't a two-over-one bid
 		}
 		if pts < 10 {
 			badness += Score(10-pts)*PointValueProblem
@@ -88,16 +85,15 @@ var TwoOverOne = BiddingRule{
 			b2 := Score(15-pts)*PointValueProblem
 			badness += b1.min(b2)
 		}
-		return badness
+		return
 	},
 }
 
 var CheapResponse = BiddingRule{
 	"Cheap response to one",
 	regexp.MustCompile("^( P)*1([CDHS]) P1([DHSN])$"),
-	func (h Hand, ms []string) Score {
+	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
-		badness := Score(0)
 		if pts < 6 {
 			badness += Score(6-pts)*PointValueProblem
 		}
@@ -123,7 +119,7 @@ var CheapResponse = BiddingRule{
 			if pts > 9 {
 				badness += Score(pts - 9)*PointValueProblem
 			}
-			return badness // exit early, so we can assume mysuit is a valid suit
+			return // exit early, so we can assume mysuit is a valid suit
 		}
 		// Here we assume ms[3] is a real suit.
 		mysuit := stringToSuitNumber(ms[3])
@@ -154,6 +150,6 @@ var CheapResponse = BiddingRule{
 				badness += Score(spadelen-3)*SuitLengthProblem
 			}
 		}
-		return badness
+		return
 	},
 }

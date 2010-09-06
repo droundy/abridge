@@ -26,7 +26,7 @@ func (s Score) min(s2 Score) Score {
 type BiddingRule struct {
 	name string
 	match *regexp.Regexp
-	score func(h Hand, ms []string) Score 
+	score func(h Hand, ms []string, e Ensemble) (s Score, nothandled bool)
 }
 
 func LastBid(bid string) (val int, s Color) {
@@ -65,7 +65,7 @@ func TableScore(t Table, seat Seat, bid string) Score {
 		for _,c := range Convention {
 			ms := c.match.FindStringSubmatch(bid)
 			if ms != nil {
-				b := c.score(t[seat], ms)
+				b,_ := c.score(t[seat], ms, Ensemble{})
 				badness += b
 				//fmt.Printf("Got badness %g from %s by seat %v\n", b, c.name, Seat(seat))
 			}

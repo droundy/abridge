@@ -7,9 +7,8 @@ import (
 var CheapRebid = BiddingRule{
 	"Cheap response to one",
 	regexp.MustCompile("^( P)*1[CD] P1([DH]) P1([HSN])$"),
-	func (h Hand, ms []string) Score {
+	func (h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
-		badness := Score(0)
 		if pts < 6 {
 			badness += Score(6-pts)*PointValueProblem
 		}
@@ -28,7 +27,7 @@ var CheapRebid = BiddingRule{
 			if pts > 15 {
 				badness += Score(pts - 15)*PointValueProblem
 			}
-			return badness // exit early, so we can assume mysuit is a valid suit
+			return // exit early, so we can assume mysuit is a valid suit
 		}
 		// Here we assume ms[3] is a real suit.
 		mysuit := stringToSuitNumber(ms[3])
@@ -36,6 +35,6 @@ var CheapRebid = BiddingRule{
 		if mysuitlen < 4 {
 			badness += Score(4-mysuitlen)*SuitLengthProblem
 		}
-		return badness
+		return
 	},
 }
