@@ -31,7 +31,7 @@ func helloServer(c *http.Conn, req *http.Request) {
 		bid,ok := req.Form["bid"]
 		if ok && len(bid) == 1 && len(bid[0]) == 2 {
 			bids = bids + bid[0]
-		} else {
+		} else if _,ok := req.Form["refresh"]; !ok {
 			bids = ""
 		}
 		if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
@@ -137,6 +137,7 @@ func bidbox(c io.Writer, bids string) os.Error {
 		fmt.Fprintln(c, "</tr>")
 	}
 	fmt.Fprintln(c, `</table><input type="submit" value="Clear" />`)
+	fmt.Fprintln(c, `<input type="submit" name="refresh" value="Refresh" />`)
 	if bids == "" {
 		fmt.Fprint(c, `<br/>Dealer: <input type="radio" name="dealer" value="S" /> South
 <input type="radio" name="dealer" value="W" /> West
