@@ -114,6 +114,12 @@ var CheapResponse = BiddingRule{
 			badness += Score(heartlen-2)*SuitLengthProblem
 		}
 		if ms[3] == "N" {
+			if (spadelen > 3 && opensuit < Spades) {
+				badness += Score(spadelen-3)*SuitLengthProblem
+			}
+			if (heartlen > 3 && opensuit < Hearts) {
+				badness += Score(heartlen-3)*SuitLengthProblem
+			}
 			if pts > 9 {
 				badness += Score(pts - 9)*PointValueProblem
 			}
