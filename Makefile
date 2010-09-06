@@ -21,6 +21,10 @@ include $(GOROOT)/src/Make.pkg
 # 	gotgo --package-name goopt -o "$@" "$<" string
 # endif
 
-demo: demo.go install
+server: server.go $(pkgdir)/$(TARG).a
+	$(GC) -o server.$(O) server.go
+	$(LD) -o server server.$(O)
+
+demo: demo.go $(pkgdir)/$(TARG).a
 	$(GC) -o demo.$(O) demo.go
 	$(LD) -o demo demo.$(O)

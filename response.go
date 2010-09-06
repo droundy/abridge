@@ -8,8 +8,8 @@ var MajorInvitation = BiddingRule{
 	"Major support",
 	regexp.MustCompile("^( P)*1([HS]) P3([HS])$"),
 	func (h Hand, ms []string) Score {
-		opensuit := stringToSuit(ms[2])
-		mysuit := stringToSuit(ms[3])
+		opensuit := stringToSuitNumber(ms[2])
+		mysuit := stringToSuitNumber(ms[3])
 		if mysuit != opensuit {
 			return 0 // This isn't support
 		}
@@ -32,8 +32,8 @@ var MajorSupport = BiddingRule{
 	"Major support",
 	regexp.MustCompile("^( P)*1([HS]) P2([HS])$"),
 	func (h Hand, ms []string) Score {
-		opensuit := stringToSuit(ms[2])
-		mysuit := stringToSuit(ms[3])
+		opensuit := stringToSuitNumber(ms[2])
+		mysuit := stringToSuitNumber(ms[3])
 		if mysuit != opensuit {
 			return 0 // This isn't support
 		}
@@ -58,8 +58,8 @@ var TwoOverOne = BiddingRule{
 	func (h Hand, ms []string) Score {
 		pts := h.PointCount()
 		badness := Score(0)
-		opensuit := stringToSuit(ms[2])
-		mysuit := stringToSuit(ms[3])
+		opensuit := stringToSuitNumber(ms[2])
+		mysuit := stringToSuitNumber(ms[3])
 		if mysuit == opensuit {
 			return 0 // This isn't a two-over-one bid
 		}
@@ -101,7 +101,7 @@ var CheapResponse = BiddingRule{
 		if pts < 6 {
 			badness += Score(6-pts)*PointValueProblem
 		}
-		opensuit := stringToSuit(ms[2])
+		opensuit := stringToSuitNumber(ms[2])
 		heartlen := byte(h >> 20) & 15
 		spadelen := byte(h >> 28) & 15
 		if opensuit == Spades && spadelen > 2 {
@@ -120,7 +120,7 @@ var CheapResponse = BiddingRule{
 			return badness // exit early, so we can assume mysuit is a valid suit
 		}
 		// Here we assume ms[3] is a real suit.
-		mysuit := stringToSuit(ms[3])
+		mysuit := stringToSuitNumber(ms[3])
 		mysuitlen := byte(h >> (4 + mysuit*8)) & 15
 		switch mysuit {
 		case Hearts:

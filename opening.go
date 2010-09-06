@@ -5,14 +5,14 @@ import (
 	"regexp"
 )
 
-func stringToSuit(s string) uint {
+func stringToSuitNumber(s string) uint {
 	switch s {
 	case "S","s": return Spades
 	case "H","h": return Hearts
 	case "D","d": return Diamonds
 	case "C","c": return Clubs
 	}
-	panic(fmt.Sprint("Bad string in stringToSuit: ", s))
+	panic(fmt.Sprint("Bad string in stringToSuitNumber: ", s))
 	return 0
 }
 
@@ -32,7 +32,7 @@ var Opening = BiddingRule{
 		lh := byte(h >> 20) & 15
 		ld := byte(h >> 12) & 15
 		lc := byte(h >> 4) & 15
-		switch stringToSuit(ms[2]) {
+		switch stringToSuitNumber(ms[2]) {
 		case Spades:
 			if ls < 5 {
 				badness += Score(5-ls)*SuitLengthProblem
@@ -74,7 +74,7 @@ var Opening = BiddingRule{
 
 var Preempt = BiddingRule{
 	"Preempt",
-	regexp.MustCompile("^( P)*[23]([CDHS])$"),
+	regexp.MustCompile("^( P)*([23])([CDHS])$"),
 	func (h Hand, ms []string) Score {
 		if ms[2] == "2" && ms[3] == "C" {
 			return 0 // it's not a weak two bid
@@ -92,7 +92,7 @@ var Preempt = BiddingRule{
 		ld := byte(h >> 12) & 15
 		lc := byte(h >> 4) & 15
 		numinsuit := lc
-		switch stringToSuit(ms[3]) {
+		switch stringToSuitNumber(ms[3]) {
 		case Spades: numinsuit = ls
 		case Hearts: numinsuit = lh
 		case Diamonds: numinsuit = ld

@@ -5,6 +5,8 @@ import (
 	"regexp"
 )
 
+type Color byte
+
 type Score float64
 const (
 	SuitLengthProblem Score = 100
@@ -25,9 +27,34 @@ type BiddingRule struct {
 	score func(h Hand, ms []string) Score 
 }
 
+func LastBid(bid string) (val int, s Color) {
+	for {
+		if len(bid) < 2 {
+			return 0, NoTrump
+		}
+		switch bid[len(bid)-2] {
+		case '1': val = 1
+		case '2': val = 2
+		case '3': val = 3
+		case '4': val = 4
+		case '5': val = 5
+		case '6': val = 6
+		case '7': val = 7
+		}
+		switch xx := bid[len(bid)-1]; xx {
+		case 'N': return val, NoTrump
+		case 'X','P':
+		default:
+			return val, Color(stringToSuitNumber(string([]byte{xx})))
+		}
+		bid = bid[0:len(bid)-2]
+	}
+	return
+}
+
 var Convention = []BiddingRule{ Opening, Preempt, PassOpening, CheapResponse, TwoOverOne, MajorSupport, MajorInvitation }
 
-func TableScore(t Table, seat int, bid string) Score {
+func TableScore(t Table, seat Seat, bid string) Score {
 	badness := Score(0)
 	for bid != "" {
 		for _,c := range Convention {
@@ -44,7 +71,7 @@ func TableScore(t Table, seat int, bid string) Score {
 	return badness
 }
 
-func ShuffleValidTable(seat int, bid string) (t Table) {
+func ShuffleValidTable(seat Seat, bid string) (t Table) {
 	i := 0
 	for {
 		i++
