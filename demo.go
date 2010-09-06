@@ -18,6 +18,7 @@ func main() {
 	fmt.Println("Watch me shuffle:")
 	fmt.Print("Deal is now:\n", bridge.Shuffle())
 
+	/*
 	fmt.Print("Valid table for a 1S opener:\n",
 		bridge.ShuffleValidTable(bridge.South, " P P P1S"))
 	fmt.Print("Valid table for a 1S ... 1N opener:\n",
@@ -28,4 +29,5 @@ func main() {
 		bridge.ShuffleValidTable(bridge.South, " P P P1H P2H"))
 	fmt.Print("Valid table for a 1S ... 3S opener:\n",
 		bridge.ShuffleValidTable(bridge.South, " P1S P3S"))
+	 */
 }

@@ -59,93 +59,64 @@ var Convention = []BiddingRule{ Opening, Preempt, PassOpening, CheapResponse, Tw
 	MajorSupport, MajorInvitation, OneNT, TwoNT, Gambling3NT,
 	OneLevelOvercall, PassOvercall }
 
-func TableScore(t Table, seat Seat, bid string) Score {
-	badness := Score(0)
-	for bid != "" {
-		for _,c := range Convention {
-			ms := c.match.FindStringSubmatch(bid)
-			if ms != nil {
-				b,_ := c.score(t[seat], ms, Ensemble{})
-				badness += b
-				//fmt.Printf("Got badness %g from %s by seat %v\n", b, c.name, Seat(seat))
-			}
-		}
-		bid = bid[0:len(bid)-2] // chop off most recent bid
-		seat = (seat + 3) % 4 // subtract one off seat
+func subBids(dealer Seat, bid string) (seats []Seat, bids []string) {
+	seats = make([]Seat, len(bid)/2)
+	bids = make([]string, len(bid)/2)
+	for i := range bids {
+		seats[i] = (dealer + Seat(i)) % 4
+		bids[i] = bid[0:2*(i+1)]
 	}
-	return badness
+	return
 }
 
-func ShuffleValidTable(seat Seat, bid string) (t Table) {
-	i := 0
-	for {
-		i++
-		t = Shuffle()
-		score := TableScore(t, seat, bid)
-		if score == 0 {
-			fmt.Println("It took", i, "tries.")
-			return t
-		} else {
-			//fmt.Print("Bad table with score ", score, ":\n", t)
+func simpleScore(h Hand, bid string, e Ensemble) (badness Score) {
+	for _,c := range Convention {
+		ms := c.match.FindStringSubmatch(bid)
+		if ms != nil {
+			b,_ := c.score(h, ms, e)
+			badness += b
+			//fmt.Printf("Got badness %g from %s\n", b, c.name)
 		}
 	}
 	return
 }
 
-func ShuffleValidTables(seat Seat, bid string, num int) (ts Ensemble, numt float64) {
-	ts = make([]Table, num)
-	for n := range ts {
-		i := 0
-		for {
-			i++
-			t := Shuffle()
-			score := TableScore(t, seat, bid)
-			if score == 0 {
-				ts[n] = t
-				numt += float64(i)
-				break
-			} else {
-				//fmt.Print("Bad table with score ", score, ":\n", t)
-			}
-		}
+func TableScore(t Table, bidders []Seat, bids []string, es []Ensemble) (badness Score) {
+	for i, bidder := range bidders {
+		badness += simpleScore(t[bidder], bids[i], es[i])
 	}
-	numt /= float64(num)
-	fmt.Println("It took on average", numt, "tries.")
 	return
 }
 
 var last_ts = make([]Table, 0)
-func GetValidTables(seat Seat, bid string, num int) (ts Ensemble) {
-	ts = make([]Table, num)
-	if len(last_ts) != num {
-		last_ts = make([]Table, num)
-		for n := range last_ts {
-			last_ts[n] = Shuffle()
-		}
+func GetValidTables(dealer Seat, bid string, num int) Ensemble {
+	seats, bids := subBids(dealer, bid)
+	es := make([]Ensemble, len(bids)+1) // This is the ensemble after each bid
+	es[0] = make(Ensemble, num)
+	for i := range es[0] {
+		es[0][i] = Shuffle() // Things start out random!
 	}
-	for i,t := range last_ts {
-		ts[i] = t
-	}
-	for n, t := range ts {
-		e := TableScore(t, seat, bid)
-		orige := e
-		numswaps := 52*10
-		beta := Score(0.01)
-		for i:=0; i<numswaps && (e > 0 || i < 52); i++ {
-			// Try moving a couple of cards at a time...
-			t2 := t.ShuffleCard(rand.Intn(52)).ShuffleCard(rand.Intn(52))
-			e2 := TableScore(t2, seat, bid)
-			if e2 <= e || rand.Float64() < math.Exp(float64(-beta*(e2 - e))) {
-				t = t2
-				e = e2
+	for bidnum := range seats {
+		es[bidnum+1] = make(Ensemble, num)
+		for i,eold := range es[bidnum] {
+			t := eold // Initialize ensemble based on previous bidding
+			oldbadness := TableScore(t, seats[0:bidnum+1], bids[0:bidnum+1], es[0:bidnum+1])
+			badness := oldbadness
+			numswaps := 52*10
+			beta := Score(0.01)
+			for i:=0; i<numswaps && (badness > 0 || i < 52); i++ {
+				// Try moving a couple of cards at a time...
+				t2 := t.ShuffleCard(rand.Intn(52)).ShuffleCard(rand.Intn(52))
+				b2 := TableScore(t2, seats[0:bidnum+1], bids[0:bidnum+1], es[0:bidnum+1])
+				if b2 <= badness || rand.Float64() < math.Exp(float64(-beta*(b2 - badness))) {
+					t = t2
+					badness = b2
+				}
+				beta *= 1.01 // Here's our annealing schedule...
 			}
-			beta *= 1.01 // Here's our annealing schedule...
+			fmt.Printf("Badness %4g -> %4g\n", oldbadness, badness)
+			es[bidnum+1][i] = t
 		}
-		ts[n] = t
-		fmt.Printf("Energy %4g -> %4g\n", orige, e)
 	}
-	for i,t := range ts {
-		last_ts[i] = t
-	}
-	return
+	return es[len(bids)] // return final ensemble
 }
