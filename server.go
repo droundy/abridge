@@ -65,7 +65,14 @@ func helloServer(c *http.Conn, req *http.Request) {
 func analyzebids(c io.Writer, bids string) os.Error {
 	fmt.Fprintln(c, "<pre>")
 	lastbidder := (dealer - 1 + bridge.Seat(len(bids)/2)) & 3
-	io.WriteString(c, bridge.ShuffleValidTable(lastbidder, bids).String())
+	//ts, ntry := bridge.ShuffleValidTables(lastbidder, bids, 100)
+	ts := bridge.GetValidTables(lastbidder, bids, 100)
+	fmt.Fprintln(c, ts[0])
+	//fmt.Fprintf(c, "\nProbability = %.2f%%\n", 100/ntry)
+	for i:=bridge.Seat(bridge.South); i<=bridge.East; i++ {
+		min, hcp, max := ts.HCP(i)
+		fmt.Fprintf(c, "HCP for %5v is %2d %4.1f %2d\n", i, min, hcp, max)
+	}
 	io.WriteString(c, `</pre>`)
 	return nil
 }

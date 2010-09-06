@@ -2,6 +2,8 @@ package bridge
 
 import (
 	"fmt"
+	"math"
+	"rand"
 	"regexp"
 )
 
@@ -83,6 +85,79 @@ func ShuffleValidTable(seat Seat, bid string) (t Table) {
 		} else {
 			//fmt.Print("Bad table with score ", score, ":\n", t)
 		}
+	}
+	return
+}
+
+type Ensemble []Table
+func (e Ensemble) HCP(seat Seat) (min Points, mean float64, max Points) {
+	min = 100
+	for _,t := range e {
+		hcp := t[seat].HCP()
+		if hcp < min {
+			min = hcp
+		}
+		if hcp > max {
+			max = hcp
+		}
+		mean += float64(hcp)
+	}
+	return min, mean/float64(len(e)), max
+}
+
+func ShuffleValidTables(seat Seat, bid string, num int) (ts Ensemble, numt float64) {
+	ts = make([]Table, num)
+	for n := range ts {
+		i := 0
+		for {
+			i++
+			t := Shuffle()
+			score := TableScore(t, seat, bid)
+			if score == 0 {
+				ts[n] = t
+				numt += float64(i)
+				break
+			} else {
+				//fmt.Print("Bad table with score ", score, ":\n", t)
+			}
+		}
+	}
+	numt /= float64(num)
+	fmt.Println("It took on average", numt, "tries.")
+	return
+}
+
+var last_ts = make([]Table, 0)
+func GetValidTables(seat Seat, bid string, num int) (ts Ensemble) {
+	ts = make([]Table, num)
+	if len(last_ts) != num {
+		last_ts = make([]Table, num)
+		for n := range last_ts {
+			last_ts[n] = Shuffle()
+		}
+	}
+	for i,t := range last_ts {
+		ts[i] = t
+	}
+	for n, t := range ts {
+		e := TableScore(t, seat, bid)
+		orige := e
+		numswaps := 52*10
+		beta := Score(1)
+		for i:=0; i<numswaps && (e > 0 || i < 52); i++ {
+			// Try moving a couple of cards at a time...
+			t2 := t.ShuffleCard(rand.Intn(52)).ShuffleCard(rand.Intn(52))
+			e2 := TableScore(t2, seat, bid)
+			if e2 <= e || rand.Float64() < math.Exp(float64(-beta*(e2 - e))) {
+				t = t2
+				e = e2
+			}
+		}
+		ts[n] = t
+		fmt.Printf("Energy %4g -> %4g\n", orige, e)
+	}
+	for i,t := range ts {
+		last_ts[i] = t
 	}
 	return
 }
