@@ -9,6 +9,7 @@ GOFILES=\
         suit.go\
         hand.go\
         table.go\
+        ensemble.go\
         conventions.go\
         bridge.go\
 	opening.go\

@@ -90,22 +90,6 @@ func ShuffleValidTable(seat Seat, bid string) (t Table) {
 	return
 }
 
-type Ensemble []Table
-func (e Ensemble) HCP(seat Seat) (min Points, mean float64, max Points) {
-	min = 100
-	for _,t := range e {
-		hcp := t[seat].HCP()
-		if hcp < min {
-			min = hcp
-		}
-		if hcp > max {
-			max = hcp
-		}
-		mean += float64(hcp)
-	}
-	return min, mean/float64(len(e)), max
-}
-
 func ShuffleValidTables(seat Seat, bid string, num int) (ts Ensemble, numt float64) {
 	ts = make([]Table, num)
 	for n := range ts {
@@ -144,7 +128,7 @@ func GetValidTables(seat Seat, bid string, num int) (ts Ensemble) {
 		e := TableScore(t, seat, bid)
 		orige := e
 		numswaps := 52*10
-		beta := Score(1)
+		beta := Score(0.01)
 		for i:=0; i<numswaps && (e > 0 || i < 52); i++ {
 			// Try moving a couple of cards at a time...
 			t2 := t.ShuffleCard(rand.Intn(52)).ShuffleCard(rand.Intn(52))
@@ -153,6 +137,7 @@ func GetValidTables(seat Seat, bid string, num int) (ts Ensemble) {
 				t = t2
 				e = e2
 			}
+			beta *= 1.01 // Here's our annealing schedule...
 		}
 		ts[n] = t
 		fmt.Printf("Energy %4g -> %4g\n", orige, e)

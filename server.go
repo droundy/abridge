@@ -67,13 +67,21 @@ func analyzebids(c io.Writer, bids string) os.Error {
 	lastbidder := (dealer - 1 + bridge.Seat(len(bids)/2)) & 3
 	//ts, ntry := bridge.ShuffleValidTables(lastbidder, bids, 100)
 	ts := bridge.GetValidTables(lastbidder, bids, 100)
-	fmt.Fprintln(c, ts[0])
+	fmt.Fprintln(c, ts)
 	//fmt.Fprintf(c, "\nProbability = %.2f%%\n", 100/ntry)
-	for i:=bridge.Seat(bridge.South); i<=bridge.East; i++ {
-		min, hcp, max := ts.HCP(i)
-		fmt.Fprintf(c, "HCP for %5v is %2d %4.1f %2d\n", i, min, hcp, max)
+	fmt.Fprintln(c, `</pre><table><tr><td></td>`)
+	fmt.Fprintln(c, `<td align="center">South</td><td align="center">West</td><td align="center">North</td><td align="center">East</td>`)
+	fmt.Fprintln(c, `</tr><tr><td>HCP</td>`)
+	for i:=range ts[0] {
+		min, hcp, max := ts.HCP(bridge.Seat(i))
+		fmt.Fprintf(c, `<td align="center">%d-%.1f-%d</td>`, min, hcp, max)
 	}
-	io.WriteString(c, `</pre>`)
+	fmt.Fprintln(c, `</tr><tr><td>Points</td>`)
+	for i:=range ts[0] {
+		min, hcp, max := ts.PointCount(bridge.Seat(i))
+		fmt.Fprintf(c, `<td align="center">%d-%.1f-%d</td>`, min, hcp, max)
+	}
+	fmt.Fprintln(c, `</tr></table>`)
 	return nil
 }
 
