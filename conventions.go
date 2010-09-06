@@ -73,8 +73,11 @@ func simpleScore(h Hand, bid string, e Ensemble) (badness Score) {
 	for _,c := range Convention {
 		ms := c.match.FindStringSubmatch(bid)
 		if ms != nil {
-			b,_ := c.score(h, ms, e)
+			b,unhandled := c.score(h, ms, e)
 			badness += b
+			if !unhandled {
+				break
+			}
 			//fmt.Printf("Got badness %g from %s\n", b, c.name)
 		}
 	}
