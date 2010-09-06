@@ -13,8 +13,10 @@ GOFILES=\
         conventions.go\
         bridge.go\
 	opening.go\
+	overcall.go\
 	notrumpopening.go\
 	response.go\
+	rebid.go\
 
 include $(GOROOT)/src/Make.pkg
 
