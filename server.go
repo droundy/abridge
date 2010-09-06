@@ -53,16 +53,21 @@ func helloServer(c *http.Conn, req *http.Request) {
 
 <body>
 `)
-	io.WriteString(c, "\n<table><tr><td><pre>\n\nbids are: `" + bids + "`\n")
-	lastbidder := (dealer - 1 + bridge.Seat(len(bids)/2)) & 3
-	fmt.Fprintln(c, "dealer is", dealer)
-	fmt.Fprintln(c, "lastbidder is", lastbidder)
-	io.WriteString(c, bridge.ShuffleValidTable(lastbidder, bids).String())
-	io.WriteString(c, `</pre></td><td>`)
+	fmt.Fprintln(c, "<table><tr><td>")
 	showbids(c, bids)
 	io.WriteString(c, `</td><td>`)
 	bidbox(c, bids)
+	io.WriteString(c, `</td><td>`)
+	analyzebids(c, bids)
 	fmt.Fprintln(c, `</td></tr></table></body></html>`)
+}
+
+func analyzebids(c io.Writer, bids string) os.Error {
+	fmt.Fprintln(c, "<pre>")
+	lastbidder := (dealer - 1 + bridge.Seat(len(bids)/2)) & 3
+	io.WriteString(c, bridge.ShuffleValidTable(lastbidder, bids).String())
+	io.WriteString(c, `</pre>`)
+	return nil
 }
 
 func showbids(c io.Writer, bids string) os.Error {
@@ -76,20 +81,18 @@ func showbids(c io.Writer, bids string) os.Error {
 		}
 		fmt.Fprintln(c, `<td align="center">`, bids[2*i:2*i+2], `</td>`)
 	}
+	for i:=bridge.Seat(len(bids)/2); i<50; i++ {
+		if (i + dealer) & 3 == 0 {
+			fmt.Fprintln(c, `</tr><tr>`)
+		}
+		fmt.Fprintln(c, `<td align="center"><font color="#FFFFFF">.</font></td>`)
+	}
 	fmt.Fprintln(c, `</tr></table>`)
 	return nil
 }
 
 func bidbox(c io.Writer, bids string) os.Error {
 	fmt.Fprintln(c, `<form method=post>`)
-	if bids == "" {
-		fmt.Fprint(c, `
-Dealer: <input type="radio" name="dealer" value="S" /> South
-<input type="radio" name="dealer" value="W" /> West
-<input type="radio" name="dealer" value="N" /> North
-<input type="radio" name="dealer" value="E" /> East<br />
-`)
-	}
 	candouble := regexp.MustCompile(".[CDHSN]( P P)?$").MatchString(bids)
 	canredouble := regexp.MustCompile(" X( P P)?$").MatchString(bids)
 	fmt.Fprintln(c, `<table><tr>
@@ -118,8 +121,14 @@ Dealer: <input type="radio" name="dealer" value="S" /> South
 		}
 		fmt.Fprintln(c, "</tr>")
 	}
-	fmt.Fprintln(c, `</table>
-<input type="submit" value="Clear" />
-</form>`)
+	fmt.Fprintln(c, `</table><input type="submit" value="Clear" />`)
+	if bids == "" {
+		fmt.Fprint(c, `<br/>Dealer: <input type="radio" name="dealer" value="S" /> South
+<input type="radio" name="dealer" value="W" /> West
+<input type="radio" name="dealer" value="N" /> North
+<input type="radio" name="dealer" value="E" /> East<br />
+`)
+	}
+	fmt.Fprintln(c, `</form>`)
 	return nil
 }
