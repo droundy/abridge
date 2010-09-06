@@ -54,7 +54,8 @@ func LastBid(bid string) (val int, s Color) {
 	return
 }
 
-var Convention = []BiddingRule{ Opening, Preempt, PassOpening, CheapResponse, TwoOverOne, MajorSupport, MajorInvitation }
+var Convention = []BiddingRule{ Opening, Preempt, PassOpening, CheapResponse, TwoOverOne,
+	MajorSupport, MajorInvitation, OneNT, TwoNT, Gambling3NT }
 
 func TableScore(t Table, seat Seat, bid string) Score {
 	badness := Score(0)
