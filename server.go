@@ -59,8 +59,25 @@ func helloServer(c *http.Conn, req *http.Request) {
 	fmt.Fprintln(c, "lastbidder is", lastbidder)
 	io.WriteString(c, bridge.ShuffleValidTable(lastbidder, bids).String())
 	io.WriteString(c, `</pre></td><td>`)
+	showbids(c, bids)
+	io.WriteString(c, `</td><td>`)
 	bidbox(c, bids)
 	fmt.Fprintln(c, `</td></tr></table></body></html>`)
+}
+
+func showbids(c io.Writer, bids string) os.Error {
+	fmt.Fprintln(c, `<table><tr><td>South</td><td>West</td><td>North</td><td>East</td></tr><tr>`)
+	for i:=bridge.Seat(0); i<dealer; i++ {
+		fmt.Fprintln(c, `<td align="center">-</td>`)		
+	}
+	for i:=bridge.Seat(0); i<bridge.Seat(len(bids)/2); i++ {
+		if (i + dealer) & 3 == 0 {
+			fmt.Fprintln(c, `</tr><tr>`)
+		}
+		fmt.Fprintln(c, `<td align="center">`, bids[2*i:2*i+2], `</td>`)
+	}
+	fmt.Fprintln(c, `</tr></table>`)
+	return nil
 }
 
 func bidbox(c io.Writer, bids string) os.Error {
