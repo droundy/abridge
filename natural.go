@@ -6,7 +6,7 @@ import (
 
 var Natural = BiddingRule{
 	"Natural",
-	regexp.MustCompile("(.)(.)$"),
+	regexp.MustCompile("(.)([^PX])$"),
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		hcp := h.HCP()
