@@ -81,7 +81,7 @@ func analyzebids(c io.Writer, bids string) os.Error {
 		pts := ts.PointCount(bridge.Seat(i))
 		fmt.Fprintf(c, `<td align="center">%d-%.1f-%d</td>`, pts.Min, pts.Mean, pts.Max)
 	}
-	fmt.Fprintln(c, `</tr></table>`)
+	fmt.Fprintln(c, `</tr></table><br/>`)
 	for i,cc := range conventions {
 		fmt.Fprintln(c, bids[2*i:2*i+2], "=", cc, "<br/>")
 	}
