@@ -15,6 +15,7 @@ var Natural = BiddingRule{
 		minhcp := hcp + hcprange.Min
 		ptsrange := e.PointCount(partner)
 		minpts := pts + ptsrange.Min
+		maxpts := pts + ptsrange.Max
 		rspades := e.SuitLength(partner, Spades)
 		rhearts := e.SuitLength(partner, Hearts)
 		minS := rspades.Min + byte((h >> 28)&15)
@@ -43,12 +44,21 @@ var Natural = BiddingRule{
 				// We always want a guaranteed fit.
 				badness += Score(8 - mysuitlen)*SuitLengthProblem
 			}
+			gamelevel := 4
+			if mysuit < Hearts {
+				gamelevel = 5
+			}
 			pointlevels := map[int]Points{ 2:19, 3:23, 4:26, 5:29, 6:33, 7:37, 8:60 }
 			num := int(ms[1][0] - '0')
 			if minpts < pointlevels[num] {
 				badness += Score(pointlevels[num]-minpts)*PointValueProblem
 			} else if minpts >= pointlevels[num+1] {
 				badness += Score(minpts - pointlevels[num+1])*PointValueProblem
+			}
+			if num < gamelevel && maxpts < pointlevels[num+1] {
+				// This assumes we are bidding for game, and leaves out
+				// competitive bidding...
+				badness += Score(pointlevels[num+1] - maxpts)*PointValueProblem
 			}
 		}
 		return
