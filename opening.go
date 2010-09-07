@@ -72,8 +72,9 @@ var Opening = BiddingRule{
 }
 
 var PreemptOvercall = BiddingRule{
-	"Preemptive overcall",
-	regexp.MustCompile("^( P)*1.(3)([CDHS])$"),
+	"Preemptive overcall of suit bid",
+	// preempts over 1NT should be stronger and/or longer...
+	regexp.MustCompile("^( P)*1[CDHS](3)([CDHS])$"),
 	Preempt.score, // preemptive overcalls at 3 level are like ordinary preempts.
 }
 
