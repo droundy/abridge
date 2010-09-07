@@ -6,28 +6,42 @@ import (
 
 var CheapRebid = BiddingRule{
 	"Cheap response to one",
-	regexp.MustCompile("^( P)*1[CD] P1([DH]) P1([HSN])$"),
+	regexp.MustCompile("^( P)*1([CDH]) P1([DHS]) P1([HSN])$"),
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		if pts < 6 {
 			badness += Score(6-pts)*PointValueProblem
 		}
-		theirsuit := stringToSuitNumber(ms[2])
+		opensuit := stringToSuitNumber(ms[2])
+		theirsuit := stringToSuitNumber(ms[3])
+		theirsuitlen := byte(h >> (4+theirsuit*8)) & 15
+		opensuitlen := byte(h >> (4+opensuit*8)) & 15
 		heartlen := byte(h >> 20) & 15
 		spadelen := byte(h >> 28) & 15
-		if theirsuit == Hearts && heartlen > 3 {
-			// We have a fit!
-			badness += Score(heartlen-4)*SuitLengthProblem
+		if theirsuit >= Hearts && theirsuitlen > 3 {
+			// We have a major fit!
+			badness += Score(theirsuitlen-3)*SuitLengthProblem
 		}
-		if ms[3] == "N" {
-			if theirsuit == Hearts && spadelen > 3 {
+		if ms[4] == "N" {
+			if theirsuit < Spades && spadelen > 3 {
 				// Should mention spades.
-				badness += Score(spadelen-4)*SuitLengthProblem
+				badness += Score(spadelen-3)*SuitLengthProblem
+			}
+			if theirsuit < Hearts && heartlen > 3 {
+				// Should mention hearts.
+				badness += Score(heartlen-3)*SuitLengthProblem
 			}
 			if pts > 15 {
 				badness += Score(pts - 15)*PointValueProblem
 			}
+			if opensuitlen > 5 {
+				badness += Score(opensuitlen-5)*SuitLengthProblem
+			}
 			return // exit early, so we can assume mysuit is a valid suit
+		}
+		if theirsuit < Hearts && ms[4] == "S" && heartlen > 3 {
+			// Should mention hearts.
+			badness += Score(heartlen-3)*SuitLengthProblem
 		}
 		// Here we assume ms[3] is a real suit.
 		mysuit := stringToSuitNumber(ms[3])

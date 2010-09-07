@@ -57,13 +57,23 @@ func helloServer(c *http.Conn, req *http.Request) {
 	fmt.Fprintln(c, "<table><tr><td>")
 	bidbox(c, bids)
 	io.WriteString(c, `</td><td>`)
-	analyzebids(c, bids)
+	cs,_ := analyzebids(c, bids)
 	io.WriteString(c, `</td><td>`)
 	showbids(c, bids)
-	fmt.Fprintln(c, `</td></tr></table></body></html>`)
+	fmt.Fprintln(c, `</td></tr></table>`)
+	showconventions(c, bids, cs)
+	fmt.Fprintln(c, `</body></html>`)
 }
 
-func analyzebids(c io.Writer, bids string) os.Error {
+func showconventions(c io.Writer, bids string, conventions []string) os.Error {
+	fmt.Fprintln(c, `<br/>`)
+	for i,cc := range conventions {
+		fmt.Fprintln(c, bids[2*i:2*i+2], "=", cc, "<br/>")
+	}
+	return nil
+}
+
+func analyzebids(c io.Writer, bids string) ([]string, os.Error) {
 	fmt.Fprintln(c, "<pre>")
 	//ts, ntry := bridge.ShuffleValidTables(lastbidder, bids, 100)
 	ts,conventions := bridge.GetValidTables(dealer, bids, 100)
@@ -81,11 +91,8 @@ func analyzebids(c io.Writer, bids string) os.Error {
 		pts := ts.PointCount(bridge.Seat(i))
 		fmt.Fprintf(c, `<td align="center">%d-%.1f-%d</td>`, pts.Min, pts.Mean, pts.Max)
 	}
-	fmt.Fprintln(c, `</tr></table><br/>`)
-	for i,cc := range conventions {
-		fmt.Fprintln(c, bids[2*i:2*i+2], "=", cc, "<br/>")
-	}
-	return nil
+	fmt.Fprintln(c, `</tr></table>`)
+	return conventions, nil
 }
 
 func showbids(c io.Writer, bids string) os.Error {

@@ -12,7 +12,6 @@ var Natural = BiddingRule{
 		hcp := h.HCP()
 		partner := (bidder+2)&3
 		hcprange := e.HCP(partner)
-		minhcp := hcp + hcprange.Min
 		ptsrange := e.PointCount(partner)
 		minpts := pts + ptsrange.Min
 		maxpts := pts + ptsrange.Max
@@ -20,6 +19,11 @@ var Natural = BiddingRule{
 		rhearts := e.SuitLength(partner, Hearts)
 		minS := rspades.Min + byte((h >> 28)&15)
 		minH := rhearts.Min + byte((h >> 20)&15)
+		// gamelevel is the bid needed for game.
+		gamelevel := 4
+		// pointlevels are the points that are needed for various bids
+		pointlevels := map[int]Points{ 2:19, 3:23, 4:26, 5:29, 6:33, 7:37, 8:60 }
+		num := int(ms[1][0] - '0') // the level we are bid to
 		switch ms[2] {
 		case "N":
 			if minS > 7 {
@@ -28,13 +32,12 @@ var Natural = BiddingRule{
 			if minH > 7 {
 				badness += Score(minH - 7)*SuitLengthProblem
 			}
-			pointlevels := map[int]Points{ 2:22, 3:26, 4:33, 5:33, 6:33, 7:37, 8:60 }
-			num := int(ms[1][0] - '0')
-			if minhcp < pointlevels[num] {
-				badness += Score(pointlevels[num]-minhcp)*PointValueProblem
-			} else if minhcp >= pointlevels[num+1] {
-				badness += Score(minhcp - pointlevels[num+1])*PointValueProblem
-			}
+			// redefine gamelevel and pointlevels appropriately
+			gamelevel = 3
+			pointlevels = map[int]Points{ 2:20, 3:26, 4:33, 5:33, 6:33, 7:37, 8:60 }
+			// in notrump, hcp are what is relevant
+			minpts = hcp + hcprange.Min
+			maxpts = hcp + hcprange.Max
 		case "S","H","D","C":
 			mysuit := stringToSuitNumber(ms[2])
 			myownsuitlen := byte((h >> (4+8*mysuit))&15)
@@ -44,22 +47,37 @@ var Natural = BiddingRule{
 				// We always want a guaranteed fit.
 				badness += Score(8 - mysuitlen)*SuitLengthProblem
 			}
-			gamelevel := 4
+			if mysuitlen > 8 {
+				for i:=2; i<6; i++ {
+					pointlevels[i] -= Points(mysuitlen-8) // we need a one fewer point per extra trump?
+				}
+			}
 			if mysuit < Hearts {
 				gamelevel = 5
 			}
-			pointlevels := map[int]Points{ 2:19, 3:23, 4:26, 5:29, 6:33, 7:37, 8:60 }
-			num := int(ms[1][0] - '0')
-			if minpts < pointlevels[num] {
-				badness += Score(pointlevels[num]-minpts)*PointValueProblem
-			} else if minpts >= pointlevels[num+1] {
-				badness += Score(minpts - pointlevels[num+1])*PointValueProblem
-			}
-			if num < gamelevel && maxpts < pointlevels[num+1] {
-				// This assumes we are bidding for game, and leaves out
-				// competitive bidding...
-				badness += Score(pointlevels[num+1] - maxpts)*PointValueProblem
-			}
+		}
+		if minpts < pointlevels[num] {
+			// we need to guarantee pointlevels[num] to bid at this level
+			badness += Score(pointlevels[num]-minpts)*PointValueProblem
+		} else if minpts >= pointlevels[num+1] && (num < gamelevel || num == 5 || num == 6) {
+			// if we can guarantee pointlevels[num+1], then we should bid at
+			// *that* level (if it's at-or-below game, or a slam bid)
+			badness += Score(minpts - pointlevels[num+1])*PointValueProblem
+		}
+		/*
+		if num < gamelevel && (maxpts+minpts+1)/2 < pointlevels[num+1] {
+			// We never want to bid a natural bid unless there is 50% of
+			// partner's range that could lead to the next bid up.
+			// This assumes we are bidding for game, and leaves out
+			// competitive bidding...
+			badness += Score(pointlevels[num+1] - (maxpts+minpts+1)/2)*PointValueProblem
+		}
+		 */
+		if num < gamelevel && maxpts < pointlevels[gamelevel] {
+			// We never want to bid a natural bid unless there is at least
+			// some chance of game.  This assumes we are bidding for game,
+			// and leaves out competitive bidding...
+			badness += Score(pointlevels[gamelevel] - maxpts)*PointValueProblem
 		}
 		return
 	},
