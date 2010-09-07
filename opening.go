@@ -71,6 +71,12 @@ var Opening = BiddingRule{
 	},
 }
 
+var PreemptOvercall = BiddingRule{
+	"Preemptive overcall",
+	regexp.MustCompile("^( P)*1.(3)([CDHS])$"),
+	Preempt.score, // preemptive overcalls at 3 level are like ordinary preempts.
+}
+
 var Preempt = BiddingRule{
 	"Preempt",
 	regexp.MustCompile("^( P)*([23])([CDHS])$"),
@@ -102,7 +108,7 @@ var Preempt = BiddingRule{
 		}
 		if numinsuit < goal {
 			badness += Score(goal-numinsuit)*SuitLengthProblem
-		} else {
+		} else if goal == 6 {
 			badness += Score(numinsuit-goal)*Fudge
 		}
 		return

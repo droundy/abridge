@@ -58,7 +58,7 @@ var Convention = []BiddingRule{ Opening, Preempt, PassOpening, CheapResponse, Tw
 	CheapRebid,
 	MajorSupport, MajorInvitation,
 	OneNT, Stayman, StaymanResponse, StaymanTwo, StaymanTwoResponse, TwoNT, Gambling3NT,
-	OneLevelOvercall, PassOvercall, PassHigherOvercall, Natural }
+	OneLevelOvercall, PreemptOvercall, PassOvercall, PassHigherOvercall, Natural }
 
 func subBids(dealer Seat, bid string) (seats []Seat, bids []string) {
 	seats = make([]Seat, len(bid)/2)
