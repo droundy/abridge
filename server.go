@@ -21,28 +21,43 @@ func main() {
 	}
 }
 
-var bids = ""
-var dealer = bridge.Seat(bridge.South)
+var max_clients = 1024
+var last_client = 0
+var bids = make(map[string]string)
+var dealer = make(map[string]bridge.Seat)
 
 // hello world, the web server
 func helloServer(c *http.Conn, req *http.Request) {
+	clientname, ok := req.Header["Cookie"]
+	if !ok {
+		fmt.Println("Got a new client!")
+		last_client = (last_client + 1) % max_clients
+		clientname = fmt.Sprintf("client=%d", last_client)
+		c.SetHeader("Set-Cookie", clientname)
+	} else {
+		fmt.Println("Welcome back,", clientname)
+	}
 	if req.Method == "POST" {
 		req.ParseForm()
 		bid,ok := req.Form["bid"]
 		if ok && len(bid) == 1 && len(bid[0]) == 2 {
-			bids = bids + bid[0]
+			bids[clientname] = bids[clientname] + bid[0]
 		} else if _,ok := req.Form["refresh"]; !ok {
-			bids = ""
-			dealer = (dealer + 1) % 4
+			bids[clientname] = ""
+			dealer[clientname] = (dealer[clientname] + 1) % 4
 		}
 		if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
-			dealer = bridge.StringToSeat(d[0])
+			dealer[clientname] = bridge.StringToSeat(d[0])
 		}
 		for k,v := range req.Form {
 			fmt.Println(k, v)
 		}
+		for k,v := range req.Header {
+			fmt.Println("Header: ", k, v)
+		}
 	}
 	fmt.Println(req.Method, req.RawURL)
+	c.SetHeader("Content-Type", "text/html")
 	io.WriteString(c, `
 <html>
 <head>
@@ -55,13 +70,13 @@ func helloServer(c *http.Conn, req *http.Request) {
 <body>
 `)
 	fmt.Fprintln(c, "<table><tr><td>")
-	bidbox(c, bids)
+	bidbox(c, dealer[clientname], bids[clientname])
 	io.WriteString(c, `</td><td>`)
-	cs,_ := analyzebids(c, bids)
+	cs,_ := analyzebids(c, dealer[clientname], bids[clientname])
 	io.WriteString(c, `</td><td>`)
-	showbids(c, bids)
+	showbids(c, dealer[clientname], bids[clientname])
 	fmt.Fprintln(c, `</td></tr></table>`)
-	showconventions(c, bids, cs)
+	showconventions(c, bids[clientname], cs)
 	fmt.Fprintln(c, `</body></html>`)
 }
 
@@ -73,7 +88,7 @@ func showconventions(c io.Writer, bids string, conventions []string) os.Error {
 	return nil
 }
 
-func analyzebids(c io.Writer, bids string) ([]string, os.Error) {
+func analyzebids(c io.Writer, dealer bridge.Seat, bids string) ([]string, os.Error) {
 	fmt.Fprintln(c, "<pre>")
 	//ts, ntry := bridge.ShuffleValidTables(lastbidder, bids, 100)
 	ts,conventions := bridge.GetValidTables(dealer, bids, 100)
@@ -95,7 +110,7 @@ func analyzebids(c io.Writer, bids string) ([]string, os.Error) {
 	return conventions, nil
 }
 
-func showbids(c io.Writer, bids string) os.Error {
+func showbids(c io.Writer, dealer bridge.Seat, bids string) os.Error {
 	fmt.Fprintln(c, `<table><tr><td>South</td><td>West</td><td>North</td><td>East</td></tr><tr>`)
 	for i:=bridge.Seat(0); i<dealer; i++ {
 		fmt.Fprintln(c, `<td align="center">-</td>`)		
@@ -116,7 +131,7 @@ func showbids(c io.Writer, bids string) os.Error {
 	return nil
 }
 
-func bidbox(c io.Writer, bids string) os.Error {
+func bidbox(c io.Writer, dealer bridge.Seat, bids string) os.Error {
 	fmt.Fprintln(c, `<form method=post>`)
 	candouble := regexp.MustCompile(".[CDHSN]( P P)?$").MatchString(bids)
 	canredouble := regexp.MustCompile(" X( P P)?$").MatchString(bids)

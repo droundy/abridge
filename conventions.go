@@ -1,7 +1,6 @@
 package bridge
 
 import (
-	"fmt"
 	"math"
 	"rand"
 	"regexp"
@@ -127,7 +126,7 @@ func GetValidTables(dealer Seat, bid string, num int) (*Ensemble, []string) {
 				}
 				beta *= betainc // Here's our annealing schedule...
 			}
-			fmt.Printf("Badness %4g -> %4g\n", oldbadness, badness)
+			//fmt.Printf("Badness %4g -> %4g\n", oldbadness, badness)
 			es[bidnum+1].tables[i] = t
 		}
 	}
