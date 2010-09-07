@@ -56,7 +56,8 @@ func LastBid(bid string) (val int, s Color) {
 
 var Convention = []BiddingRule{ Opening, Preempt, PassOpening, CheapResponse, TwoOverOne,
 	CheapRebid,
-	MajorSupport, MajorInvitation, OneNT, TwoNT, Gambling3NT,
+	MajorSupport, MajorInvitation,
+	OneNT, Stayman, StaymanResponse, StaymanTwo, StaymanTwoResponse, TwoNT, Gambling3NT,
 	OneLevelOvercall, PassOvercall, PassHigherOvercall, Natural }
 
 func subBids(dealer Seat, bid string) (seats []Seat, bids []string) {

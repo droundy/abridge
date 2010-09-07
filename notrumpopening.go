@@ -4,6 +4,56 @@ import (
 	"regexp"
 )
 
+var Stayman = BiddingRule{
+	"Stayman",
+	regexp.MustCompile("^( P)*1N P2C$"),
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+		return // Says nothing...
+	},
+}
+
+var StaymanTwo = BiddingRule{
+	"Stayman",
+	regexp.MustCompile("^( P)*2N P3C$"),
+	Stayman.score,
+}
+
+var StaymanResponse = BiddingRule{
+	"Stayman",
+	regexp.MustCompile("^( P)*1N P2C P2([DHS])$"),
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+		lh := byte(h>>20) & 15
+		ls := byte(h>>28) & 15
+		switch ms[2] {
+		case "D":
+			if lh > 3 {
+				badness += Score(lh - 3)*SuitLengthProblem
+			}
+			if ls > 3 {
+				badness += Score(ls - 3)*SuitLengthProblem
+			}
+		case "H":
+			if lh < 4 {
+				badness += Score(4 - lh)*SuitLengthProblem
+			}
+		case "S":
+			if lh > 3 {
+				badness += Score(lh - 3)*SuitLengthProblem
+			}
+			if ls < 4 {
+				badness += Score(4 - ls)*SuitLengthProblem
+			}
+		}
+		return
+	},
+}
+
+var StaymanTwoResponse = BiddingRule{
+	"Stayman",
+	regexp.MustCompile("^( P)*2N P3C P3([DHS])$"),
+	StaymanResponse.score,
+}
+
 var OneNT = BiddingRule{
 	"1NT opening",
 	regexp.MustCompile("^( P)*1N$"),
