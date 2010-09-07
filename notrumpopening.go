@@ -36,8 +36,8 @@ var TwoNT = BiddingRule{
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		hcp := h.HCP()
 		dist := h.DistPoints()
-		if hcp > 22 {
-			badness += Score(hcp-22)*PointValueProblem
+		if hcp > 21 {
+			badness += Score(hcp-21)*PointValueProblem
 		} else if hcp < 20 {
 			badness += Score(20-hcp)*PointValueProblem
 		}
