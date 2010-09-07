@@ -15,15 +15,17 @@ const (
 	Ace
 )
 
+// The following are bigger than we need, but that seems nicer than
+// risking panics.
 var (
-	stringTable [224]string
-	HCP [224]Points
-	DistPoints [224]Points
-	PointCount [224]Points
+	stringTable [256]string
+	HCP [256]Points
+	DistPoints [256]Points
+	PointCount [256]Points
 )
 
 func init() {
-	for s:=Suit(0); s<224; s++ {
+	for s:=Suit(0); s<255; s++ {
 		l := int(s >> 4)
 		// First, let's generate the friendly output...
 		str := make([]byte, int(s >> 4))

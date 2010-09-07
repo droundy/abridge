@@ -4,6 +4,47 @@ import (
 	"regexp"
 )
 
+var Splinter = BiddingRule{
+	"Splinter",
+	regexp.MustCompile("^( P)*1([HS]) P(3S|4[CDH])$"),
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+		opensuit := stringToSuitNumber(ms[2])
+		splintersuit := uint(Spades)
+		switch ms[3] {
+		case "4C": splintersuit = Clubs
+		case "4D": splintersuit = Diamonds
+		case "4H": splintersuit = Hearts
+		}
+		if opensuit == splintersuit {
+			return 0, true // Not a splinter!
+		}
+		openlen := byte(h >> (4+opensuit*8)) & 15
+		splinterlen := byte(h >> (4+splintersuit*8)) & 15
+		if splinterlen > 1 {
+			badness += Score(splinterlen - 1)*SuitLengthProblem
+		}
+		spls := byte(h >> splintersuit*8)
+		hcp_inside := HCP[Suit(spls)]
+		hcp_outside := h.HCP() - hcp_inside
+		// Splinter indicates 10-12 hcp outside the singleton
+		if hcp_outside < 10 {
+			badness += Score(10 - hcp_outside)*PointValueProblem
+		} else if hcp_outside > 12 {
+			badness += Score(hcp_outside - 12)*PointValueProblem
+		}
+		if hcp_inside > 2 {
+			// To bid a splinter, we'd better not have more than a queen in
+			// the singleton.
+			badness += Score(hcp_inside - 2)*PointValueProblem
+		}
+		if openlen < 4 {
+			// A splinter bid promises four-card support.
+			badness += Score(4-openlen)*SuitLengthProblem
+		}
+		return
+	},
+}
+
 var MajorInvitation = BiddingRule{
 	"Major support",
 	regexp.MustCompile("^( P)*1([HS]) P3([HS])$"),
