@@ -4,25 +4,34 @@ import (
 	"fmt"
 )
 
-type Ensemble []Table
+type Ensemble struct {
+	tables []Table
+	hcp [4]*PointRange
+	pts [4]*PointRange
+	suits [4][4]*Range
+}
 
-func (e Ensemble) String() string {
+func (e *Ensemble) String() string {
 	out := ""
-	Nmin, _, Nmax := e.HCP(North)
-	Smin, _, Smax := e.HCP(South)
-	Emin, _, Emax := e.HCP(East)
-	Wmin, _, Wmax := e.HCP(West)
+	N := e.HCP(North)
+	S := e.HCP(South)
+	E := e.HCP(East)
+	W := e.HCP(West)
+	Np := e.PointCount(North)
+	Sp := e.PointCount(South)
+	Ep := e.PointCount(East)
+	Wp := e.PointCount(West)
+	/*
 	tables := [4]map[Hand]int{make(map[Hand]int),make(map[Hand]int),make(map[Hand]int),make(map[Hand]int)}
 	points := [4]map[Points]int{make(map[Points]int),make(map[Points]int),make(map[Points]int),make(map[Points]int)}
 	hcp := [4]map[Points]int{make(map[Points]int),make(map[Points]int),make(map[Points]int),make(map[Points]int)}
-	for _,t := range e {
+	for _,t := range e.tables {
 		for i := range tables {
 			tables[i][t[i]]++
 			points[i][t[i].PointCount()]++
 			hcp[i][t[i].HCP()]++
 		}
 	}
-	/*
 	hands := e[0]
 	prob := 0
 	for _,t := range e {
@@ -39,68 +48,95 @@ func (e Ensemble) String() string {
 	}
 	fmt.Printf("prob is %d out of %d\n", prob-12, 12*(len(e)-1))
 */
-	out += fmt.Sprintf("           (%2d-%2d)\n", Nmin, Nmax)
-	for sv:=uint(Spades); sv>Clubs; sv-- {
+	out += fmt.Sprintf("           [%2d-%2d]\n", Np.Min, Np.Max)
+	out += fmt.Sprintf("           (%2d-%2d)\n", N.Min, N.Max)
+	for sv:=uint(Spades); sv>Diamonds; sv-- {
 		out += fmt.Sprintf("          %s: %v\n", SuitLetter[sv], e.SuitLength(North, sv))
 	}
-	out += fmt.Sprintf(" (%2d-%2d)  C: %9v(%2d-%2d)\n",Wmin,Wmax,e.SuitLength(North, Clubs),Emin,Emax)
-	for sv:=uint(Spades); sv>Clubs; sv-- {
+	out += fmt.Sprintf(" [%2d-%2d]  D: %9v[%2d-%2d]\n",Wp.Min,Wp.Max,e.SuitLength(North, Diamonds),Ep.Min,Ep.Max)
+	out += fmt.Sprintf(" (%2d-%2d)  C: %9v(%2d-%2d)\n",W.Min,W.Max,e.SuitLength(North, Clubs),E.Min,E.Max)
+	for sv:=uint(Spades); sv>Diamonds; sv-- {
 		out += fmt.Sprintf("%s: %18v%s: %v\n",
 			SuitLetter[sv], e.SuitLength(West, sv),
 			SuitLetter[sv], e.SuitLength(East, sv))
 	}
-	out += fmt.Sprintf("C: %8v(%2d-%2d)   C: %v\n",e.SuitLength(West, Clubs),Smin,Smax,e.SuitLength(East,Clubs))
+	out += fmt.Sprintf("D: %8v[%2d-%2d]   D: %v\n",e.SuitLength(West, Diamonds),Sp.Min,Sp.Max,e.SuitLength(East,Diamonds))
+	out += fmt.Sprintf("C: %8v(%2d-%2d)   C: %v\n",e.SuitLength(West, Clubs),S.Min,S.Max,e.SuitLength(East,Clubs))
 	for sv:=uint(Spades); sv<=Spades; sv-- {
 		out += fmt.Sprintf("          %s: %v\n", SuitLetter[sv], e.SuitLength(South,sv))
 	}
-	//out += fmt.Sprintf("Spades north: %g\n", e.SuitLength(North, Spades).mean)
-	//out += fmt.Sprintf("Spades south: %g\n", e.SuitLength(South, Spades).mean)
+	//out += fmt.Sprintf("Spades north: %g\n", e.SuitLength(North, Spades).Mean)
+	//out += fmt.Sprintf("Spades south: %g\n", e.SuitLength(South, Spades).Mean)
 	return out
 }
 
-func (e Ensemble) HCP(seat Seat) (min Points, mean float64, max Points) {
-	min = 100
-	for _,t := range e {
-		hcp := t[seat].HCP()
-		if hcp < min {
-			min = hcp
+func (e *Ensemble) Invalidate() {
+	for i := range e.hcp {
+		e.hcp[i] = nil
+		e.pts[i] = nil
+		for j := range e.suits[i] {
+			e.suits[i][j] = nil
 		}
-		if hcp > max {
-			max = hcp
-		}
-		mean += float64(hcp)
 	}
-	return min, mean/float64(len(e)), max
 }
 
-func (e Ensemble) PointCount(seat Seat) (min Points, mean float64, max Points) {
-	min = 100
-	for _,t := range e {
-		hcp := t[seat].PointCount()
-		if hcp < min {
-			min = hcp
-		}
-		if hcp > max {
-			max = hcp
-		}
-		mean += float64(hcp)
+func (e *Ensemble) HCP(seat Seat) (r PointRange) {
+	if e.hcp[seat] != nil {
+		return *e.hcp[seat]
 	}
-	return min, mean/float64(len(e)), max
+	r.Min = 100
+	for _,t := range e.tables {
+		hcp := t[seat].HCP()
+		if hcp < r.Min {
+			r.Min = hcp
+		}
+		if hcp > r.Max {
+			r.Max = hcp
+		}
+		r.Mean += float64(hcp)
+	}
+	r.Mean /= float64(len(e.tables))
+	e.hcp[seat] = &r
+	return r
+}
+
+func (e *Ensemble) PointCount(seat Seat) (r PointRange) {
+	if e.pts[seat] != nil {
+		return *e.pts[seat]
+	}
+	r.Min = 100
+	for _,t := range e.tables {
+		pts := t[seat].PointCount()
+		if pts < r.Min {
+			r.Min = pts
+		}
+		if pts > r.Max {
+			r.Max = pts
+		}
+		r.Mean += float64(pts)
+	}
+	r.Mean /= float64(len(e.tables))
+	e.pts[seat] = &r
+	return r
 }
 
 type Range struct {
-	min, max byte
-	mean float64
+	Min, Max byte
+	Mean float64
+}
+type PointRange struct {
+	Min, Max Points
+	Mean float64
 }
 func (r Range) Format(f fmt.State, c int) {
 	i := byte(0)
-	for ; i<r.min; i++ {
+	for ; i<r.Min; i++ {
 		f.Write([]byte{'X'})
 	}
-	for ; float64(i)+0.5 < r.mean; i++ {
+	for ; float64(i)+0.5 < r.Mean; i++ {
 		f.Write([]byte{'x'})
 	}
-	for ; i < r.max; i++ {
+	for ; i < r.Max; i++ {
 		f.Write([]byte{'.'})
 	}
 	if w,ok := f.Width(); ok {
@@ -112,17 +148,27 @@ func (r Range) Format(f fmt.State, c int) {
 
 func (e Ensemble) SuitLength(seat Seat, suit uint) (r Range) {
 	suit = suit % 4
-	r.min = byte(100)
-	for _,t := range e {
-		num := byte((t[seat] >> (4+8*suit)) & 15)
-		if num < r.min {
-			r.min = num
-		}
-		if num > r.max {
-			r.max = num
-		}
-		r.mean += float64(num)
+	if e.suits[seat][suit] != nil {
+		return *e.suits[seat][suit]
 	}
-	r.mean /= float64(len(e))
+	r.Min = byte(100)
+	for _,t := range e.tables {
+		num := byte((t[seat] >> (4+8*suit)) & 15)
+		if num < r.Min {
+			r.Min = num
+		}
+		if num > r.Max {
+			r.Max = num
+		}
+		r.Mean += float64(num)
+	}
+	r.Mean /= float64(len(e.tables))
+	e.suits[seat][suit] = &r
 	return
+}
+
+func makeEnsemble(num int) Ensemble {
+	var foo Ensemble
+	foo.tables = make([]Table, num)
+	return foo
 }

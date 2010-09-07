@@ -57,7 +57,7 @@ func LastBid(bid string) (val int, s Color) {
 var Convention = []BiddingRule{ Opening, Preempt, PassOpening, CheapResponse, TwoOverOne,
 	CheapRebid,
 	MajorSupport, MajorInvitation, OneNT, TwoNT, Gambling3NT,
-	OneLevelOvercall, PassOvercall, Natural }
+	OneLevelOvercall, PassOvercall, PassHigherOvercall, Natural }
 
 func subBids(dealer Seat, bid string) (seats []Seat, bids []string) {
 	seats = make([]Seat, len(bid)/2)
@@ -69,13 +69,14 @@ func subBids(dealer Seat, bid string) (seats []Seat, bids []string) {
 	return
 }
 
-func simpleScore(bidder Seat, h Hand, bid string, e Ensemble) (badness Score) {
+func simpleScore(bidder Seat, h Hand, bid string, e Ensemble) (badness Score, convention string) {
 	for _,c := range Convention {
 		ms := c.match.FindStringSubmatch(bid)
 		if ms != nil {
 			b,unhandled := c.score(bidder, h, ms, e)
 			badness += b
 			if !unhandled {
+				convention = c.name
 				break
 			}
 			//fmt.Printf("Got badness %g from %s\n", b, c.name)
@@ -84,42 +85,51 @@ func simpleScore(bidder Seat, h Hand, bid string, e Ensemble) (badness Score) {
 	return
 }
 
-func TableScore(t Table, bidders []Seat, bids []string, es []Ensemble) (badness Score) {
+func TableScore(t Table, bidders []Seat, bids []string, es []Ensemble) (badness Score, conventions []string) {
+	conventions = make([]string, len(bids))
 	for i, bidder := range bidders {
-		badness += simpleScore(bidder, t[bidder], bids[i], es[i])
+		b,c := simpleScore(bidder, t[bidder], bids[i], es[i])
+		conventions[i] = c
+		badness += b
 	}
 	return
 }
 
-var last_ts = make([]Table, 0)
-func GetValidTables(dealer Seat, bid string, num int) Ensemble {
+// The []string output describes the bids made...
+func GetValidTables(dealer Seat, bid string, num int) (*Ensemble, []string) {
 	seats, bids := subBids(dealer, bid)
 	es := make([]Ensemble, len(bids)+1) // This is the ensemble after each bid
-	es[0] = make(Ensemble, num)
-	for i := range es[0] {
-		es[0][i] = Shuffle() // Things start out random!
+	es[0] = makeEnsemble(num)
+	for i := range es[0].tables {
+		es[0].tables[i] = Shuffle() // Things start out random!
 	}
+	var conventions []string
 	for bidnum := range seats {
-		es[bidnum+1] = make(Ensemble, num)
-		for i,eold := range es[bidnum] {
+		es[bidnum+1] = makeEnsemble(num)
+		for i,eold := range es[bidnum].tables {
 			t := eold // Initialize ensemble based on previous bidding
-			oldbadness := TableScore(t, seats[0:bidnum+1], bids[0:bidnum+1], es[0:bidnum+1])
+			oldbadness,cs := TableScore(t, seats[0:bidnum+1], bids[0:bidnum+1], es[0:bidnum+1])
+			conventions = cs
 			badness := oldbadness
 			numswaps := 52*10
 			beta := Score(0.01)
+			maxbeta := Score(1)
+			betainc := Score(math.Pow(float64(maxbeta/beta), 1/float64(numswaps)))
 			for i:=0; i<numswaps && (badness > 0 || i < 52); i++ {
 				// Try moving a couple of cards at a time...
 				t2 := t.ShuffleCard(rand.Intn(52)).ShuffleCard(rand.Intn(52))
-				b2 := TableScore(t2, seats[0:bidnum+1], bids[0:bidnum+1], es[0:bidnum+1])
+				b2,cs := TableScore(t2, seats[0:bidnum+1], bids[0:bidnum+1], es[0:bidnum+1])
 				if b2 <= badness || rand.Float64() < math.Exp(float64(-beta*(b2 - badness))) {
 					t = t2
 					badness = b2
+					conventions = cs
 				}
-				beta *= 1.01 // Here's our annealing schedule...
+				beta *= betainc // Here's our annealing schedule...
 			}
 			fmt.Printf("Badness %4g -> %4g\n", oldbadness, badness)
-			es[bidnum+1][i] = t
+			es[bidnum+1].tables[i] = t
 		}
 	}
-	return es[len(bids)] // return final ensemble
+	out := es[len(bids)] // return final ensemble
+	return &out, conventions
 }

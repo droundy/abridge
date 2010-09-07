@@ -11,14 +11,14 @@ var Natural = BiddingRule{
 		pts := h.PointCount()
 		hcp := h.HCP()
 		partner := (bidder+2)&3
-		minPhcp,_,_ := e.HCP(partner)
-		minhcp := hcp + minPhcp
-		minPpoints,_,_ := e.PointCount(partner)
-		minpts := pts + minPpoints
+		hcprange := e.HCP(partner)
+		minhcp := hcp + hcprange.Min
+		ptsrange := e.PointCount(partner)
+		minpts := pts + ptsrange.Min
 		rspades := e.SuitLength(partner, Spades)
 		rhearts := e.SuitLength(partner, Hearts)
-		minS := rspades.min + byte((h >> 28)&15)
-		minH := rhearts.min + byte((h >> 20)&15)
+		minS := rspades.Min + byte((h >> 28)&15)
+		minH := rhearts.Min + byte((h >> 20)&15)
 		switch ms[2] {
 		case "N":
 			if minS > 7 {
@@ -38,7 +38,7 @@ var Natural = BiddingRule{
 			mysuit := stringToSuitNumber(ms[2])
 			myownsuitlen := byte((h >> (4+8*mysuit))&15)
 			rsuit := e.SuitLength(partner, mysuit)
-			mysuitlen := myownsuitlen + rsuit.min
+			mysuitlen := myownsuitlen + rsuit.Min
 			if mysuitlen < 8 {
 				// We always want a guaranteed fit.
 				badness += Score(8 - mysuitlen)*SuitLengthProblem
@@ -50,12 +50,6 @@ var Natural = BiddingRule{
 			} else if minpts >= pointlevels[num+1] {
 				badness += Score(minpts - pointlevels[num+1])*PointValueProblem
 			}
-		}
-		if pts < 13 {
-			badness += Fudge
-		}
-		if pts < 12 {
-			badness += Score(12-pts)*PointValueProblem
 		}
 		return
 	},

@@ -55,33 +55,36 @@ func helloServer(c *http.Conn, req *http.Request) {
 <body>
 `)
 	fmt.Fprintln(c, "<table><tr><td>")
-	showbids(c, bids)
-	io.WriteString(c, `</td><td>`)
 	bidbox(c, bids)
 	io.WriteString(c, `</td><td>`)
 	analyzebids(c, bids)
+	io.WriteString(c, `</td><td>`)
+	showbids(c, bids)
 	fmt.Fprintln(c, `</td></tr></table></body></html>`)
 }
 
 func analyzebids(c io.Writer, bids string) os.Error {
 	fmt.Fprintln(c, "<pre>")
 	//ts, ntry := bridge.ShuffleValidTables(lastbidder, bids, 100)
-	ts := bridge.GetValidTables(dealer, bids, 100)
+	ts,conventions := bridge.GetValidTables(dealer, bids, 100)
 	fmt.Fprintln(c, ts)
 	//fmt.Fprintf(c, "\nProbability = %.2f%%\n", 100/ntry)
 	fmt.Fprintln(c, `</pre><table><tr><td></td>`)
 	fmt.Fprintln(c, `<td align="center">South</td><td align="center">West</td><td align="center">North</td><td align="center">East</td>`)
 	fmt.Fprintln(c, `</tr><tr><td>HCP</td>`)
-	for i:=range ts[0] {
-		min, hcp, max := ts.HCP(bridge.Seat(i))
-		fmt.Fprintf(c, `<td align="center">%d-%.1f-%d</td>`, min, hcp, max)
+	for i:=0; i<4; i++ {
+		hcp := ts.HCP(bridge.Seat(i))
+		fmt.Fprintf(c, `<td align="center">%d-%.1f-%d</td>`, hcp.Min, hcp.Mean, hcp.Max)
 	}
 	fmt.Fprintln(c, `</tr><tr><td>Points</td>`)
-	for i:=range ts[0] {
-		min, hcp, max := ts.PointCount(bridge.Seat(i))
-		fmt.Fprintf(c, `<td align="center">%d-%.1f-%d</td>`, min, hcp, max)
+	for i:=0; i<4; i++ {
+		pts := ts.PointCount(bridge.Seat(i))
+		fmt.Fprintf(c, `<td align="center">%d-%.1f-%d</td>`, pts.Min, pts.Mean, pts.Max)
 	}
 	fmt.Fprintln(c, `</tr></table>`)
+	for i,cc := range conventions {
+		fmt.Fprintln(c, bids[2*i:2*i+2], "=", cc, "<br/>")
+	}
 	return nil
 }
 

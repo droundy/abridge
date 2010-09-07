@@ -5,12 +5,34 @@ import (
 )
 
 var PassOvercall = BiddingRule{
-	"One-level overcall",
+	"Pass an opportunity to overcall a one-suit bid",
 	regexp.MustCompile("^( P)*1[CDH]( P..)? P$"),
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		if pts > 12 {
 			badness += Score(pts-12)*PointValueProblem
+		}
+		return
+	},
+}
+
+var PassHigherOvercall = BiddingRule{
+	"Pass a higher overcall",
+	regexp.MustCompile("^( P)*(1N|2N|[23][CDHS])( P..)? P$"),
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+		pts := h.PointCount()
+		longest_suit := byte(0)
+		for sv := uint(0); sv<4; sv++ {
+			l := byte((h >> (4+8*sv)) & 15)
+			if l > longest_suit {
+				longest_suit = l
+			}
+		}
+		if pts > 14 {
+			badness += Score(pts-14)*PointValueProblem
+		} else if longest_suit > 6 && pts > 7 {
+			badness += Score(longest_suit - 6)*SuitLengthProblem
+			badness += Score(pts - 8)*PointValueProblem
 		}
 		return
 	},
