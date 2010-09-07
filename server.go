@@ -28,33 +28,35 @@ var dealer = make(map[string]bridge.Seat)
 
 // hello world, the web server
 func helloServer(c *http.Conn, req *http.Request) {
-	clientname, ok := req.Header["Cookie"]
-	if !ok {
-		fmt.Println("Got a new client!")
-		last_client = (last_client + 1) % max_clients
-		clientname = fmt.Sprintf("client=%d", last_client)
-		c.SetHeader("Set-Cookie", clientname)
-	} else {
-		fmt.Println("Welcome back,", clientname)
-	}
+	clientname := ""
 	if req.Method == "POST" {
 		req.ParseForm()
-		bid,ok := req.Form["bid"]
-		if ok && len(bid) == 1 && len(bid[0]) == 2 {
-			bids[clientname] = bids[clientname] + bid[0]
-		} else if _,ok := req.Form["refresh"]; !ok {
-			bids[clientname] = ""
-			dealer[clientname] = (dealer[clientname] + 1) % 4
+		xx,ok := req.Form["client"]
+		if ok {
+			clientname = xx[0]
+			bid,ok := req.Form["bid"]
+			if ok && len(bid) == 1 && len(bid[0]) == 2 {
+				bids[clientname] = bids[clientname] + bid[0]
+			} else if _,ok := req.Form["refresh"]; !ok {
+				bids[clientname] = ""
+				dealer[clientname] = (dealer[clientname] + 1) % 4
+			}
+			if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
+				dealer[clientname] = bridge.StringToSeat(d[0])
+			}
+			for k,v := range req.Form {
+				fmt.Println(k, v)
+			}
+			for k,v := range req.Header {
+				fmt.Println("Header: ", k, v)
+			}
+		} else {
+			fmt.Println("No client name.")
 		}
-		if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
-			dealer[clientname] = bridge.StringToSeat(d[0])
-		}
-		for k,v := range req.Form {
-			fmt.Println(k, v)
-		}
-		for k,v := range req.Header {
-			fmt.Println("Header: ", k, v)
-		}
+	}
+	if clientname == "" {
+		last_client = (last_client + 1) % max_clients
+		clientname = fmt.Sprintf("client=%d", last_client)
 	}
 	fmt.Println(req.Method, req.RawURL)
 	c.SetHeader("Content-Type", "text/html")
@@ -70,13 +72,13 @@ func helloServer(c *http.Conn, req *http.Request) {
 <body>
 `)
 	fmt.Fprintln(c, "<table><tr><td>")
-	bidbox(c, dealer[clientname], bids[clientname])
+	bidbox(c, clientname)
 	io.WriteString(c, `</td><td>`)
-	cs,_ := analyzebids(c, dealer[clientname], bids[clientname])
+	cs,_ := analyzebids(c, clientname)
 	io.WriteString(c, `</td><td>`)
-	showbids(c, dealer[clientname], bids[clientname])
+	showbids(c, clientname)
 	fmt.Fprintln(c, `</td></tr></table>`)
-	showconventions(c, bids[clientname], cs)
+	showconventions(c, clientname, cs)
 	fmt.Fprintln(c, `</body></html>`)
 }
 
@@ -88,10 +90,10 @@ func showconventions(c io.Writer, bids string, conventions []string) os.Error {
 	return nil
 }
 
-func analyzebids(c io.Writer, dealer bridge.Seat, bids string) ([]string, os.Error) {
+func analyzebids(c io.Writer, clientname string) ([]string, os.Error) {
 	fmt.Fprintln(c, "<pre>")
 	//ts, ntry := bridge.ShuffleValidTables(lastbidder, bids, 100)
-	ts,conventions := bridge.GetValidTables(dealer, bids, 100)
+	ts,conventions := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
 	fmt.Fprintln(c, ts)
 	//fmt.Fprintf(c, "\nProbability = %.2f%%\n", 100/ntry)
 	fmt.Fprintln(c, `</pre><table><tr><td></td>`)
@@ -110,19 +112,19 @@ func analyzebids(c io.Writer, dealer bridge.Seat, bids string) ([]string, os.Err
 	return conventions, nil
 }
 
-func showbids(c io.Writer, dealer bridge.Seat, bids string) os.Error {
+func showbids(c io.Writer, clientname string) os.Error {
 	fmt.Fprintln(c, `<table><tr><td>South</td><td>West</td><td>North</td><td>East</td></tr><tr>`)
-	for i:=bridge.Seat(0); i<dealer; i++ {
+	for i:=bridge.Seat(0); i<dealer[clientname]; i++ {
 		fmt.Fprintln(c, `<td align="center">-</td>`)		
 	}
-	for i:=bridge.Seat(0); i<bridge.Seat(len(bids)/2); i++ {
-		if (i + dealer) & 3 == 0 {
+	for i:=bridge.Seat(0); i<bridge.Seat(len(bids[clientname])/2); i++ {
+		if (i + dealer[clientname]) & 3 == 0 {
 			fmt.Fprintln(c, `</tr><tr>`)
 		}
-		fmt.Fprintln(c, `<td align="center">`, bids[2*i:2*i+2], `</td>`)
+		fmt.Fprintln(c, `<td align="center">`, bids[clientname][2*i:2*i+2], `</td>`)
 	}
-	for i:=bridge.Seat(len(bids)/2); i<50; i++ {
-		if (i + dealer) & 3 == 0 {
+	for i:=bridge.Seat(len(bids[clientname])/2); i<50; i++ {
+		if (i + dealer[clientname]) & 3 == 0 {
 			fmt.Fprintln(c, `</tr><tr>`)
 		}
 		fmt.Fprintln(c, `<td align="center"><font color="#FFFFFF">.</font></td>`)
@@ -131,10 +133,10 @@ func showbids(c io.Writer, dealer bridge.Seat, bids string) os.Error {
 	return nil
 }
 
-func bidbox(c io.Writer, dealer bridge.Seat, bids string) os.Error {
+func bidbox(c io.Writer, clientname string) os.Error {
 	fmt.Fprintln(c, `<form method=post>`)
-	candouble := regexp.MustCompile(".[CDHSN]( P P)?$").MatchString(bids)
-	canredouble := regexp.MustCompile(" X( P P)?$").MatchString(bids)
+	candouble := regexp.MustCompile(".[CDHSN]( P P)?$").MatchString(bids[clientname])
+	canredouble := regexp.MustCompile(" X( P P)?$").MatchString(bids[clientname])
 	fmt.Fprintln(c, `<table><tr>
 <td><input type="submit" name="bid" value=" P" /></td>`)
 	if candouble {
@@ -147,7 +149,7 @@ func bidbox(c io.Writer, dealer bridge.Seat, bids string) os.Error {
 	} else {
 		fmt.Fprintln(c, `<td><font color="#aaaaaa">XX</font></td></tr>`)
 	}
-	bv, bs := bridge.LastBid(bids)
+	bv, bs := bridge.LastBid(bids[clientname])
 	for bidlevel:=1;bidlevel<8;bidlevel++ {
 		fmt.Fprintln(c, "<tr>")
 		for sv:=bridge.Color(bridge.Clubs); sv<=bridge.NoTrump; sv++ {
@@ -163,13 +165,14 @@ func bidbox(c io.Writer, dealer bridge.Seat, bids string) os.Error {
 	}
 	fmt.Fprintln(c, `</table><input type="submit" value="Clear" />`)
 	fmt.Fprintln(c, `<input type="submit" name="refresh" value="Refresh" />`)
-	if bids == "" {
+	if bids[clientname] == "" {
 		fmt.Fprint(c, `<br/>Dealer:<br/> <input type="radio" name="dealer" value="S" /> S
 <input type="radio" name="dealer" value="W" /> W
 <input type="radio" name="dealer" value="N" /> N
 <input type="radio" name="dealer" value="E" /> E<br />
 `)
 	}
+	fmt.Fprintf(c, `<input type="hidden" name="client" value="%s" />`, clientname)
 	fmt.Fprintln(c, `</form>`)
 	return nil
 }
