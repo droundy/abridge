@@ -9,6 +9,7 @@ type Ensemble struct {
 	hcp [4]*PointRange
 	pts [4]*PointRange
 	suits [4][4]*Range
+	Conventions []string // the names of all our conventions
 }
 
 func (e *Ensemble) String() string {

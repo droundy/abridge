@@ -111,8 +111,10 @@ func TableScore(t Table, bidders []Seat, rules [][]ScoringRule, es []Ensemble) (
 	return
 }
 
+func GetTable(bid string, num int) 
+
 // The []string output describes the bids made...
-func GetValidTables(dealer Seat, bid string, num int) (*Ensemble, []string) {
+func GetValidTables(dealer Seat, bid string, num int) *Ensemble {
 	seats, rules := subBids(dealer, bid)
 	es := make([]Ensemble, len(rules)+1) // This is the ensemble after each bid
 	es[0] = makeEnsemble(num)
@@ -144,8 +146,9 @@ func GetValidTables(dealer Seat, bid string, num int) (*Ensemble, []string) {
 			}
 			//fmt.Printf("Badness %4g -> %4g\n", oldbadness, badness)
 			es[bidnum+1].tables[i] = t
+			es[bidnum+1].Conventions = conventions
 		}
 	}
 	out := es[len(rules)] // return final ensemble
-	return &out, conventions
+	return &out
 }
