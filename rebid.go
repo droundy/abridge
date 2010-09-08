@@ -4,14 +4,38 @@ import (
 	"regexp"
 )
 
+var RebidSuit = BiddingRule{
+	"Rebid in my suit after cheap unlimited response",
+	regexp.MustCompile("^( P)*1([CDHS]) P1([DHS]) P2([CDHS])$"),
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+		if ms[2] != ms[4] {
+			return 0, true // This isn't a rebid of my suit
+		}
+		mysuit := stringToSuitNumber(ms[2])
+		theirsuit := stringToSuitNumber(ms[3])
+		mysuitlen := byte(h >> (4+mysuit*8)) & 15
+		theirsuitlen := byte(h >> (4+theirsuit*8)) & 15
+
+		pts := h.PointCount()
+		if pts > 15 {
+			badness += Score(pts-15)*PointValueProblem
+		}
+		if mysuitlen < 6 {
+			badness += Score(6 - mysuitlen)*SuitLengthProblem
+		}
+		if theirsuitlen > 3 && theirsuit >= Hearts {
+			// If we have support for their major, say so!
+			badness += Score(theirsuitlen-3)*SuitLengthProblem
+		}
+		return
+	},
+}
+
 var CheapRebid = BiddingRule{
 	"Cheap response to one",
 	regexp.MustCompile("^( P)*1([CDH]) P1([DHS]) P1([HSN])$"),
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
-		if pts < 6 {
-			badness += Score(6-pts)*PointValueProblem
-		}
 		opensuit := stringToSuitNumber(ms[2])
 		theirsuit := stringToSuitNumber(ms[3])
 		theirsuitlen := byte(h >> (4+theirsuit*8)) & 15

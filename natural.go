@@ -55,8 +55,8 @@ var Natural = BiddingRule{
 			if mysuit < Hearts {
 				gamelevel = 5
 			}
-			if num == 6 || num == 7 {
-				// Special case for splinter slams:
+			if num > 4 {
+				// Special case for splinter slams and slam invites:
 				for i:=uint(Clubs); i<=Spades; i++ {
 					if i != mysuit {
 						rsuit := e.SuitLength(partner, i)
@@ -71,22 +71,53 @@ var Natural = BiddingRule{
 									myhcp += HCP[byte(h>>(8*j))]
 								}
 							}
-							if theirhcprange.Min + myhcp < 25 {
-								badness += Score(25 - theirhcprange.Min - myhcp)*PointValueProblem;
-							}
-							if num == 7 {
+							neededpts := Points(25)
+							switch num {
+							case 7:
+								neededpts = 27
 								if h & (Hand(Ace) << (8*i)) == 0 && (h >> (4+8*i)) & 15 > 0 {
 									// For grand slam, we need the missing ace!
 									badness += PointValueProblem
 								}
-								if theirhcprange.Min + myhcp < 27 {
-									badness += Score(27 - theirhcprange.Min - myhcp)*PointValueProblem
-								}
+							case 5: neededpts = 23 // Just invite to slam...
+							}
+							if theirhcprange.Min + myhcp < neededpts {
+								badness += Score(neededpts - theirhcprange.Min - myhcp)*PointValueProblem;
 							}
 							return
 						}
 					}
 				}
+			}
+			if num == 6 {
+				// Special case when *I've* got a splintery hand and may have
+				// been invited...
+				for i:=uint(Clubs); i<=Spades; i++ {
+					if i != mysuit {
+						mysuit := byte(h >> (4+i*8))
+						if mysuit < 2 {
+							// We have a splintery situation!
+							othersuits := [4]bool{true,true,true,true}
+							othersuits[i] = false
+							theirhcprange := e.SuitHCP(partner, othersuits)
+							myhcp := Points(0)
+							for j:=uint(Clubs); j<=Spades; j++ {
+								if j != i {
+									myhcp += HCP[byte(h>>(8*j))]
+								}
+							}
+							neededpts := Points(25)
+							if theirhcprange.Min + myhcp >= neededpts {
+								// Ugly... I don't want to "add badness" in case
+								// there's another way of counting that gives us
+								// slam...
+								return 0, false
+								//badness += Score(neededpts - theirhcprange.Min - myhcp)*PointValueProblem;
+							}
+						}
+					}
+				}
+				
 			}
 		}
 		if minpts < pointlevels[num] {
