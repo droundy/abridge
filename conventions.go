@@ -28,6 +28,12 @@ type BiddingRule struct {
 	score func(bidder Seat, h Hand, ms []string, e Ensemble) (s Score, nothandled bool)
 }
 
+type ScoringRule struct {
+	name string
+	ms []string
+	score func(bidder Seat, h Hand, ms []string, e Ensemble) (s Score, nothandled bool)
+}
+
 func LastBid(bid string) (val int, s Color) {
 	for {
 		if len(bid) < 2 {
@@ -59,36 +65,45 @@ var Convention = []BiddingRule{ Opening, Preempt, PassOpening, CheapResponse, Tw
 	OneNT, Stayman, StaymanResponse, StaymanTwo, StaymanTwoResponse, TwoNT, Gambling3NT,
 	OneLevelOvercall, PreemptOvercall, PassOvercall, PassHigherOvercall, Natural }
 
-func subBids(dealer Seat, bid string) (seats []Seat, bids []string) {
-	seats = make([]Seat, len(bid)/2)
-	bids = make([]string, len(bid)/2)
-	for i := range bids {
-		seats[i] = (dealer + Seat(i)) % 4
-		bids[i] = bid[0:2*(i+1)]
-	}
-	return
-}
-
-func simpleScore(bidder Seat, h Hand, bid string, e Ensemble) (badness Score, convention string) {
+func makeScoringRules(bid string) (out []ScoringRule) {
+	out = make([]ScoringRule, 0, len(Convention))
 	for _,c := range Convention {
 		ms := c.match.FindStringSubmatch(bid)
 		if ms != nil {
-			b,unhandled := c.score(bidder, h, ms, e)
-			badness += b
-			if !unhandled {
-				convention = c.name
-				break
-			}
-			//fmt.Printf("Got badness %g from %s\n", b, c.name)
+			out = out[0:len(out)+1]
+			out[len(out)-1] = ScoringRule{c.name, ms, c.score}
 		}
 	}
 	return
 }
 
-func TableScore(t Table, bidders []Seat, bids []string, es []Ensemble) (badness Score, conventions []string) {
-	conventions = make([]string, len(bids))
+func subBids(dealer Seat, bid string) (seats []Seat, rules [][]ScoringRule) {
+	seats = make([]Seat, len(bid)/2)
+	rules = make([][]ScoringRule, len(bid)/2)
+	for i := range rules {
+		seats[i] = (dealer + Seat(i)) % 4
+		rules[i] = makeScoringRules(bid[0:2*(i+1)])
+	}
+	return
+}
+
+func simpleScore(bidder Seat, h Hand, rule []ScoringRule, e Ensemble) (badness Score, convention string) {
+	for _,r := range rule {
+		b,unhandled := r.score(bidder, h, r.ms, e)
+		badness += b
+		if !unhandled {
+			convention = r.name
+			break
+		}
+		//fmt.Printf("Got badness %g from %s\n", b, c.name)
+	}
+	return
+}
+
+func TableScore(t Table, bidders []Seat, rules [][]ScoringRule, es []Ensemble) (badness Score, conventions []string) {
+	conventions = make([]string, len(rules))
 	for i, bidder := range bidders {
-		b,c := simpleScore(bidder, t[bidder], bids[i], es[i])
+		b,c := simpleScore(bidder, t[bidder], rules[i], es[i])
 		conventions[i] = c
 		badness += b
 	}
@@ -97,8 +112,8 @@ func TableScore(t Table, bidders []Seat, bids []string, es []Ensemble) (badness 
 
 // The []string output describes the bids made...
 func GetValidTables(dealer Seat, bid string, num int) (*Ensemble, []string) {
-	seats, bids := subBids(dealer, bid)
-	es := make([]Ensemble, len(bids)+1) // This is the ensemble after each bid
+	seats, rules := subBids(dealer, bid)
+	es := make([]Ensemble, len(rules)+1) // This is the ensemble after each bid
 	es[0] = makeEnsemble(num)
 	for i := range es[0].tables {
 		es[0].tables[i] = Shuffle() // Things start out random!
@@ -108,7 +123,7 @@ func GetValidTables(dealer Seat, bid string, num int) (*Ensemble, []string) {
 		es[bidnum+1] = makeEnsemble(num)
 		for i,eold := range es[bidnum].tables {
 			t := eold // Initialize ensemble based on previous bidding
-			oldbadness,cs := TableScore(t, seats[0:bidnum+1], bids[0:bidnum+1], es[0:bidnum+1])
+			oldbadness,cs := TableScore(t, seats[0:bidnum+1], rules[0:bidnum+1], es[0:bidnum+1])
 			conventions = cs
 			badness := oldbadness
 			numswaps := 52*10
@@ -118,7 +133,7 @@ func GetValidTables(dealer Seat, bid string, num int) (*Ensemble, []string) {
 			for i:=0; i<numswaps && (badness > 0 || i < 52); i++ {
 				// Try moving a couple of cards at a time...
 				t2 := t.ShuffleCard(rand.Intn(52)).ShuffleCard(rand.Intn(52))
-				b2,cs := TableScore(t2, seats[0:bidnum+1], bids[0:bidnum+1], es[0:bidnum+1])
+				b2,cs := TableScore(t2, seats[0:bidnum+1], rules[0:bidnum+1], es[0:bidnum+1])
 				if b2 <= badness || rand.Float64() < math.Exp(float64(-beta*(b2 - badness))) {
 					t = t2
 					badness = b2
@@ -130,6 +145,6 @@ func GetValidTables(dealer Seat, bid string, num int) (*Ensemble, []string) {
 			es[bidnum+1].tables[i] = t
 		}
 	}
-	out := es[len(bids)] // return final ensemble
+	out := es[len(rules)] // return final ensemble
 	return &out, conventions
 }
