@@ -67,6 +67,7 @@ func (e *Ensemble) String() string {
 	}
 	//out += fmt.Sprintf("Spades north: %g\n", e.SuitLength(North, Spades).Mean)
 	//out += fmt.Sprintf("Spades south: %g\n", e.SuitLength(South, Spades).Mean)
+	out += "\n\n" + e.tables[0].String()
 	return out
 }
 

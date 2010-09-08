@@ -194,3 +194,90 @@ var CheapResponse = BiddingRule{
 		return
 	},
 }
+
+
+var CheapCompetitionResponse = BiddingRule{
+	"Cheap response to one over opponent",
+	regexp.MustCompile("^( P)*1([CDHS]).([^P])1([DHSN])$"),
+	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+		pts := h.PointCount()
+		if pts < 8 {
+			badness += Score(8-pts)*PointValueProblem
+		}
+		opensuit := stringToSuitNumber(ms[2])
+		heartlen := byte(h >> 20) & 15
+		spadelen := byte(h >> 28) & 15
+		if opensuit == Spades && spadelen > 2 {
+			// We missed an opening bid!
+			badness += Score(spadelen-2)*SuitLengthProblem
+		}
+		if opensuit == Hearts && heartlen > 2 && !(ms[4] == "S" && pts > 10) {
+			// We're denying a fit, unless we have 1S and a strong hand.
+			badness += Score(heartlen-2)*SuitLengthProblem
+		}
+		if ms[4] == "N" {
+			// We must have a stopper in opponent's suit!
+			stopper := (3 << 4) + King // basically, this is a stopper... 3 cards and a king.
+			switch ms[3] {
+			case "D":
+				if Suit(h>>8) < stopper {
+					badness += Score(stopper - Suit(h>>8))*BigFudge
+				}
+			case "H":
+				if Suit(h>>16) < stopper {
+					badness += Score(stopper - Suit(h>>16))*BigFudge
+				}
+			case "S":
+				if Suit(h>>24) < stopper {
+					badness += Score(stopper - Suit(h>>24))*BigFudge
+				}
+			}
+			if (spadelen > 3 && opensuit < Spades) {
+				// No 5-3 spades fit
+				badness += Score(spadelen-3)*SuitLengthProblem
+			}
+			if (heartlen > 3 && opensuit < Hearts) {
+				badness += Score(heartlen-3)*SuitLengthProblem
+			}
+			hcp := h.HCP()
+			if hcp < 9 {
+				// I think we need 10 hcp to bid 1NT over an opponent overcall...
+				badness += Score(9 - hcp)*PointValueProblem
+			} else if hcp > 12 {
+				// But if we have 13 points, we should bid higher.
+				badness += Score(hcp - 12)*PointValueProblem
+			}
+			return // exit early, so we can assume mysuit is a valid suit
+		}
+		// Here we assume ms[4] is a real suit.
+		mysuit := stringToSuitNumber(ms[4])
+		mysuitlen := byte(h >> (4 + mysuit*8)) & 15
+		switch mysuit {
+		case Hearts:
+			if mysuitlen < 4 {
+				badness += Score(4-mysuitlen)*SuitLengthProblem
+			}
+		case Spades:
+			if mysuitlen < 4 {
+				badness += Score(4-mysuitlen)*SuitLengthProblem
+			}
+			if heartlen > 3 && opensuit != Hearts && spadelen < 6 {
+				// Skipping hearts denies 4 hearts, unless you've got 6 spades
+				b1 := Score(heartlen-3)*SuitLengthProblem
+				b2 := Score(7-spadelen)*SuitLengthProblem
+				badness += b1.min(b2)
+			}
+		case Diamonds:
+			if mysuitlen < 4 {
+				badness += Score(4-mysuitlen)*SuitLengthProblem
+			}
+			if heartlen > 3 {
+				badness += Score(heartlen-3)*SuitLengthProblem
+			}
+			if spadelen > 3 {
+				badness += Score(spadelen-3)*SuitLengthProblem
+			}
+		}
+		return
+	},
+}
