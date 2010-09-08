@@ -40,6 +40,7 @@ func init() {
 }
 
 var SuitLetter = []string{"C", "D", "H", "S", "N"}
+var SuitHTML = []string{"♣", "♦", "♥", "♠", "NT"}
 
 func (d Table) String() string {
 	out := ""
