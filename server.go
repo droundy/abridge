@@ -215,12 +215,15 @@ func bidbox(c io.Writer, clientname string) os.Error {
 	fmt.Fprintln(c, `</table><input type="submit" name="clear" value="Clear" />`)
 	fmt.Fprintln(c, `<input type="submit" name="undo" value="Undo" />`)
 	fmt.Fprintln(c, `<input type="submit" name="refresh" value="Refresh" />`)
-	if bids[clientname] == "" {
-		fmt.Fprint(c, `<br/>Dealer:<br/> <input type="radio" name="dealer" value="S" /> S
-<input type="radio" name="dealer" value="W" /> W
-<input type="radio" name="dealer" value="N" /> N
-<input type="radio" name="dealer" value="E" /> E<br />
-`)
+	fmt.Fprintln(c, `<br/>`)
+	fmt.Fprintln(c, `<br/>`)
+	var seats = []string{"S", "W", "N", "E"}
+	for s,v := range seats {
+		if dealer[clientname] != bridge.Seat(s) && bids[clientname] == "" {
+			fmt.Fprintf(c, `<input type="submit" name="dealer" value="%s" />`, v)
+		} else {
+			fmt.Fprintf(c, `<input type="submit" disabled="1" value="%s" />`, v)
+		}
 	}
 	fmt.Fprintf(c, `<input type="hidden" name="client" value="%s" />`, clientname)
 	fmt.Fprintln(c, `</form>`)
