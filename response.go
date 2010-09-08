@@ -232,8 +232,9 @@ var CheapCompetitionResponse = BiddingRule{
 					badness += Score(stopper - Suit(h>>24))*BigFudge
 				}
 			}
-			if (spadelen > 3 && opensuit < Spades) {
-				// No 5-3 spades fit
+			if (spadelen > 3 && opensuit < Spades && ms[3] != "S") {
+				// We should have mentioned a 4-card spade suit, if we could
+				// have...
 				badness += Score(spadelen-3)*SuitLengthProblem
 			}
 			if (heartlen > 3 && opensuit < Hearts) {
