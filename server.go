@@ -36,9 +36,30 @@ func helloServer(c *http.Conn, req *http.Request) {
 		if ok {
 			clientname = xx[0]
 			bid,ok := req.Form["bid"]
-			if ok && len(bid) == 1 && len(bid[0]) == 2 {
+			fmt.Println("All bids were", bids)
+			switch {
+			case !ok || len(bid) != 1:
+			case bid[0][1:] == bridge.SuitHTML[bridge.Clubs]:
+				bids[clientname] = bids[clientname] + bid[0][0:1] + "C"
+			case bid[0][1:] == bridge.SuitHTML[bridge.Diamonds]:
+				bids[clientname] = bids[clientname] + bid[0][0:1] + "D"
+			case bid[0][1:] == bridge.SuitHTML[bridge.Hearts]:
+				bids[clientname] = bids[clientname] + bid[0][0:1] + "H"
+			case bid[0][1:] == bridge.SuitHTML[bridge.Spades]:
+				bids[clientname] = bids[clientname] + bid[0][0:1] + "S"
+			case bid[0][1:] == bridge.SuitHTML[bridge.NoTrump]:
+				bids[clientname] = bids[clientname] + bid[0][0:1] + "N"
+			case len(bid[0]) == 2:
 				bids[clientname] = bids[clientname] + bid[0]
-			} else if _,ok := req.Form["refresh"]; !ok {
+			default:
+				fmt.Println("I don't recognize", bid[0])
+			}
+			fmt.Println("Bids are", bids[clientname])
+			fmt.Println("allbids are", bids)
+			if _,ok := req.Form["undo"]; ok && len(bids[clientname]) >= 2 {
+				bids[clientname] = bids[clientname][0:len(bids[clientname])-2]
+			}
+			if _,ok := req.Form["clear"]; ok {
 				bids[clientname] = ""
 				dealer[clientname] = (dealer[clientname] + 1) % 4
 			}
@@ -86,7 +107,7 @@ func helloServer(c *http.Conn, req *http.Request) {
 func showconventions(c io.Writer, clientname string, conventions []string) os.Error {
 	fmt.Fprintln(c, `<br/>`)
 	for i,cc := range conventions {
-		fmt.Fprintln(c, bids[clientname][2*i:2*i+2], "=", cc, "<br/>")
+		fmt.Fprintln(c, htmlbid(bids[clientname][2*i:2*i+2]), "=", cc, "<br/>")
 	}
 	return nil
 }
@@ -95,7 +116,7 @@ func analyzebids(c io.Writer, clientname string) ([]string, os.Error) {
 	fmt.Fprintln(c, "<pre>")
 	//ts, ntry := bridge.ShuffleValidTables(lastbidder, bids, 100)
 	ts,conventions := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
-	fmt.Fprintln(c, ts)
+	fmt.Fprintln(c, ts.HTML())
 	//fmt.Fprintf(c, "\nProbability = %.2f%%\n", 100/ntry)
 	fmt.Fprintln(c, `</pre><table><tr><td></td>`)
 	fmt.Fprintln(c, `<td align="center">South</td><td align="center">West</td><td align="center">North</td><td align="center">East</td>`)
@@ -113,6 +134,22 @@ func analyzebids(c io.Writer, clientname string) ([]string, os.Error) {
 	return conventions, nil
 }
 
+func htmlbid(bid string) string {
+	if len(bid) != 2 {
+		panic("bad bidlength in htmlbid") // this means a bug!
+	}
+	out := bid[0:1]
+	switch bid[1] {
+	case 'S': out += bridge.SuitHTML[bridge.Spades]
+	case 'C': out += bridge.SuitHTML[bridge.Clubs]
+	case 'N': out += bridge.SuitHTML[bridge.NoTrump]
+	case 'D': out = `<font color="#ff0000">` + out + bridge.SuitHTML[bridge.Diamonds]+`</font>`
+	case 'H': out = `<font color="#ff0000">` + out + bridge.SuitHTML[bridge.Hearts]+`</font>`
+	default: out = bid
+	}
+	return out
+}
+
 func showbids(c io.Writer, clientname string) os.Error {
 	fmt.Fprintln(c, `<table><tr><td>South</td><td>West</td><td>North</td><td>East</td></tr><tr>`)
 	for i:=bridge.Seat(0); i<dealer[clientname]; i++ {
@@ -122,7 +159,7 @@ func showbids(c io.Writer, clientname string) os.Error {
 		if (i + dealer[clientname]) & 3 == 0 {
 			fmt.Fprintln(c, `</tr><tr>`)
 		}
-		fmt.Fprintln(c, `<td align="center">`, bids[clientname][2*i:2*i+2], `</td>`)
+		fmt.Fprintln(c, `<td align="center">`, htmlbid(bids[clientname][2*i:2*i+2]), `</td>`)
 	}
 	for i:=bridge.Seat(len(bids[clientname])/2); i<50; i++ {
 		if (i + dealer[clientname]) & 3 == 0 {
@@ -141,30 +178,42 @@ func bidbox(c io.Writer, clientname string) os.Error {
 	fmt.Fprintln(c, `<table><tr>
 <td><input type="submit" name="bid" value=" P" /></td>`)
 	if candouble {
-		fmt.Fprintln(c, `<td><input type="submit" name="bid" value=" X" /></td>`)
+		fmt.Fprintln(c, `<td align="center"><input type="submit" name="bid" value=" X" /></td>`)
 	} else {
-		fmt.Fprintln(c, `<td><font color="#aaaaaa">X</font></td>`)
+		fmt.Fprintln(c, `<td align="center"><font color="#aaaaaa">X</font></td>`)
 	}
 	if canredouble {
-		fmt.Fprintln(c, `<td><input type="submit" name="bid" value="XX" /></td></tr>`)
+		fmt.Fprintln(c, `<td align="center"><input type="submit" name="bid" value="XX" /></td></tr>`)
 	} else {
-		fmt.Fprintln(c, `<td><font color="#aaaaaa">XX</font></td></tr>`)
+		fmt.Fprintln(c, `<td align="center"><font color="#aaaaaa">XX</font></td></tr>`)
 	}
 	bv, bs := bridge.LastBid(bids[clientname])
 	for bidlevel:=1;bidlevel<8;bidlevel++ {
 		fmt.Fprintln(c, "<tr>")
 		for sv:=bridge.Color(bridge.Clubs); sv<=bridge.NoTrump; sv++ {
+			fmt.Fprint(c, `<td align="center">`)
 			if bidlevel > bv || (bidlevel == bv && sv > bs) {
-				fmt.Fprintf(c, `<td><input type="submit" name="bid" value="%d%v" /></td>`,
-					bidlevel, bridge.SuitLetter[sv])
+				if sv > bridge.Clubs && sv < bridge.Spades {
+					fmt.Fprintf(c, `<input type="submit" name="bid" style="color:red" value="%d%v" /></td>`,
+						bidlevel, bridge.SuitHTML[sv])
+				} else {
+					fmt.Fprintf(c, `<input type="submit" name="bid" value="%d%v" /></td>`,
+						bidlevel, bridge.SuitHTML[sv])
+				}
 			} else {
-				fmt.Fprintf(c, `<td><font color="#aaaaaa">%d%v</font></td>`,
-					bidlevel, bridge.SuitLetter[sv])
+				if sv > bridge.Clubs && sv < bridge.Spades {
+					fmt.Fprintf(c, `<font color="#ffaaaa">%d%v</font></td>`,
+						bidlevel, bridge.SuitHTML[sv])
+				} else {
+					fmt.Fprintf(c, `<font color="#aaaaaa">%d%v</font></td>`,
+						bidlevel, bridge.SuitHTML[sv])
+				}
 			}
 		}
 		fmt.Fprintln(c, "</tr>")
 	}
-	fmt.Fprintln(c, `</table><input type="submit" value="Clear" />`)
+	fmt.Fprintln(c, `</table><input type="submit" name="clear" value="Clear" />`)
+	fmt.Fprintln(c, `<input type="submit" name="undo" value="Undo" />`)
 	fmt.Fprintln(c, `<input type="submit" name="refresh" value="Refresh" />`)
 	if bids[clientname] == "" {
 		fmt.Fprint(c, `<br/>Dealer:<br/> <input type="radio" name="dealer" value="S" /> S
