@@ -146,7 +146,7 @@ func (r Range) Format(f fmt.State, c int) {
 	}
 }
 
-func (e Ensemble) SuitLength(seat Seat, suit uint) (r Range) {
+func (e *Ensemble) SuitLength(seat Seat, suit uint) (r Range) {
 	suit = suit % 4
 	if e.suits[seat][suit] != nil {
 		return *e.suits[seat][suit]
