@@ -23,8 +23,7 @@ var Splinter = BiddingRule{
 		if splinterlen > 1 {
 			badness += Score(splinterlen - 1)*SuitLengthProblem
 		}
-		spls := byte(h >> splintersuit*8)
-		hcp_inside := HCP[Suit(spls)]
+		hcp_inside := HCP[Suit(h >> (splintersuit*8))]
 		hcp_outside := h.HCP() - hcp_inside
 		// Splinter indicates 10-12 hcp outside the singleton
 		if hcp_outside < 10 {

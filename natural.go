@@ -55,6 +55,39 @@ var Natural = BiddingRule{
 			if mysuit < Hearts {
 				gamelevel = 5
 			}
+			if num == 6 || num == 7 {
+				// Special case for splinter slams:
+				for i:=uint(Clubs); i<=Spades; i++ {
+					if i != mysuit {
+						rsuit := e.SuitLength(partner, i)
+						if rsuit.Max == 1 {
+							// We have a splinter situation!
+							othersuits := [4]bool{true,true,true,true}
+							othersuits[i] = false
+							theirhcprange := e.SuitHCP(partner, othersuits)
+							myhcp := Points(0)
+							for j:=uint(Clubs); j<=Spades; j++ {
+								if j != i {
+									myhcp += HCP[byte(h>>(8*j))]
+								}
+							}
+							if theirhcprange.Min + myhcp < 25 {
+								badness += Score(25 - theirhcprange.Min - myhcp)*PointValueProblem;
+							}
+							if num == 7 {
+								if h & (Hand(Ace) << (8*i)) == 0 && (h >> (4+8*i)) & 15 > 0 {
+									// For grand slam, we need the missing ace!
+									badness += PointValueProblem
+								}
+								if theirhcprange.Min + myhcp < 27 {
+									badness += Score(27 - theirhcprange.Min - myhcp)*PointValueProblem
+								}
+							}
+							return
+						}
+					}
+				}
+			}
 		}
 		if minpts < pointlevels[num] {
 			// we need to guarantee pointlevels[num] to bid at this level

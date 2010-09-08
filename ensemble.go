@@ -201,6 +201,27 @@ func (e *Ensemble) SuitLength(seat Seat, suit uint) (r Range) {
 	return
 }
 
+func (e *Ensemble) SuitHCP(seat Seat, suits [4]bool) (r PointRange) {
+	r.Min = 100
+	for _,t := range e.tables {
+		hcp := Points(0)
+		for sv:=uint(0); sv<4; sv++ {
+			if suits[sv] {
+				hcp += HCP[byte(t[seat] >> (8*sv))]
+			}
+		}
+		if hcp < r.Min {
+			r.Min = hcp
+		}
+		if hcp > r.Max {
+			r.Max = hcp
+		}
+		r.Mean += float64(hcp)
+	}
+	r.Mean /= float64(len(e.tables))
+	return
+}
+
 func makeEnsemble(num int) Ensemble {
 	var foo Ensemble
 	foo.tables = make([]Table, num)
