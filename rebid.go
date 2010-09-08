@@ -32,7 +32,7 @@ var RebidSuit = BiddingRule{
 }
 
 var CheapRebid = BiddingRule{
-	"Cheap response to one",
+	"Cheap rebid",
 	regexp.MustCompile("^( P)*1([CDH]) P1([DHS]) P1([HSN])$"),
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
