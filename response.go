@@ -217,27 +217,17 @@ var CheapCompetitionResponse = BiddingRule{
 		}
 		if ms[4] == "N" {
 			// We must have a stopper in opponent's suit!
-			stopper := (3 << 4) + King // basically, this is a stopper... 3 cards and a king.
 			switch ms[3] {
-			case "D":
-				if Suit(h>>8) < stopper {
-					badness += Score(stopper - Suit(h>>8))*BigFudge
-				}
-			case "H":
-				if Suit(h>>16) < stopper {
-					badness += Score(stopper - Suit(h>>16))*BigFudge
-				}
-			case "S":
-				if Suit(h>>24) < stopper {
-					badness += Score(stopper - Suit(h>>24))*BigFudge
-				}
+			case "D":	badness += Suit(h>>8).UnStopped()
+			case "H":	badness += Suit(h>>16).UnStopped()
+			case "S":	badness += Suit(h>>24).UnStopped()
 			}
 			if (spadelen > 3 && opensuit < Spades && ms[3] != "S") {
-				// We should have mentioned a 4-card spade suit, if we could
-				// have...
+				// We should have mentioned a 4-card spade suit, if possible...
 				badness += Score(spadelen-3)*SuitLengthProblem
 			}
-			if (heartlen > 3 && opensuit < Hearts) {
+			if (heartlen > 3 && opensuit < Hearts && ms[3] != "S" && ms[3] != "H") {
+				// We should have mentioned a 4-card heart suit, if possible...
 				badness += Score(heartlen-3)*SuitLengthProblem
 			}
 			hcp := h.HCP()

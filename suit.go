@@ -72,6 +72,18 @@ func init() {
 	}
 }
 
+func (s Suit) UnStopped() (badness Score) {
+	hcp := HCP[s]
+	length := s >> 4
+	if length < 3 {
+		badness += Score(3-length)*SuitLengthProblem
+	}
+	if hcp < 3 {
+		badness += Score(3-hcp)*PointValueProblem
+	}
+	return
+}
+
 // We implement fmt.Formatter interface just so we can left-align the cards.
 func (s Suit) Format(f fmt.State, c int) {
 	x := stringTable[s]
