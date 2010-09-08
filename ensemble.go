@@ -71,6 +71,39 @@ func (e *Ensemble) String() string {
 	return out
 }
 
+
+func (e *Ensemble) HTML() string {
+	out := ""
+	N := e.HCP(North)
+	S := e.HCP(South)
+	E := e.HCP(East)
+	W := e.HCP(West)
+	Np := e.PointCount(North)
+	Sp := e.PointCount(South)
+	Ep := e.PointCount(East)
+	Wp := e.PointCount(West)
+	out += fmt.Sprintf("           [%2d-%2d]\n", Np.Min, Np.Max)
+	out += fmt.Sprintf("           (%2d-%2d)\n", N.Min, N.Max)
+	for sv:=uint(Spades); sv>Diamonds; sv-- {
+		out += fmt.Sprintf("          %s %v\n", SuitColorHTML[sv], e.SuitLength(North, sv))
+	}
+	out += fmt.Sprintf(" [%2d-%2d]  ♦ %9v[%2d-%2d]\n",Wp.Min,Wp.Max,e.SuitLength(North, Diamonds),Ep.Min,Ep.Max)
+	out += fmt.Sprintf(" (%2d-%2d)  ♣ %9v(%2d-%2d)\n",W.Min,W.Max,e.SuitLength(North, Clubs),E.Min,E.Max)
+	for sv:=uint(Spades); sv>Diamonds; sv-- {
+		out += fmt.Sprintf("%s %18v%s %v\n",
+			SuitColorHTML[sv], e.SuitLength(West, sv),
+			SuitColorHTML[sv], e.SuitLength(East, sv))
+	}
+	out += fmt.Sprintf(`<font color="#ff0000">♦</font> %8v[%2d-%2d]   <font color="#ff0000">♦</font> %v
+`,e.SuitLength(West, Diamonds),Sp.Min,Sp.Max,e.SuitLength(East,Diamonds))
+	out += fmt.Sprintf("♣ %8v(%2d-%2d)   ♣ %v\n",e.SuitLength(West, Clubs),S.Min,S.Max,e.SuitLength(East,Clubs))
+	for sv:=uint(Spades); sv<=Spades; sv-- {
+		out += fmt.Sprintf("          %s %v\n", SuitColorHTML[sv], e.SuitLength(South,sv))
+	}
+	out += "\n\n" + e.tables[0].HTML()
+	return out
+}
+
 func (e *Ensemble) Invalidate() {
 	for i := range e.hcp {
 		e.hcp[i] = nil

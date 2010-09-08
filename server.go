@@ -107,7 +107,7 @@ func helloServer(c *http.Conn, req *http.Request) {
 func showconventions(c io.Writer, clientname string, conventions []string) os.Error {
 	fmt.Fprintln(c, `<br/>`)
 	for i,cc := range conventions {
-		fmt.Fprintln(c, bids[clientname][2*i:2*i+2], "=", cc, "<br/>")
+		fmt.Fprintln(c, htmlbid(bids[clientname][2*i:2*i+2]), "=", cc, "<br/>")
 	}
 	return nil
 }
@@ -116,7 +116,7 @@ func analyzebids(c io.Writer, clientname string) ([]string, os.Error) {
 	fmt.Fprintln(c, "<pre>")
 	//ts, ntry := bridge.ShuffleValidTables(lastbidder, bids, 100)
 	ts,conventions := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
-	fmt.Fprintln(c, ts)
+	fmt.Fprintln(c, ts.HTML())
 	//fmt.Fprintf(c, "\nProbability = %.2f%%\n", 100/ntry)
 	fmt.Fprintln(c, `</pre><table><tr><td></td>`)
 	fmt.Fprintln(c, `<td align="center">South</td><td align="center">West</td><td align="center">North</td><td align="center">East</td>`)
