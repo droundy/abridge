@@ -87,7 +87,7 @@ func (e *Ensemble) HTML() string {
 	for sv:=uint(Spades); sv>Diamonds; sv-- {
 		out += fmt.Sprintf("          %s %v\n", SuitColorHTML[sv], e.SuitLength(North, sv))
 	}
-	out += fmt.Sprintf(" [%2d-%2d]  %s %9v[%2d-%2d]\n",SuitColorHTML[Diamonds], Wp.Min,Wp.Max,e.SuitLength(North, Diamonds),Ep.Min,Ep.Max)
+	out += fmt.Sprintf(" [%2d-%2d]  %s %9v[%2d-%2d]\n", Wp.Min,Wp.Max,SuitColorHTML[Diamonds],e.SuitLength(North, Diamonds),Ep.Min,Ep.Max)
 	out += fmt.Sprintf(" (%2d-%2d)  ♣ %9v(%2d-%2d)\n",W.Min,W.Max,e.SuitLength(North, Clubs),E.Min,E.Max)
 	for sv:=uint(Spades); sv>Diamonds; sv-- {
 		out += fmt.Sprintf("%s %18v%s %v\n",
