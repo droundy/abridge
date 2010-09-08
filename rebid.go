@@ -67,8 +67,8 @@ var CheapRebid = BiddingRule{
 			// Should mention hearts.
 			badness += Score(heartlen-3)*SuitLengthProblem
 		}
-		// Here we assume ms[3] is a real suit.
-		mysuit := stringToSuitNumber(ms[3])
+		// Here we assume ms[4] is a real suit.
+		mysuit := stringToSuitNumber(ms[4])
 		mysuitlen := byte(h >> (4 + mysuit*8)) & 15
 		if mysuitlen < 4 {
 			badness += Score(4-mysuitlen)*SuitLengthProblem
