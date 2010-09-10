@@ -19,6 +19,7 @@ func stringToSuitNumber(s string) uint {
 var Opening = BiddingRule{
 	"Opening",
 	regexp.MustCompile("^( P)*1([CDHS])$"),
+	nil,
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		if pts < 13 {
@@ -75,12 +76,14 @@ var PreemptOvercall = BiddingRule{
 	"Preemptive overcall of suit bid",
 	// preempts over 1NT should be stronger and/or longer...
 	regexp.MustCompile("^( P)*1[CDHS](3)([CDHS])$"),
+	nil,
 	Preempt.score, // preemptive overcalls at 3 level are like ordinary preempts.
 }
 
 var Preempt = BiddingRule{
 	"Preempt",
 	regexp.MustCompile("^( P)*([23])([CDHS])$"),
+	nil,
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		if ms[2] == "2" && ms[3] == "C" {
 			return 0, true // it's not a weak two bid
@@ -119,6 +122,7 @@ var Preempt = BiddingRule{
 var PassOpening = BiddingRule{
 	"Pass opening",
 	regexp.MustCompile("^( P)* P$"),
+	nil,
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		hcp := h.HCP()

@@ -25,13 +25,13 @@ func (s Score) min(s2 Score) Score {
 type BiddingRule struct {
 	name string
 	match *regexp.Regexp
+	mkscore func (ms []string) (score func(bidder Seat, h Hand, e Ensemble) (s Score, nothandled bool))
 	score func(bidder Seat, h Hand, ms []string, e Ensemble) (s Score, nothandled bool)
 }
 
 type ScoringRule struct {
 	name string
-	ms []string
-	score func(bidder Seat, h Hand, ms []string, e Ensemble) (s Score, nothandled bool)
+	score func(bidder Seat, h Hand, e Ensemble) (s Score, nothandled bool)
 }
 
 func LastBid(bid string) (val int, s Color) {
@@ -64,15 +64,26 @@ var Convention = []BiddingRule{ Opening, Preempt, PassOpening,
 	CheapRebid, RebidSuit, Splinter,
 	MajorSupport, MajorInvitation,
 	OneNT, Stayman, StaymanResponse, StaymanTwo, StaymanTwoResponse, TwoNT, Gambling3NT,
-	OneLevelOvercall, PreemptOvercall, PassOvercall, PassHigherOvercall, Natural }
+	OneLevelOvercall, PreemptOvercall, PassOvercall, PassHigherOvercall, /*LimitPass, */ Natural }
 
 func makeScoringRules(bid string) (out []ScoringRule) {
 	out = make([]ScoringRule, 0, len(Convention))
-	for _,c := range Convention {
+	for _,c0 := range Convention {
+		// The following is so we get a fresh variable with each time
+		// through the loop.
+		var c BiddingRule = c0
 		ms := c.match.FindStringSubmatch(bid)
 		if ms != nil {
 			out = out[0:len(out)+1]
-			out[len(out)-1] = ScoringRule{c.name, ms, c.score}
+			if c.mkscore == nil {
+				foobar := func(bidder Seat, h Hand, e Ensemble) (s Score, nothandled bool) {
+					x,y := c.score(bidder, h, ms, e)
+					return x,y
+				}
+				out[len(out)-1] = ScoringRule{c.name, foobar}
+			} else {
+				out[len(out)-1] = ScoringRule{c.name, c.mkscore(ms)}
+			}
 		}
 	}
 	return
@@ -90,7 +101,7 @@ func subBids(dealer Seat, bid string) (seats []Seat, rules [][]ScoringRule) {
 
 func simpleScore(bidder Seat, h Hand, rule []ScoringRule, e Ensemble) (badness Score, convention string) {
 	for _,r := range rule {
-		b,unhandled := r.score(bidder, h, r.ms, e)
+		b,unhandled := r.score(bidder, h, e)
 		badness += b
 		if !unhandled {
 			convention = r.name

@@ -4,9 +4,66 @@ import (
 	"regexp"
 )
 
+var lastbidregexp = regexp.MustCompile("([1234567])(.)( .)*")
+func PossibleNondoubleBids(bid string) []string {
+	ms := lastbidregexp.FindStringSubmatch(bid)
+	if ms != nil || len(ms) < 3 {
+		ms = []string{"","0","N"} // very hokey trick to avoid a special case
+	}
+	out := make([]string, 0, 37)
+	for _,level := range []byte("1234567") {
+		if level == ms[1][0] {
+			mins := NoTrump+1
+			switch ms[2][0] {
+			case 'C': mins = Diamonds
+			case 'D': mins = Hearts
+			case 'H': mins = Spades
+			case 'S': mins = NoTrump
+			}
+			for sv:=mins; sv <= NoTrump; sv++ {
+				out = out[0:len(out)+1]
+				out[len(out)-1] = string([]byte{level})+SuitLetter[sv]
+			}
+			out[len(out)-1] = string([]byte{level, ms[2][0]})
+		} else if level > ms[1][0] {
+			out = out[0:len(out)+1]
+			out[len(out)-1] = string([]byte{level, ms[2][0]})
+		}
+	}
+	return out
+}
+
+/*
+var LimitPass = BiddingRule {
+	"Limiting pass",
+	regexp.MustCompile("^(..)?(..)?(..)?(.[^P]......)* P$"),
+	func (ms []string) (score func(bidder Seat, h Hand, e Ensemble) (s Score, nothandled bool)) {
+		possbids := PossibleNondoubleBids(ms[0])
+		allrules := make([]ScoringRule,0,len(possbids)*len(Convention))
+		for _,b := range possbids {
+			rule := makeScoringRules(ms[0] + b)
+			allrules = allrules[0:len(allrules)+len(rule)]
+			for i,r := range rule {
+				allrules[len(allrules)-1-i] = r
+			}
+		}
+		return func(bidder Seat, h Hand, e Ensemble) (badness Score, nothandled bool) {
+			for _,r := range allrules {
+				sc,_ := simpleScore(bidder, h, r, e)
+				if sc == 0 {
+					badness += 137
+				}
+			}
+			return
+		}
+	},
+	nil,
+}
+*/
+
 var Natural = BiddingRule{
 	"Natural",
-	regexp.MustCompile("(.)([^PX])$"),
+	regexp.MustCompile("(.)([^PX])$"), nil,
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		hcp := h.HCP()

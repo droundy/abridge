@@ -6,7 +6,7 @@ import (
 
 var PassOvercall = BiddingRule{
 	"Pass an opportunity to overcall a one-suit bid",
-	regexp.MustCompile("^( P)*1[CDH]( P..)? P$"),
+	regexp.MustCompile("^( P)*1[CDH]( P..)? P$"), nil,
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		if pts > 12 {
@@ -18,7 +18,7 @@ var PassOvercall = BiddingRule{
 
 var PassHigherOvercall = BiddingRule{
 	"Pass a higher overcall",
-	regexp.MustCompile("^( P)*(1N|2N|[23][CDHS])( P..)? P$"),
+	regexp.MustCompile("^( P)*(1N|2N|[23][CDHS])( P..)? P$"), nil,
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		longest_suit := byte(0)
@@ -40,7 +40,7 @@ var PassHigherOvercall = BiddingRule{
 
 var OneLevelOvercall = BiddingRule{
 	"One-level overcall",
-	regexp.MustCompile("^( P)*1[CDH]( P..)?1([DHS])$"),
+	regexp.MustCompile("^( P)*1[CDH]( P..)?1([DHS])$"), nil,
 	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		if pts < 13 {
