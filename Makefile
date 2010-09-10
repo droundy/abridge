@@ -34,6 +34,6 @@ demo: demo.go $(pkgdir)/$(TARG).a
 	$(GC) -o demo.$(O) demo.go
 	$(LD) -o demo demo.$(O)
 
-bench: bench.go $(pkgdir)/$(TARG).a
-	$(GC) -o bench.$(O) bench.go
-	$(LD) -o bench bench.$(O)
+benchmark: benchmark.go $(pkgdir)/$(TARG).a
+	$(GC) -o benchmark.$(O) benchmark.go
+	$(LD) -o benchmark benchmark.$(O)

@@ -2,10 +2,10 @@
 
 set -ev
 
-make demo server bench
+make demo server benchmark
 
 ./demo <<EOF
 aq kjx ~ aqkjxxxx
 EOF
 
-./bench
+./benchmark
