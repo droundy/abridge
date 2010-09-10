@@ -25,8 +25,8 @@ func (s Score) min(s2 Score) Score {
 type BiddingRule struct {
 	name string
 	match *regexp.Regexp
-	mkscore func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (s Score, nothandled bool))
-	score func(bidder Seat, h Hand, ms []string, e *Ensemble) (s Score, nothandled bool)
+	mkscore func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (badness Score, nothandled bool))
+	score func(bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool)
 }
 
 type ScoringRule struct {
