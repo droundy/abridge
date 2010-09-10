@@ -64,14 +64,19 @@ var Convention = []BiddingRule{ Opening, Preempt, PassOpening,
 	CheapRebid, RebidSuit, Splinter,
 	MajorSupport, MajorInvitation,
 	OneNT, Stayman, StaymanResponse, StaymanTwo, StaymanTwoResponse, TwoNT, Gambling3NT,
-	OneLevelOvercall, PreemptOvercall, PassOvercall, PassHigherOvercall, /*LimitPass, */ Natural }
+	OneLevelOvercall, PreemptOvercall, PassOvercall, PassHigherOvercall, Natural, Natural }
+
+func init() {
+	// We set this manually, so as to avoid a loop, since LimitPass depends on Convention
+	Convention[len(Convention)-1] = LimitPass
+}
 
 func makeScoringRules(bidder Seat, bid string, e *Ensemble) (out []ScoringRule) {
 	out = make([]ScoringRule, 0, len(Convention))
 	for _,c0 := range Convention {
 		// The following is so we get a fresh variable with each time
 		// through the loop.
-		var c BiddingRule = c0
+		c := c0
 		ms := c.match.FindStringSubmatch(bid)
 		if ms != nil {
 			out = out[0:len(out)+1]
@@ -87,6 +92,12 @@ func makeScoringRules(bidder Seat, bid string, e *Ensemble) (out []ScoringRule) 
 		}
 	}
 	return
+}
+
+func RateBid(h Hand, bid string) (badness Score, convention string) {
+	e := GetValidTables(South, bid[0:len(bid)-2], 1000)
+	rule := makeScoringRules(Seat(len(bid)/2 % 4), bid, e)
+	return simpleScore(h, rule)
 }
 
 func subBids(dealer Seat, bid string) (seats []Seat, bids []string) {
@@ -121,8 +132,6 @@ func TableScore(t Table, bidders []Seat, rules [][]ScoringRule) (badness Score, 
 	}
 	return
 }
-
-func GetTable(bid string, num int) 
 
 // The []string output describes the bids made...
 func GetValidTables(dealer Seat, bid string, num int) *Ensemble {
