@@ -7,7 +7,7 @@ import (
 var Splinter = BiddingRule{
 	"Splinter",
 	regexp.MustCompile("^( P)*1([HS]) P(3S|4[CDH])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
 		opensuit := stringToSuitNumber(ms[2])
 		splintersuit := uint(Spades)
 		switch ms[3] {
@@ -47,7 +47,7 @@ var Splinter = BiddingRule{
 var MajorInvitation = BiddingRule{
 	"Major support",
 	regexp.MustCompile("^( P)*1([HS]) P3([HS])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
 		opensuit := stringToSuitNumber(ms[2])
 		mysuit := stringToSuitNumber(ms[3])
 		if mysuit != opensuit {
@@ -70,7 +70,7 @@ var MajorInvitation = BiddingRule{
 var MajorSupport = BiddingRule{
 	"Major support",
 	regexp.MustCompile("^( P)*1([HS]) P2([HS])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
 		opensuit := stringToSuitNumber(ms[2])
 		mysuit := stringToSuitNumber(ms[3])
 		if mysuit != opensuit {
@@ -93,7 +93,7 @@ var MajorSupport = BiddingRule{
 var TwoOverOne = BiddingRule{
 	"Two over one",
 	regexp.MustCompile("^( P)*1([DHS]) P2([CDH])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		opensuit := stringToSuitNumber(ms[2])
 		mysuit := stringToSuitNumber(ms[3])
@@ -132,7 +132,7 @@ var TwoOverOne = BiddingRule{
 var CheapResponse = BiddingRule{
 	"Cheap response to one",
 	regexp.MustCompile("^( P)*1([CDHS]) P1([DHSN])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		if pts < 6 {
 			badness += Score(6-pts)*PointValueProblem
@@ -198,7 +198,7 @@ var CheapResponse = BiddingRule{
 var CheapCompetitionResponse = BiddingRule{
 	"Cheap response to one over opponent",
 	regexp.MustCompile("^( P)*1([CDHS]).([^P])1([DHSN])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		if pts < 8 {
 			badness += Score(8-pts)*PointValueProblem

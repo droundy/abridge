@@ -7,7 +7,7 @@ import (
 var Stayman = BiddingRule{
 	"Stayman",
 	regexp.MustCompile("^( P)*1N P2C$"), nil,
-	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
 		return // Says nothing...
 	},
 }
@@ -21,7 +21,7 @@ var StaymanTwo = BiddingRule{
 var StaymanResponse = BiddingRule{
 	"Stayman",
 	regexp.MustCompile("^( P)*1N P2C P2([DHS])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
 		lh := byte(h>>20) & 15
 		ls := byte(h>>28) & 15
 		switch ms[2] {
@@ -57,7 +57,7 @@ var StaymanTwoResponse = BiddingRule{
 var OneNT = BiddingRule{
 	"1NT opening",
 	regexp.MustCompile("^( P)*1N$"), nil,
-	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
 		hcp := h.HCP()
 		dist := h.DistPoints()
 		if hcp > 17 {
@@ -83,7 +83,7 @@ var OneNT = BiddingRule{
 var TwoNT = BiddingRule{
 	"2NT opening",
 	regexp.MustCompile("^( P)*2N$"), nil,
-	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
 		hcp := h.HCP()
 		dist := h.DistPoints()
 		if hcp > 21 {
@@ -109,7 +109,7 @@ var TwoNT = BiddingRule{
 var Gambling3NT = BiddingRule{
 	"Gambling 3NT",
 	regexp.MustCompile("^( P)*3N$"), nil,
-	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
 		hcp := h.HCP()
 		d := Suit(h >> 8)
 		c := Suit(h)

@@ -223,8 +223,8 @@ func (e *Ensemble) SuitHCP(seat Seat, suits [4]bool) (r PointRange) {
 	return
 }
 
-func makeEnsemble(num int) Ensemble {
+func makeEnsemble(num int) *Ensemble {
 	var foo Ensemble
 	foo.tables = make([]Table, num)
-	return foo
+	return &foo
 }

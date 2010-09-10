@@ -64,7 +64,7 @@ var LimitPass = BiddingRule {
 var Natural = BiddingRule{
 	"Natural",
 	regexp.MustCompile("(.)([^PX])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
 		pts := h.PointCount()
 		hcp := h.HCP()
 		partner := (bidder+2)&3
