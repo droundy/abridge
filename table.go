@@ -79,6 +79,7 @@ func (d Table) HTML() string {
 
 const FullSuit = 15+(13<<4)
 var Sorted = Table { FullSuit, FullSuit << 8, FullSuit << 16, FullSuit << 24 }
+var AllCards Hand = FullSuit + (FullSuit << 8) + (FullSuit << 16) + (FullSuit << 24)
 
 func (d Table) ShuffleCard(fromwhich int) Table {
 	fromwhich = fromwhich % 52 // Just to be paranoid

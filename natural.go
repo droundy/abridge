@@ -4,8 +4,25 @@ import (
 	"regexp"
 )
 
-var lastbidregexp = regexp.MustCompile("([1234567])(.)( .)*")
+func PickBid(h Hand, bidder Seat, oldbid string, e *Ensemble) (bid string, convention string) {
+	bid = " P"
+	pbids := PossibleNondoubleBids(oldbid)
+	for _,b := range pbids {
+		rules := makeScoringRules(bidder, oldbid + b, e)
+		for _,r := range rules {
+			sc,unhandled := r.score(h)
+			if sc == 0 && !unhandled {
+				return b, r.name
+			}
+		}
+	}
+	return
+}
+
+var lastbidregexp = regexp.MustCompile("([1234567])(.)( .)*$")
 func PossibleNondoubleBids(bid string) []string {
+	print("Examining bids")
+	println(bid)
 	ms := lastbidregexp.FindStringSubmatch(bid)
 	if ms == nil || len(ms) < 3 {
 		ms = []string{"","0","N"} // very hokey trick to avoid a special case
@@ -24,7 +41,6 @@ func PossibleNondoubleBids(bid string) []string {
 				out = out[0:len(out)+1]
 				out[len(out)-1] = string([]byte{level})+SuitLetter[sv]
 			}
-			out[len(out)-1] = string([]byte{level, ms[2][0]})
 		} else if level > ms[1][0] {
 			for sv:=Clubs; sv <= NoTrump; sv++ {
 				out = out[0:len(out)+1]
@@ -220,6 +236,12 @@ var Natural = BiddingRule{
 				// some chance of game.  This assumes we are bidding for game,
 				// and leaves out competitive bidding...
 				badness += Score(pointlevels[gamelevel] - maxpts)*PointValueProblem
+			}
+			if num > gamelevel && num < 6 && minpts < pointlevels[6]-2 {
+				// We don't want to invite slam (i.e. bid over game) unless
+				// there's a good reason to suspect that we've got the points
+				// for slam.
+				badness += Score(pointlevels[6] - 2 - minpts)*Fudge
 			}
 			return
 		}

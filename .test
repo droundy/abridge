@@ -2,7 +2,7 @@
 
 set -ev
 
-make demo server benchmark
+make demo abridge/server benchmark
 
 ./demo <<EOF
 aq kjx ~ aqkjxxxx

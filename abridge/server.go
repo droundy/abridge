@@ -13,9 +13,9 @@ import (
 func main() {
 	fmt.Println("This is only a test...")
 	
-	http.HandleFunc("/hello", helloServer)
+	http.HandleFunc("/bidder", bidder)
 	http.HandleFunc("/favicon.ico", faviconServer)
-	http.HandleFunc("/", helloServer)
+	http.HandleFunc("/", analyzer)
 	err := http.ListenAndServe("0.0.0.0:12345", nil)
 	if err != nil {
 		log.Exit("ListenAndServe: ", err.String())
@@ -25,10 +25,11 @@ func main() {
 var max_clients = 1024
 var last_client = 0
 var bids = make(map[string]string)
+var hands = make(map[string]bridge.Table)
 var dealer = make(map[string]bridge.Seat)
 
-// hello world, the web server
-func helloServer(c *http.Conn, req *http.Request) {
+// Analyze a bid sequence...
+func analyzer(c *http.Conn, req *http.Request) {
 	clientname := ""
 	if req.Method == "POST" {
 		req.ParseForm()
@@ -94,7 +95,7 @@ func helloServer(c *http.Conn, req *http.Request) {
 <body>
 `)
 	fmt.Fprintln(c, "<table><tr><td>")
-	bidbox(c, clientname)
+	bidbox(c, clientname, 0) // the second argument is bogus (but allows reusing bidbox)
 	io.WriteString(c, `</td><td>`)
 	cs,_ := analyzebids(c, clientname)
 	io.WriteString(c, `</td><td>`)
@@ -171,7 +172,7 @@ func showbids(c io.Writer, clientname string) os.Error {
 	return nil
 }
 
-func bidbox(c io.Writer, clientname string) os.Error {
+func bidbox(c io.Writer, clientname string, bidfor bridge.Seat) os.Error {
 	fmt.Fprintln(c, `<form method=post>`)
 	candouble := regexp.MustCompile(".[CDHSN]( P P)?$").MatchString(bids[clientname])
 	canredouble := regexp.MustCompile(" X( P P)?$").MatchString(bids[clientname])
@@ -225,6 +226,7 @@ func bidbox(c io.Writer, clientname string) os.Error {
 			fmt.Fprintf(c, `<input type="submit" disabled="1" value="%s" />`, v)
 		}
 	}
+	fmt.Fprintf(c, `<input type="hidden" name="bidfor" value="%d" />`, int(bidfor))
 	fmt.Fprintf(c, `<input type="hidden" name="client" value="%s" />`, clientname)
 	fmt.Fprintln(c, `</form>`)
 	return nil
@@ -233,4 +235,205 @@ func bidbox(c io.Writer, clientname string) os.Error {
 func faviconServer(c *http.Conn, req *http.Request) {
 	// The following is a literal storing my favicon...
 	fmt.Fprint(c, "\x00\x00\x01\x00\x01\x00\x10\x10\x10\x00\x00\x00\x00\x00h\x03\x00\x00\x16\x00\x00\x00(\x00\x00\x00\x10\x00\x00\x00 \x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x03\x00\x00\x12\v\x00\x00\x12\v\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xdc\xdc\u0703\x81\x83\x83\x81\x83\x94\x81\x94\x83\x81\x83\x83\x81\x83\x83\x81\x83\x94\x81\x94\x83\x81\x83\x83\x81\x83\x83\x81\x83\x94\x81\x94\x83\x81\x83\x83\x81\x83\x83\x81\x83\xdc\xdc\u0703\x81\x83\xff\xff\xff\xff\xff\xff\xff\xff\xff\xc5\xc2\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff101\xff\xff\xff\xff\xff\xff\xff\xff\xff\x83\x81\x83\x83}\x83\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xc5\xc2\xc5101\xff\xff\xff101\xff\xff\xff101\xc5\xc2\u0143\x81\x83\x8b\x85\x8b\xff\xff\xff\xff\xff\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\xff\xff\xff\xff\xff\xff\xcd\xc6\xcd101101101101101\xcd\xc6\u0343\x81\x83{}{\xff\xff\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\xff\xff\xff\xff\xff\xff101101101101101\xff\xff\xff\x94\x81\x94\x8b\x85\x8b\xff\xff\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff101101101\xff\xff\xff\xff\xff\xff\x83\x81\x83\x83}\x83\xff\xff\xff\x00\x00\xff\x00\x00\xff\xff\xff\xff\x00\x00\xff\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff101\xff\xff\xff\xff\xff\xff\xff\xff\xff\x83\x81\x83\x8b\x85\x8b\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x83\x81\x83{}{\xff\xff\xff\xff\xff\xff\xcd\xc6\xcd101\xc5\xc6\xc5\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x94\x81\x94\x8b\x85\x8b\xff\xff\xff\xff\xff\xff\xff\xff\xff101\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xc5\xc2\xff\x00\x00\xff\xc5\xc2\xff\xff\xff\xff\xff\xff\xff\x83\x81\x83\x83}\x83\xff\xff\xff101\xc5\xc6\xc5101\xcd\xc6\xcd101\xff\xff\xff\xff\xff\xff\xc5\xc2\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\xc5\xc2\xff\xff\xff\xff\x83\x81\x83\x8b\x85\x8b\xa4\xa1\xa4101101101101101\xa4\xa1\xa4\xff\xff\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\xff\xff\xff\x83\x81\x83{}{\xff\xff\xff101\xcd\xc6\xcd101\xc5\xc6\xc5101\xff\xff\xff\xff\xff\xff\xc5\xc2\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\xc5\xc2\xff\xff\xff\xff\x94\x81\x94\x8b\x85\x8b\xff\xff\xff\xff\xff\xff101101101\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xc5\xc2\xff\x00\x00\xff\xc5\xc2\xff\xff\xff\xff\xff\xff\xff\x83\x81\x83\x83}\x83\xff\xff\xff\xff\xff\xff\xff\xff\xff\xa4\xa1\xa4\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xa4\x99\xa4\xdc\xdc\u0703\x81\x83\x8b\x85\x8b\x83\x81\x83\x8b\x85\x8b\x83\x81\x83\x8b\x85\x8b\x83\x81\x83\x8b\x85\x8b\x83\x81\x83\x8b\x85\x8b\x83\x81\x83\x8b\x85\x8b\x83\x81\x83\xb4\xae\xb4\xdc\xdc\u0700\x01\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x80\x01\xff\xff")
+}
+
+// Bid the fourth hand...
+func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Seat) {
+	bid,ok := req.Form["bid"]
+	fmt.Println("All bids were", bids)
+	switch {
+	case !ok || len(bid) != 1:
+	case bid[0][1:] == bridge.SuitHTML[bridge.Clubs]:
+		bids[clientname] = bids[clientname] + bid[0][0:1] + "C"
+	case bid[0][1:] == bridge.SuitHTML[bridge.Diamonds]:
+		bids[clientname] = bids[clientname] + bid[0][0:1] + "D"
+	case bid[0][1:] == bridge.SuitHTML[bridge.Hearts]:
+		bids[clientname] = bids[clientname] + bid[0][0:1] + "H"
+	case bid[0][1:] == bridge.SuitHTML[bridge.Spades]:
+		bids[clientname] = bids[clientname] + bid[0][0:1] + "S"
+	case bid[0][1:] == bridge.SuitHTML[bridge.NoTrump]:
+		bids[clientname] = bids[clientname] + bid[0][0:1] + "N"
+	case len(bid[0]) == 2:
+		bids[clientname] = bids[clientname] + bid[0]
+	default:
+		fmt.Println("I don't recognize", bid[0])
+	}
+	fmt.Println("Bids are", bids[clientname])
+	fmt.Println("allbids are", bids)
+
+	if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
+		dealer[clientname] = bridge.StringToSeat(d[0])
+	}
+	if _,ok := req.Form["undo"]; ok && len(bids[clientname]) >= 2 {
+		bids[clientname] = bids[clientname][0:len(bids[clientname])-2]
+		bidder := (dealer[clientname] + bridge.Seat(len(bids[clientname])/2)) % 4
+		if bidder == bidfor {
+			bids[clientname] = bids[clientname][0:len(bids[clientname])-2]
+		}
+	}
+	if _,ok := req.Form["clear"]; ok {
+		bids[clientname] = ""
+		dealer[clientname] = (dealer[clientname] + 1) % 4
+	}
+
+	bidder := (dealer[clientname] + bridge.Seat(len(bids[clientname])/2)) % 4
+	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
+	if bidder == bidfor {
+		fmt.Println("Bids are:", bids[clientname])
+		fmt.Println("Table is:")
+		fmt.Println(hands[clientname])
+		newbid, conv := bridge.PickBid(hands[clientname][bidfor], bidder, bids[clientname], ts)
+		bids[clientname] += newbid
+		fmt.Println("Bid using", conv)
+		//ts = bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
+	}
+	c.SetHeader("Content-Type", "text/html")
+	io.WriteString(c, `
+<html>
+<head>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>Bridge bidder</title>
+
+</head>
+
+<body>
+`)
+	fmt.Fprintln(c, "<table><tr><td>")
+	bidbox(c, clientname, bidfor)
+	io.WriteString(c, `</td><td>`)
+	showbids(c, clientname)
+	io.WriteString(c, `</td><td>`)
+	analyzebids(c, clientname)
+	fmt.Fprintln(c, `</td></tr></table>`)
+	showconventions(c, clientname, ts.Conventions)
+	fmt.Fprintln(c, `</body></html>`)
+}
+
+// Bid the fourth hand...
+func bidder(c *http.Conn, req *http.Request) {
+	clientname := ""
+	if req.Method == "POST" {
+		req.ParseForm()
+		for k,v := range req.Form {
+			fmt.Println("Form", k, "is", v)
+		}
+		xx,ok := req.Form["client"]
+		if ok {
+			fmt.Println("Client is", xx)
+			clientname = xx[0]
+		} else {
+			fmt.Println("No client name.")
+		}
+		bidforstr,ok := req.Form["bidfor"]
+		if ok {
+			// We already have the hands, and can short-circuit right now
+			bidfor(c, req, clientname, bridge.Seat(bidforstr[0][0])-'0')
+			return
+		}
+		t := hands[clientname]
+		hnd,ok := req.Form["southhand"]
+		if ok {
+			fmt.Sscan(hnd[0], &t[bridge.South])
+			fmt.Println("Got southhand of")
+			fmt.Println(t[bridge.South])
+		}
+		hnd,ok = req.Form["northhand"]
+		if ok {
+			fmt.Sscan(hnd[0], &t[bridge.North])
+			fmt.Println("Got northhand of")
+			fmt.Println(t[bridge.North])
+		}
+		hnd,ok = req.Form["easthand"]
+		if ok {
+			fmt.Sscan(hnd[0], &t[bridge.East])
+			fmt.Println("Got easthand of")
+			fmt.Println(t[bridge.East])
+		}
+		hnd,ok = req.Form["westhand"]
+		if ok {
+			fmt.Sscan(hnd[0], &t[bridge.West])
+			fmt.Println("Got westhand of")
+			fmt.Println(t[bridge.West])
+		}
+
+		// Figure out if we can fill out the last hand:
+		numhands := 0
+		var missinghand bridge.Seat
+		tothands := bridge.Hand(0)
+		for x:=bridge.Seat(bridge.South);x<4;x++ {
+			if t[x] != 0 {
+				tothands += t[x]
+				numhands++
+			} else {
+				missinghand = x
+			}
+		}
+		if numhands == 3 {
+			t[missinghand] = bridge.AllCards - tothands
+		}
+
+		hands[clientname] = t
+		fmt.Println("Table is:")
+		fmt.Println(t)
+
+		if numhands > 2 {
+			// We're ready to start bidding!
+			bidfor(c, req, clientname, missinghand)
+			return
+		}
+	}
+	if clientname == "" {
+		last_client = (last_client + 1) % max_clients
+		clientname = fmt.Sprintf("client=%d", last_client)
+	}
+	c.SetHeader("Content-Type", "text/html")
+	io.WriteString(c, `
+<html>
+<head>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>Enter your hand</title>
+
+</head>
+
+<body>
+Enter your hand:
+`)
+	askhand(c, clientname)
+	fmt.Fprintln(c, `</body></html>`)
+}
+
+
+func askhand(c io.Writer, clientname string) os.Error {
+	fmt.Fprintln(c, `<form method=post><table><tr><td></td><td align="center">`)
+	t := hands[clientname]
+	if t[bridge.North] == 0 {
+		fmt.Fprintln(c, `North: <input type="text" name="northhand" value="" />`)
+	} else {
+		fmt.Fprintln(c, `North known`)
+	}
+	fmt.Fprintln(c, `</td></tr><tr><td align="center">`)
+	if t[bridge.West] == 0 {
+		fmt.Fprintln(c, `West: <input type="text" name="westhand" value="" />`)
+	} else {
+		fmt.Fprintln(c, `West known`)
+	}
+	fmt.Fprintln(c, `</td><td></td><td align="center">`)
+	if t[bridge.East] == 0 {
+		fmt.Fprintln(c, `East: <input type="text" name="easthand" value="" />`)
+	} else {
+		fmt.Fprintln(c, `East known`)
+	}
+	fmt.Fprintln(c, `</td></tr><tr><td></td><td align="center">`)
+	if t[bridge.South] == 0 {
+		fmt.Fprintln(c, `South: <input type="text" name="southhand" value="" />`)
+	} else {
+		fmt.Fprintln(c, `South known`)
+	}
+	fmt.Fprintln(c, `</td></tr></table>`)
+	fmt.Fprintln(c, `<input type="submit" value="Enter" />`)
+	fmt.Fprintf(c, `<input type="hidden" name="client" value="%s" />`, clientname)
+	fmt.Fprintln(c, `</form>`)
+	return nil
 }

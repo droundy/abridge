@@ -21,18 +21,12 @@ GOFILES=\
 
 include $(GOROOT)/src/Make.pkg
 
-# ifneq ($(strip $(shell which gotgo)),)
-# pkg/slice.go: $(srcpkgdir)/gotgo/slice.got
-# 	gotgo --package-name goopt -o "$@" "$<" string
-# endif
-
-server: server.go $(pkgdir)/$(TARG).a
-	$(GC) -o server.$(O) server.go
-	$(LD) -o server server.$(O)
-
 demo: demo.go $(pkgdir)/$(TARG).a
 	$(GC) -o demo.$(O) demo.go
 	$(LD) -o demo demo.$(O)
+
+abridge/server: $(pkgdir)/$(TARG).a abridge/*.go
+	cd abridge && make clean && make
 
 benchmark: benchmark.go $(pkgdir)/$(TARG).a
 	$(GC) -o benchmark.$(O) benchmark.go
