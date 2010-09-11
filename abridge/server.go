@@ -104,10 +104,8 @@ func showconventions(c io.Writer, clientname string, conventions []string) os.Er
 
 func analyzebids(c io.Writer, clientname string) ([]string, os.Error) {
 	fmt.Fprintln(c, "<pre>")
-	//ts, ntry := bridge.ShuffleValidTables(lastbidder, bids, 100)
 	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
 	fmt.Fprintln(c, ts.HTML())
-	//fmt.Fprintf(c, "\nProbability = %.2f%%\n", 100/ntry)
 	fmt.Fprintln(c, `</pre><table><tr><td></td>`)
 	fmt.Fprintln(c, `<td align="center">South</td><td align="center">West</td><td align="center">North</td><td align="center">East</td>`)
 	fmt.Fprintln(c, `</tr><tr><td>HCP</td>`)
@@ -279,7 +277,7 @@ func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Se
 		newbid, conv := bridge.PickBid(hands[clientname][bidfor], bidder, bids[clientname], ts)
 		bids[clientname] += newbid
 		fmt.Println("Bid using", conv)
-		//ts = bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
+		ts = bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
 	}
 	defer header(c, req, "Bridge bidder")()
 	fmt.Fprintln(c, "<table><tr><td>")
