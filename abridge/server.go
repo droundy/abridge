@@ -82,18 +82,7 @@ func analyzer(c *http.Conn, req *http.Request) {
 		clientname = fmt.Sprintf("client=%d", last_client)
 	}
 	fmt.Println(req.Method, req.RawURL)
-	c.SetHeader("Content-Type", "text/html")
-	io.WriteString(c, `
-<html>
-<head>
-
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
-<title>Bridge bidding</title>
-
-</head>
-
-<body>
-`)
+	header(c, req, "Bridge bidding")
 	fmt.Fprintln(c, "<table><tr><td>")
 	bidbox(c, clientname, 0) // the second argument is bogus (but allows reusing bidbox)
 	io.WriteString(c, `</td><td>`)
@@ -213,7 +202,7 @@ func bidbox(c io.Writer, clientname string, bidfor bridge.Seat) os.Error {
 		}
 		fmt.Fprintln(c, "</tr>")
 	}
-	fmt.Fprintln(c, `</table><input type="submit" name="clear" value="Clear" />`)
+	fmt.Fprintln(c, `</table><input type="submit" name="clear" value="Next hand" />`)
 	fmt.Fprintln(c, `<input type="submit" name="undo" value="Undo" />`)
 	fmt.Fprintln(c, `<input type="submit" name="refresh" value="Refresh" />`)
 	fmt.Fprintln(c, `<br/>`)
@@ -274,6 +263,12 @@ func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Se
 	if _,ok := req.Form["clear"]; ok {
 		bids[clientname] = ""
 		dealer[clientname] = (dealer[clientname] + 1) % 4
+		var x bridge.Table
+		hands[clientname] = x, false
+		header(c, req, "Enter your next hand")
+		askhand(c, clientname)
+		fmt.Fprintln(c, `</body></html>`)
+		return
 	}
 
 	bidder := (dealer[clientname] + bridge.Seat(len(bids[clientname])/2)) % 4
@@ -287,18 +282,7 @@ func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Se
 		fmt.Println("Bid using", conv)
 		//ts = bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
 	}
-	c.SetHeader("Content-Type", "text/html")
-	io.WriteString(c, `
-<html>
-<head>
-
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
-<title>Bridge bidder</title>
-
-</head>
-
-<body>
-`)
+	header(c, req, "Bridge bidder")
 	fmt.Fprintln(c, "<table><tr><td>")
 	bidbox(c, clientname, bidfor)
 	io.WriteString(c, `</td><td>`)
@@ -387,19 +371,7 @@ func bidder(c *http.Conn, req *http.Request) {
 		last_client = (last_client + 1) % max_clients
 		clientname = fmt.Sprintf("client=%d", last_client)
 	}
-	c.SetHeader("Content-Type", "text/html")
-	io.WriteString(c, `
-<html>
-<head>
-
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
-<title>Enter your hand</title>
-
-</head>
-
-<body>
-Enter your hand:
-`)
+	header(c, req, "Enter your hand")
 	askhand(c, clientname)
 	fmt.Fprintln(c, `</body></html>`)
 }

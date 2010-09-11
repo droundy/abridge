@@ -7,5 +7,6 @@ TARG=server
 
 GOFILES=\
 	server.go\
+	header.go\
 
 include $(GOROOT)/src/Make.cmd
