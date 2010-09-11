@@ -13,7 +13,7 @@ func link(c *http.Conn, req *http.Request, url, label string) {
 	}
 }
 
-func header(c *http.Conn, req *http.Request, title string) {
+func header(c *http.Conn, req *http.Request, title string) (footer func()) {
 	c.SetHeader("Content-Type", "text/html")
 	fmt.Fprintf(c, `
 <html>
@@ -28,4 +28,14 @@ func header(c *http.Conn, req *http.Request, title string) {
 	link(c, req, "/", "Analyze bids")
 	fmt.Fprint(c, ` | `)
 	link(c, req, "/bidder", "Bid third hand")
+	fmt.Fprint(c, ` | `)
+	link(c, req, "/about", "About aBridge")
+	fmt.Fprintln(c, `<br/>`)
+	fmt.Fprintln(c, `<br/>`)
+
+	return func() {
+		// This is the footer... which is intended to be deferred.
+		fmt.Fprintln(c, `</body></html>`)
+	}
 }
+
