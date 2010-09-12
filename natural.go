@@ -10,8 +10,8 @@ func PickBid(h Hand, bidder Seat, oldbid string, e *Ensemble) (bid string, conve
 	for _,b := range pbids {
 		rules := makeScoringRules(bidder, oldbid + b, e)
 		for _,r := range rules {
-			sc,unhandled := r.score(h)
-			if sc == 0 && !unhandled {
+			sc := r.score(h)
+			if sc == 0 {
 				return b, r.name
 			}
 		}
@@ -54,7 +54,7 @@ func PossibleNondoubleBids(bid string) []string {
 var LimitPass = BiddingRule {
 	"Limiting pass",
 	regexp.MustCompile("^(..)?(..)?(..)?(.[^P]......)* P$"),
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (s Score, nothandled bool)) {
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (s Score)) {
 		possbids := PossibleNondoubleBids(ms[0])
 		allrules := make([]ScoringRule,0,len(possbids)*len(Convention))
 		for _,b := range possbids {
@@ -64,10 +64,10 @@ var LimitPass = BiddingRule {
 				allrules[len(allrules)-1-i] = r
 			}
 		}
-		return func(h Hand) (badness Score, nothandled bool) {
+		return func(h Hand) (badness Score) {
 			for _,r := range allrules {
-				sc,unhandled := r.score(h)
-				if sc == 0 && !unhandled {
+				sc := r.score(h)
+				if sc == 0 {
 					badness += 137
 				}
 			}
@@ -80,7 +80,7 @@ var LimitPass = BiddingRule {
 var Natural = BiddingRule{
 	"Natural",
 	regexp.MustCompile("(.)([^PX])$"),	
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score, bool)) {
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) Score) {
 		partner := (bidder+2)&3
 		// gamelevel is the bid needed for game.
 		gamelevel := 4
@@ -125,7 +125,7 @@ var Natural = BiddingRule{
 			}
 		}
 
-		score = func(h Hand) (badness Score, nothandled bool) {
+		score = func(h Hand) (badness Score) {
 			partner := (bidder+2)&3
 			hcprange := e.HCP(partner)
 			ptsrange := e.PointCount(partner)
@@ -206,7 +206,7 @@ var Natural = BiddingRule{
 									// Ugly... I don't want to "add badness" in case
 									// there's another way of counting that gives us
 									// slam...
-									return 0, false
+									return 0
 									//badness += Score(neededpts - theirhcprange.Min - myhcp)*PointValueProblem;
 								}
 							}

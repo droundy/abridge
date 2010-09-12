@@ -25,13 +25,13 @@ func (s Score) min(s2 Score) Score {
 type BiddingRule struct {
 	name string
 	match *regexp.Regexp
-	mkscore func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (badness Score, nothandled bool))
-	score func(bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool)
+	mkscore func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (badness Score))
+	score func(bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score)
 }
 
 type ScoringRule struct {
 	name string
-	score func(h Hand) (s Score, nothandled bool)
+	score func(h Hand) Score
 }
 
 func LastBid(bid string) (val int, s Color) {
@@ -81,9 +81,8 @@ func makeScoringRules(bidder Seat, bid string, e *Ensemble) (out []ScoringRule) 
 		if ms != nil {
 			out = out[0:len(out)+1]
 			if c.mkscore == nil {
-				score := func(h Hand) (s Score, nothandled bool) {
-					x,y := c.score(bidder, h, ms, e)
-					return x,y
+				score := func(h Hand) Score {
+					return c.score(bidder, h, ms, e)
 				}
 				out[len(out)-1] = ScoringRule{c.name, score}
 			} else {
@@ -117,12 +116,9 @@ func subBids(dealer Seat, bid string) (seats []Seat, bids []string) {
 
 func simpleScore(h Hand, rule []ScoringRule) (badness Score, convention string) {
 	for _,r := range rule {
-		b,unhandled := r.score(h)
-		badness += b
-		if !unhandled {
-			convention = r.name
-			break
-		}
+		badness += r.score(h) // FIXME: we don't really need a slice of scoring rules an longer
+		convention = r.name
+		break
 		//fmt.Printf("Got badness %g from %s\n", b, c.name)
 	}
 	return

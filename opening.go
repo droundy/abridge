@@ -20,7 +20,7 @@ var Opening = BiddingRule{
 	"Opening",
 	regexp.MustCompile("^( P)*1([CDHS])$"),
 	nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
 		pts := h.PointCount()
 		if pts < 13 {
 			badness += Fudge
@@ -83,7 +83,7 @@ var PreemptOvercall = BiddingRule{
 var Preempt = BiddingRule{
 	"Preempt",
 	regexp.MustCompile("^( P)*([23])([CDHS])$"),
-	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score, bool)) {
+	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score)) {
 		if ms[2] == "2" && ms[3] == "C" {
 			return nil // it's not a weak two bid
 		}
@@ -91,7 +91,7 @@ var Preempt = BiddingRule{
 		if ms[2] == "3" {
 			goal = 7
 		}
-		return func(h Hand) (badness Score, nothandled bool) {
+		return func(h Hand) (badness Score) {
 			pts := h.PointCount()
 			hcp := h.HCP()
 			if pts > 12 {
@@ -120,7 +120,7 @@ var PassOpening = BiddingRule{
 	"Pass opening",
 	regexp.MustCompile("^( P)* P$"),
 	nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
 		pts := h.PointCount()
 		hcp := h.HCP()
 		if pts > 12 {
