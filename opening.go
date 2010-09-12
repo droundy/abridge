@@ -83,40 +83,37 @@ var PreemptOvercall = BiddingRule{
 var Preempt = BiddingRule{
 	"Preempt",
 	regexp.MustCompile("^( P)*([23])([CDHS])$"),
-	nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, nothandled bool) {
+	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score, bool)) {
 		if ms[2] == "2" && ms[3] == "C" {
-			return 0, true // it's not a weak two bid
+			return nil // it's not a weak two bid
 		}
-		pts := h.PointCount()
-		hcp := h.HCP()
-		if pts > 12 {
-			badness += Score(pts-12)*PointValueProblem
-		} else if hcp < 5 {
-			badness += Score(5 - hcp)*PointValueProblem
+		goal := byte(6)
+		if ms[2] == "3" {
+			goal = 7
 		}
-		ls := byte(h >> 28)
-		lh := byte(h >> 20) & 15
-		ld := byte(h >> 12) & 15
-		lc := byte(h >> 4) & 15
-		numinsuit := lc
-		switch stringToSuitNumber(ms[3]) {
-		case Spades: numinsuit = ls
-		case Hearts: numinsuit = lh
-		case Diamonds: numinsuit = ld
+		return func(h Hand) (badness Score, nothandled bool) {
+			pts := h.PointCount()
+			hcp := h.HCP()
+			if pts > 12 {
+				badness += Score(pts-12)*PointValueProblem
+			} else if hcp < 5 {
+				badness += Score(5 - hcp)*PointValueProblem
+			}
+			numinsuit := goal
+			switch stringToSuitNumber(ms[3]) {
+			case Clubs: numinsuit = byte(h >> 4) & 15
+			case Spades: numinsuit = byte(h >> 28)
+			case Hearts: numinsuit = byte(h >> 20) & 15
+			case Diamonds: numinsuit = byte(h >> 12) & 15
+			}
+			if numinsuit < goal {
+				badness += Score(goal-numinsuit)*SuitLengthProblem
+			} else if goal == 6 {
+				badness += Score(numinsuit-goal)*Fudge
+			}
+			return
 		}
-		goal := numinsuit
-		switch ms[2] {
-		case "2": goal = 6
-		case "3": goal = 7
-		}
-		if numinsuit < goal {
-			badness += Score(goal-numinsuit)*SuitLengthProblem
-		} else if goal == 6 {
-			badness += Score(numinsuit-goal)*Fudge
-		}
-		return
-	},
+	}, nil,
 }
 
 var PassOpening = BiddingRule{

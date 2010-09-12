@@ -87,7 +87,12 @@ func makeScoringRules(bidder Seat, bid string, e *Ensemble) (out []ScoringRule) 
 				}
 				out[len(out)-1] = ScoringRule{c.name, score}
 			} else {
-				out[len(out)-1] = ScoringRule{c.name, c.mkscore(bidder, ms, e)}
+				sc := c.mkscore(bidder, ms, e)
+				if sc == nil {
+					out = out[0:len(out)-1] // False alarm!
+				} else {
+					out[len(out)-1] = ScoringRule{c.name, sc}
+				}
 			}
 		}
 	}
