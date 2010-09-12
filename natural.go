@@ -8,12 +8,9 @@ func PickBid(h Hand, bidder Seat, oldbid string, e *Ensemble) (bid string, conve
 	bid = " P"
 	pbids := PossibleNondoubleBids(oldbid)
 	for _,b := range pbids {
-		rules := makeScoringRules(bidder, oldbid + b, e)
-		for _,r := range rules {
-			sc := r.score(h)
-			if sc == 0 {
-				return b, r.name
-			}
+		r := makeScoringRule(bidder, oldbid + b, e)
+		if r.score(h) == 0 {
+			return b, r.name
 		}
 	}
 	return
@@ -56,12 +53,11 @@ var LimitPass = BiddingRule {
 	regexp.MustCompile("^(..)?(..)?(..)?(.[^P]......)* P$"),
 	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (s Score)) {
 		possbids := PossibleNondoubleBids(ms[0])
-		allrules := make([]ScoringRule,0,len(possbids)*len(Convention))
+		allrules := make([]*ScoringRule,0,len(possbids))
 		for _,b := range possbids {
-			rule := makeScoringRules(bidder, ms[0] + b, e)
-			allrules = allrules[0:len(allrules)+len(rule)]
-			for i,r := range rule {
-				allrules[len(allrules)-1-i] = r
+			if rule := makeScoringRule(bidder, ms[0] + b, e); rule != nil {
+				allrules = allrules[0:len(allrules)+1]
+				allrules[len(allrules)-1] = rule
 			}
 		}
 		return func(h Hand) (badness Score) {

@@ -64,43 +64,30 @@ var Convention = []BiddingRule{ Opening, Preempt, PassOpening,
 	CheapRebid, RebidSuit, Splinter,
 	MajorSupport, MajorInvitation,
 	OneNT, Stayman, StaymanResponse, StaymanTwo, StaymanTwoResponse, TwoNT, Gambling3NT,
-	OneLevelOvercall, PreemptOvercall, PassOvercall, PassHigherOvercall, Natural, Natural }
+	OneLevelOvercall, PreemptOvercall, PassOvercall, PassHigherOvercall, Natural, LimitPass }
 
-func init() {
-	// We set this manually, so as to avoid a loop, since LimitPass depends on Convention
-	Convention[len(Convention)-1] = LimitPass
-}
-
-func makeScoringRules(bidder Seat, bid string, e *Ensemble) (out []ScoringRule) {
-	out = make([]ScoringRule, 0, len(Convention))
-	for _,c0 := range Convention {
-		// The following is so we get a fresh variable with each time
-		// through the loop.
-		c := c0
+func makeScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule {
+	for _,c := range Convention {
 		ms := c.match.FindStringSubmatch(bid)
 		if ms != nil {
-			out = out[0:len(out)+1]
 			if c.mkscore == nil {
 				score := func(h Hand) Score {
 					return c.score(bidder, h, ms, e)
 				}
-				out[len(out)-1] = ScoringRule{c.name, score}
+				return &ScoringRule{c.name, score}
 			} else {
-				sc := c.mkscore(bidder, ms, e)
-				if sc == nil {
-					out = out[0:len(out)-1] // False alarm!
-				} else {
-					out[len(out)-1] = ScoringRule{c.name, sc}
+				if sc := c.mkscore(bidder, ms, e); sc != nil {
+					return &ScoringRule{c.name, sc}
 				}
 			}
 		}
 	}
-	return
+	return nil
 }
 
 func RateBid(h Hand, bid string) (badness Score, convention string) {
 	e := GetValidTables(South, bid[0:len(bid)-2], 1000)
-	rule := makeScoringRules(Seat(len(bid)/2 % 4), bid, e)
+	rule := makeScoringRule(Seat(len(bid)/2 % 4), bid, e)
 	return simpleScore(h, rule)
 }
 
@@ -114,17 +101,14 @@ func subBids(dealer Seat, bid string) (seats []Seat, bids []string) {
 	return
 }
 
-func simpleScore(h Hand, rule []ScoringRule) (badness Score, convention string) {
-	for _,r := range rule {
-		badness += r.score(h) // FIXME: we don't really need a slice of scoring rules an longer
-		convention = r.name
-		break
-		//fmt.Printf("Got badness %g from %s\n", b, c.name)
+func simpleScore(h Hand, rule *ScoringRule) (badness Score, convention string) {
+	if rule == nil {
+		return 0, "no convention matches"
 	}
-	return
+	return rule.score(h), rule.name
 }
 
-func TableScore(t Table, bidders []Seat, rules [][]ScoringRule) (badness Score, conventions []string) {
+func TableScore(t Table, bidders []Seat, rules []*ScoringRule) (badness Score, conventions []string) {
 	conventions = make([]string, len(rules))
 	for i, bidder := range bidders {
 		b,c := simpleScore(t[bidder], rules[i])
@@ -143,10 +127,10 @@ func GetValidTables(dealer Seat, bid string, num int) *Ensemble {
 		es[0].tables[i] = Shuffle() // Things start out random!
 	}
 	var conventions []string
-	rules := make([][]ScoringRule, 0, len(seats))
+	rules := make([]*ScoringRule, 0, len(seats))
 	for bidnum := range seats {
 		rules = rules[0:bidnum+1]
-		rules[bidnum] = makeScoringRules((dealer + Seat(bidnum))%4, bids[bidnum], es[bidnum])
+		rules[bidnum] = makeScoringRule((dealer + Seat(bidnum))%4, bids[bidnum], es[bidnum])
 		es[bidnum+1] = makeEnsemble(num)
 		for i,eold := range es[bidnum].tables {
 			t := eold // Initialize ensemble based on previous bidding
