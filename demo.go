@@ -17,6 +17,7 @@ func TestBids(handstring string, good, bad []string) int {
 		if sc != 0 {
 			fmt.Println("FAIL: But it's an ok bid!")
 			retval++
+			return retval
 		}
 	}
 	for _,b := range bad {
@@ -47,7 +48,16 @@ func main() {
 
 	exitval += TestBids("Axxx xxx Kxxx xx", []string{"1C P1S", "1C P1S P2S P"}, []string{"1C P2S", "1C P1S P2S3S"})
 
-	exitval += TestBids("AKQx AQx Kxxx KQ", []string{"1C P1S", "1C P1S P2S4S"}, []string{"1C P2S", "1C P1S P2S3S", "1C P1S P2S P P"})
+	exitval += TestBids("AKQx AQx Kxxx KQ", []string{"1C P1S", "1C P1S P2S P4S"}, []string{"1C P2S", "1C P1S P2S P3S", "1C P1S P2S P P"})
+
+	exitval += TestBids("x aq qjxx qxxxxx", []string{"1C P1S P2C"}, []string{"1C P1S P1N","1C P1S P2S"})
+
+	exitval += TestBids("xxx aq qjxx axxx", []string{"1C P1S P1N"}, []string{"1C P1S P2C","1C P1S P2S"})
+
+	exitval += TestBids("Ax KQxx Jxx Qxxx", []string{"1C P1S P1N"}, []string{"1C P1S P2C","1C P1S P2S"})
+
+	ts := bridge.GetValidTables(bridge.South, "1C P1S P2S P", 10)
+	fmt.Println(ts)
 
 	/*
 	fmt.Print("Valid table for a 1S opener:\n",

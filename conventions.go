@@ -1,6 +1,7 @@
 package bridge
 
 import (
+	"fmt"
 	"math"
 	"rand"
 	"regexp"
@@ -10,7 +11,7 @@ type Color byte
 
 type Score float64
 const (
-	SuitLengthProblem Score = 100
+	SuitLengthProblem Score = 1000
 	PointValueProblem Score = 100
 	BigFudge Score = 3
 	Fudge Score = 1
@@ -59,14 +60,18 @@ func LastBid(bid string) (val int, s Color) {
 	return
 }
 
-var Convention = []BiddingRule{ Opening, Preempt, PassOpening,
-	CheapResponse, TwoOverOne, CheapCompetitionResponse,
-	CheapRebid, RebidSuit, Splinter,
+var Convention = []BiddingRule{ PassOfForcing, Opening, Preempt, PassOpening,
+	CheapResponse, CheapNTResponse, TwoOverOne, CheapCompetitionResponse,
+	CheapNTRebid, CheapRebid, RebidSuit, Splinter,
 	MajorSupport, MajorInvitation,
 	OneNT, Stayman, StaymanResponse, StaymanTwo, StaymanTwoResponse, TwoNT, Gambling3NT,
-	OneLevelOvercall, PreemptOvercall, PassOvercall, PassHigherOvercall, Natural, LimitPass }
+	OneLevelOvercall, PreemptOvercall,
+	PassOvercall, PassHigherOvercall, Forced, Natural, LimitPass }
 
 func makeScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule {
+	if sc,ok := e.scorers[bid]; ok {
+		return sc
+	}
 	for _,c := range Convention {
 		ms := c.match.FindStringSubmatch(bid)
 		if ms != nil {
@@ -74,10 +79,36 @@ func makeScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule {
 				score := func(h Hand) Score {
 					return c.score(bidder, h, ms, e)
 				}
-				return &ScoringRule{c.name, score}
+				e.scorers[bid] = &ScoringRule{c.name, score}
+				return e.scorers[bid]
 			} else {
 				if sc := c.mkscore(bidder, ms, e); sc != nil {
-					return &ScoringRule{c.name, sc}
+					e.scorers[bid] = &ScoringRule{c.name, sc}
+					return e.scorers[bid]
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func makeUnforcedScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule {
+	if sc,ok := e.unforced[bid]; ok {
+		return sc
+	}
+	for _,c := range Convention {
+		ms := c.match.FindStringSubmatch(bid)
+		if ms != nil && c.name != "Forced" {
+			if c.mkscore == nil {
+				score := func(h Hand) Score {
+					return c.score(bidder, h, ms, e)
+				}
+				e.unforced[bid] = &ScoringRule{c.name, score}
+				return e.unforced[bid]
+			} else {
+				if sc := c.mkscore(bidder, ms, e); sc != nil {
+					e.unforced[bid] = &ScoringRule{c.name, sc}
+					return e.unforced[bid]
 				}
 			}
 		}
@@ -87,7 +118,7 @@ func makeScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule {
 
 func RateBid(h Hand, bid string) (badness Score, convention string) {
 	e := GetValidTables(South, bid[0:len(bid)-2], 1000)
-	rule := makeScoringRule(Seat(len(bid)/2 % 4), bid, e)
+	rule := makeScoringRule(Seat((len(bid)/2-1) % 4), bid, e)
 	return simpleScore(h, rule)
 }
 
@@ -121,19 +152,20 @@ func TableScore(t Table, bidders []Seat, rules []*ScoringRule) (badness Score, c
 // The []string output describes the bids made...
 func GetValidTables(dealer Seat, bid string, num int) *Ensemble {
 	seats, bids := subBids(dealer, bid)
-	es := make([]*Ensemble, len(bids)+1) // This is the ensemble after each bid
-	es[0] = makeEnsemble(num)
-	for i := range es[0].tables {
-		es[0].tables[i] = Shuffle() // Things start out random!
+	esold := makeEnsemble(num) // This is the ensemble before each bid
+	for i := range esold.tables {
+		esold.tables[i] = Shuffle() // Things start out random!
 	}
 	var conventions []string
 	rules := make([]*ScoringRule, 0, len(seats))
 	for bidnum := range seats {
 		rules = rules[0:bidnum+1]
-		rules[bidnum] = makeScoringRule((dealer + Seat(bidnum))%4, bids[bidnum], es[bidnum])
-		es[bidnum+1] = makeEnsemble(num)
-		for i,eold := range es[bidnum].tables {
-			t := eold // Initialize ensemble based on previous bidding
+		rules[bidnum] = makeScoringRule((dealer + Seat(bidnum))%4, bids[bidnum], esold)
+		es := makeEnsemble(num) // This is the ensemble after this bid
+		es.old = esold
+		//fmt.Println("I am working on bid of", bids[bidnum])
+		for i,t := range esold.tables {
+			// Initialize ensemble based on previous bidding
 			oldbadness,cs := TableScore(t, seats[0:bidnum+1], rules)
 			conventions = cs
 			badness := oldbadness
@@ -152,10 +184,13 @@ func GetValidTables(dealer Seat, bid string, num int) *Ensemble {
 				}
 				beta *= betainc // Here's our annealing schedule...
 			}
-			//fmt.Printf("Badness %4g -> %4g\n", oldbadness, badness)
-			es[bidnum+1].tables[i] = t
-			es[bidnum+1].Conventions = conventions
+			if badness > 0 {
+				fmt.Printf("Badness %4g -> %4g\n", oldbadness, badness)
+			}
+			es.tables[i] = t
+			es.Conventions = conventions
 		}
+		esold = es
 	}
-	return es[len(rules)] // return final ensemble
+	return esold // return final ensemble (which is now old)
 }

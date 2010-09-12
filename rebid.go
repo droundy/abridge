@@ -33,9 +33,9 @@ var RebidSuit = BiddingRule{
 	}, nil,
 }
 
-var CheapRebid = BiddingRule{
-	"Cheap rebid",
-	regexp.MustCompile("^( P)*1([CDH]) P1([DHS]) P1([HSN])$"), nil,
+var CheapNTRebid = BiddingRule{
+	"Cheap no-trump rebid",
+	regexp.MustCompile("^( P)*1([CDH]) P1([DHS]) P1N$"), nil,
 	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
 		pts := h.PointCount()
 		opensuit := stringToSuitNumber(ms[2])
@@ -48,31 +48,43 @@ var CheapRebid = BiddingRule{
 			// We have a major fit!
 			badness += Score(theirsuitlen-3)*SuitLengthProblem
 		}
-		if ms[4] == "N" {
-			if theirsuit < Spades && spadelen > 3 {
-				// Should mention spades.
-				badness += Score(spadelen-3)*SuitLengthProblem
-			}
-			if theirsuit < Hearts && heartlen > 3 {
-				// Should mention hearts.
-				badness += Score(heartlen-3)*SuitLengthProblem
-			}
-			if pts > 15 {
-				badness += Score(pts - 15)*PointValueProblem
-			}
-			if opensuitlen > 5 {
-				badness += Score(opensuitlen-5)*SuitLengthProblem
-			}
-			return // exit early, so we can assume mysuit is a valid suit
+		if theirsuit < Spades && spadelen > 3 {
+			// Should mention spades.
+			badness += Score(spadelen-3)*SuitLengthProblem
 		}
-		if theirsuit < Hearts && ms[4] == "S" && heartlen > 3 {
+		if theirsuit < Hearts && heartlen > 3 {
 			// Should mention hearts.
 			badness += Score(heartlen-3)*SuitLengthProblem
 		}
-		// Here we assume ms[4] is a real suit.
-		mysuit := stringToSuitNumber(ms[4])
+		if pts > 15 {
+			badness += Score(pts - 15)*PointValueProblem
+		}
+		if opensuitlen > 5 {
+			badness += Score(opensuitlen-5)*SuitLengthProblem
+		}
+		return
+	},
+}
+
+var CheapRebid = BiddingRule{
+	"Cheap rebid (forcing)",
+	regexp.MustCompile("^( P)*1[CD] P1([DH]) P1([HS])$"), nil,
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+		theirsuit := stringToSuitNumber(ms[2])
+		mysuit := stringToSuitNumber(ms[3])
 		mysuitlen := byte(h >> (4 + mysuit*8)) & 15
+		theirsuitlen := byte(h >> (4+theirsuit*8)) & 15
+		heartlen := byte(h >> 20) & 15
+		if theirsuit == Hearts && theirsuitlen > 3 {
+			// We have a major fit!
+			badness += Score(theirsuitlen-3)*SuitLengthProblem
+		}
+		if theirsuit < Hearts && mysuit == Spades && heartlen > 3 {
+			// Should mention hearts.
+			badness += Score(heartlen-3)*SuitLengthProblem
+		}
 		if mysuitlen < 4 {
+			// I'd better have four of my suit
 			badness += Score(4-mysuitlen)*SuitLengthProblem
 		}
 		return

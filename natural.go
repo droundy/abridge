@@ -1,6 +1,7 @@
 package bridge
 
 import (
+	"strings"
 	"regexp"
 )
 
@@ -18,8 +19,6 @@ func PickBid(h Hand, bidder Seat, oldbid string, e *Ensemble) (bid string, conve
 
 var lastbidregexp = regexp.MustCompile("([1234567])(.)( .)*$")
 func PossibleNondoubleBids(bid string) []string {
-	print("Examining bids")
-	println(bid)
 	ms := lastbidregexp.FindStringSubmatch(bid)
 	if ms == nil || len(ms) < 3 {
 		ms = []string{"","0","N"} // very hokey trick to avoid a special case
@@ -46,6 +45,20 @@ func PossibleNondoubleBids(bid string) []string {
 		}
 	}
 	return out
+}
+
+var PassOfForcing = BiddingRule {
+	"Pass of forcing bid",
+	regexp.MustCompile("^(.+) P P$"),
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (s Score)) {
+		if !strings.HasSuffix(e.Conventions[len(e.Conventions)-2], "(forcing)") {
+			return nil
+		}
+		return func(h Hand) Score {
+			return 1000
+		}
+	},
+	nil,
 }
 
 var LimitPass = BiddingRule {
@@ -242,5 +255,83 @@ var Natural = BiddingRule{
 			return
 		}
 		return
+	}, nil,
+}
+
+var Forced = BiddingRule{
+	"Forced",
+	regexp.MustCompile("(.+) P(.[^PX])$"),	
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) Score) {
+		if !strings.HasSuffix(e.Conventions[len(e.Conventions)-2], "(forcing)") {
+			return nil
+		}
+		//fmt.Println("Working on Forced...", ms[0])
+		scorer := makeUnforcedScoringRule(bidder, ms[0], e)
+		allbutme := ms[0][0:len(ms[0])-2]
+		pbids := PossibleNondoubleBids(allbutme)
+		hirules := make([]*ScoringRule,0,len(pbids))
+		lowrules := make([]*ScoringRule,0,5)
+		lownames := make([]string,0,5)
+		hinames := make([]string,0,len(pbids))
+		for i,b := range pbids {
+			if b != ms[2] {
+				//fmt.Println("Making rule for", allbutme + b)
+				if rule := makeUnforcedScoringRule(bidder, allbutme + b, e); rule != nil {
+					if i < 5 {
+						lowrules = lowrules[0:len(lowrules)+1]
+						lowrules[len(lowrules)-1] = rule
+						lownames = lownames[0:len(lownames)+1]
+						lownames[len(lownames)-1] = rule.name+ " "+ b
+					} else {
+						hirules = hirules[0:len(hirules)+1]
+						hirules[len(hirules)-1] = rule
+						hinames = hinames[0:len(hinames)+1]
+						hinames[len(hinames)-1] = rule.name+ " "+ b
+					}
+				}
+			}
+		}
+		for i,b := range pbids {
+			if i > 5 {
+				break
+			}
+			if ms[2] == b {
+				// This may be our best option
+				return func(h Hand) (badness Score) {
+					badness = scorer.score(h)
+					if badness > 0 {
+						//fmt.Print("I am running Forced on:\n", h, "for a bid of ", ms[2],"\n")
+						//fmt.Println("Native badness is", badness)
+						// Need to figure out if this is our only option
+						bestlow := Score(1000000)
+						for _,r := range lowrules {
+							b := r.score(h)
+							//fmt.Println("I see that", lownames[rnum], "gives", b)
+							if b < bestlow {
+								bestlow = b
+								if b == 0 {
+									//fmt.Println("Okay, no point fudging!")
+									return badness
+								}
+							}
+						}
+						for _,r := range hirules {
+							if b := r.score(h); b == 0 {
+								//fmt.Println("A bid of", hinames[rnum],"would be great.")
+								return badness
+							}
+						}
+						if badness < bestlow {
+							//fmt.Println("I'm going with", ms[2],"which seems my best option.")
+							return 0
+						}
+						//fmt.Println("I'm returning a modified value of", badness - bestlow)
+						return badness - bestlow
+					}
+					return
+				}
+			}
+		}
+		return scorer.score
 	}, nil,
 }

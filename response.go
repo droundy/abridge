@@ -5,7 +5,7 @@ import (
 )
 
 var Splinter = BiddingRule{
-	"Splinter",
+	"Splinter (forcing)",
 	regexp.MustCompile("^( P)*1([HS]) P(3S|4[CDH])$"),
 	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score)) {
 		opensuit := stringToSuitNumber(ms[2])
@@ -47,7 +47,7 @@ var Splinter = BiddingRule{
 }
 
 var MajorInvitation = BiddingRule{
-	"Major support",
+	"Major invitation",
 	regexp.MustCompile("^( P)*1([HS]) P3([HS])$"),
 	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) Score) {
 		opensuit := stringToSuitNumber(ms[2])
@@ -97,7 +97,7 @@ var MajorSupport = BiddingRule{
 }
 
 var TwoOverOne = BiddingRule{
-	"Two over one",
+	"Two over one (forcing)",
 	regexp.MustCompile("^( P)*1([DHS]) P2([CDH])$"),
 	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score)) {
 		opensuit := stringToSuitNumber(ms[2])
@@ -138,14 +138,16 @@ var TwoOverOne = BiddingRule{
 }
 
 var CheapResponse = BiddingRule{
-	"Cheap response to one",
-	regexp.MustCompile("^( P)*1([CDHS]) P1([DHSN])$"), nil,
+	"Cheap response to one (forcing)",
+	regexp.MustCompile("^( P)*1([CDH]) P1([DHS])$"), nil,
 	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
 		pts := h.PointCount()
 		if pts < 6 {
 			badness += Score(6-pts)*PointValueProblem
 		}
 		opensuit := stringToSuitNumber(ms[2])
+		mysuit := stringToSuitNumber(ms[3])
+		mysuitlen := byte(h >> (4 + mysuit*8)) & 15
 		heartlen := byte(h >> 20) & 15
 		spadelen := byte(h >> 28) & 15
 		if opensuit == Spades && spadelen > 2 {
@@ -157,21 +159,6 @@ var CheapResponse = BiddingRule{
 			// bid... i.e. a strongish hand.
 			badness += Score(heartlen-2)*SuitLengthProblem
 		}
-		if ms[3] == "N" {
-			if (spadelen > 3 && opensuit < Spades) {
-				badness += Score(spadelen-3)*SuitLengthProblem
-			}
-			if (heartlen > 3 && opensuit < Hearts) {
-				badness += Score(heartlen-3)*SuitLengthProblem
-			}
-			if pts > 9 {
-				badness += Score(pts - 9)*PointValueProblem
-			}
-			return // exit early, so we can assume mysuit is a valid suit
-		}
-		// Here we assume ms[3] is a real suit.
-		mysuit := stringToSuitNumber(ms[3])
-		mysuitlen := byte(h >> (4 + mysuit*8)) & 15
 		switch mysuit {
 		case Hearts:
 			if mysuitlen < 4 {
@@ -203,8 +190,42 @@ var CheapResponse = BiddingRule{
 }
 
 
+var CheapNTResponse = BiddingRule{
+	"Weak NT response",
+	regexp.MustCompile("^( P)*1([CDHS]) P1N$"), nil,
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+		pts := h.PointCount()
+		if pts < 6 {
+			badness += Score(6-pts)*PointValueProblem
+		}
+		opensuit := stringToSuitNumber(ms[2])
+		heartlen := byte(h >> 20) & 15
+		spadelen := byte(h >> 28) & 15
+		if opensuit == Spades && spadelen > 2 {
+			// We missed an opening bid!
+			badness += Score(spadelen-2)*SuitLengthProblem
+		}
+		if opensuit == Hearts && heartlen > 2 && !(ms[3] == "S" && pts > 9) {
+			// We can only bid 1S if we really have good reason to force the
+			// bid... i.e. a strongish hand.
+			badness += Score(heartlen-2)*SuitLengthProblem
+		}
+		if (spadelen > 3 && opensuit < Spades) {
+			badness += Score(spadelen-3)*SuitLengthProblem
+		}
+		if (heartlen > 3 && opensuit < Hearts) {
+			badness += Score(heartlen-3)*SuitLengthProblem
+		}
+		if pts > 9 {
+			badness += Score(pts - 9)*PointValueProblem
+		}
+		return
+	},
+}
+
+
 var CheapCompetitionResponse = BiddingRule{
-	"Cheap response to one over opponent",
+	"Cheap response to one over opponent (forcing)",
 	regexp.MustCompile("^( P)*1([CDHS]).([^P])1([DHSN])$"), nil,
 	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
 		pts := h.PointCount()

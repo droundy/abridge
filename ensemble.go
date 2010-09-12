@@ -10,6 +10,16 @@ type Ensemble struct {
 	pts [4]*PointRange
 	suits [4][4]*Range
 	Conventions []string // the names of all our conventions
+	scorers, unforced map[string]*ScoringRule
+	old *Ensemble
+}
+
+func (e *Ensemble) ShowHands() string {
+	out := ""
+	for _,t := range e.tables {
+		out += "\n" + t.String()
+	}
+	return out
 }
 
 func (e *Ensemble) String() string {
@@ -226,5 +236,7 @@ func (e *Ensemble) SuitHCP(seat Seat, suits [4]bool) (r PointRange) {
 func makeEnsemble(num int) *Ensemble {
 	var foo Ensemble
 	foo.tables = make([]Table, num)
+	foo.scorers = make(map[string]*ScoringRule)
+	foo.unforced = make(map[string]*ScoringRule)
 	return &foo
 }
