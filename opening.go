@@ -116,6 +116,20 @@ var Preempt = BiddingRule{
 	}, nil,
 }
 
+var StrongTwoClubs = BiddingRule{
+	"Strong two clubs",
+	regexp.MustCompile("^( P)*2C$"),
+	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score)) {
+		return func(h Hand) (badness Score) {
+			pts := h.PointCount()
+			if pts < 23 {
+				badness += Score(23-pts)*PointValueProblem
+			}
+			return
+		}
+	}, nil,
+}
+
 var PassOpening = BiddingRule{
 	"Pass opening",
 	regexp.MustCompile("^( P)* P$"),

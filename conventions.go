@@ -60,7 +60,8 @@ func LastBid(bid string) (val int, s Color) {
 	return
 }
 
-var Convention = []BiddingRule{ PassOfForcing, Opening, Preempt, PassOpening,
+var Convention = []BiddingRule{ PassOfForcing,
+	StrongTwoClubs, Opening, Preempt, PassOpening,
 	CheapResponse, CheapNTResponse, TwoOverOne, CheapCompetitionResponse,
 	CheapNTRebid, CheapRebid, RebidSuit, Splinter,
 	MajorSupport, MajorInvitation,
