@@ -17,7 +17,6 @@ func main() {
 	fmt.Println("Conventions are:", ts.Conventions)
 	fmt.Println(ts)
 
-
 	sec2, nsec2, _ := os.Time()
 	name, _ := os.Hostname()
 	dt := float64(sec2-sec) + 1e-9*float64(nsec2-nsec)

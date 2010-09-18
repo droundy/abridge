@@ -11,7 +11,36 @@ type Ensemble struct {
 	suits [4][4]*Range
 	Conventions []string // the names of all our conventions
 	scorers, unforced map[string]*ScoringRule
-	old *Ensemble
+}
+
+// RotateToSouth generates an entirely new Ensemble rather than
+// modifying its receiver in-place.  But it doesn't do a copy, if
+// dealer is South, so you do need to be careful.
+func (e *Ensemble) RotateToSouth(dealer Seat) (out *Ensemble) {
+	if dealer == South {
+		return e
+	}
+	out = makeEnsemble(len(e.tables));
+	for snew:=Seat(South); snew<4; snew++ {
+		sold := (snew+dealer) & 3
+		out.hcp[snew] = e.hcp[sold]
+		out.pts[snew] = e.pts[sold]
+		for sv := range out.suits[snew] {
+			out.suits[snew][sv] = e.suits[sold][sv]
+		}
+		out.Conventions = e.Conventions
+		for i,t := range e.tables {
+			out.tables[i][snew] = t[sold]
+		}
+	}
+	return
+}
+
+// RotateFromSouth generates an entirely new Ensemble rather than
+// modifying its receiver in-place.  But it doesn't do a copy, if
+// dealer is South, so you do need to be careful.
+func (e *Ensemble) RotateFromSouth(dealer Seat) (out *Ensemble) {
+	return e.RotateToSouth((4 - dealer)&3)
 }
 
 func (e *Ensemble) ShowHands() string {

@@ -6,18 +6,19 @@ include $(GOROOT)/src/Make.inc
 TARG=github.com/droundy/bridge
 
 GOFILES=\
-        suit.go\
-        hand.go\
-        table.go\
-        ensemble.go\
-        conventions.go\
-        bridge.go\
+	suit.go\
+	hand.go\
+	table.go\
+	ensemble.go\
+	conventions.go\
+	bridge.go\
 	opening.go\
 	overcall.go\
 	notrumpopening.go\
 	response.go\
 	rebid.go\
 	natural.go\
+	ensemblecache.go\
 
 include $(GOROOT)/src/Make.pkg
 

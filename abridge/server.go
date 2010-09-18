@@ -65,6 +65,9 @@ func analyzer(c *http.Conn, req *http.Request) {
 				bids[clientname] = ""
 				dealer[clientname] = (dealer[clientname] + 1) % 4
 			}
+			if _,ok := req.Form["refresh"]; ok {
+				bridge.ClearBid(bids[clientname])
+			}
 			if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
 				dealer[clientname] = bridge.StringToSeat(d[0])
 			}
