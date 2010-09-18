@@ -262,6 +262,9 @@ var Forced = BiddingRule{
 	"Forced",
 	regexp.MustCompile("(.+) P(.[^PX])$"),	
 	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) Score) {
+		if len(e.Conventions) < 2 {
+			return nil
+		}
 		if !strings.HasSuffix(e.Conventions[len(e.Conventions)-2], "(forcing)") {
 			return nil
 		}
