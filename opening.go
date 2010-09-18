@@ -117,7 +117,7 @@ var Preempt = BiddingRule{
 }
 
 var StrongTwoClubs = BiddingRule{
-	"Strong two clubs",
+	"Strong two clubs (forcing)",
 	regexp.MustCompile("^( P)*2C$"),
 	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score)) {
 		return func(h Hand) (badness Score) {

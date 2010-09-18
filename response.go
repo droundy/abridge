@@ -4,6 +4,106 @@ import (
 	"regexp"
 )
 
+var StrongTwoResponse = BiddingRule{
+	"Strong two response (forcing)",
+	regexp.MustCompile("^( P)*2C P(.[^P])$"),
+	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score)) {
+		switch ms[2] {
+		case "2D":
+			return func(h Hand) (badness Score) {
+				hcp := h.HCP()
+				if hcp > 6 {
+					badness += Score(hcp-6)*PointValueProblem
+				}
+				return
+			}
+		case "2H", "2S":
+			sv := uint(Hearts)
+			if ms[2] == "2S" {
+				sv = Spades
+			}
+			return func(h Hand) (badness Score) {
+				hcp := h.HCP()
+				if hcp < 7 {
+					badness += Score(7-hcp)*PointValueProblem
+				} else if hcp > 9 {
+					badness += Score(hcp-9)*PointValueProblem
+				}
+				ncards := byte((h >> (4+8*sv))&15)
+				if ncards < 5 {
+					badness += Score(5 - ncards)*SuitLengthProblem
+				}
+				return
+			}
+		case "2N":
+			return func(h Hand) (badness Score) {
+				hcp := h.HCP()
+				if hcp < 7 {
+					badness += Score(7-hcp)*PointValueProblem
+				} else if hcp > 9 {
+					badness += Score(hcp-9)*PointValueProblem
+				}
+				dpts := h.DistPoints()
+				if dpts > 2 {
+					badness += Score(dpts-1)*SuitLengthProblem
+				}
+				return
+			}
+		case "3C", "3D", "3H", "3S":
+			sv := stringToSuitNumber(ms[2][1:])
+			return func(h Hand) (badness Score) {
+				hcp := h.HCP()
+				if hcp < 10 {
+					badness += Score(10-hcp)*PointValueProblem
+				}
+				ncards := byte((h >> (4+8*sv))&15)
+				if ncards < 5 {
+					badness += Score(5 - ncards)*SuitLengthProblem
+				}
+				return
+			}
+		case "3N":
+			return func(h Hand) (badness Score) {
+				hcp := h.HCP()
+				if hcp < 10 {
+					badness += Score(10-hcp)*PointValueProblem
+				}
+				dpts := h.DistPoints()
+				if dpts > 2 {
+					badness += Score(dpts-1)*SuitLengthProblem
+				}
+				return
+			}
+		case "4C", "4D", "4H", "4S":
+			sv := stringToSuitNumber(ms[2][1:])
+			return func(h Hand) (badness Score) {
+				hcp := h.HCP()
+				if hcp < 13 {
+					badness += Score(13-hcp)*PointValueProblem
+				}
+				ncards := byte((h >> (4+8*sv))&15)
+				if ncards < 5 {
+					badness += Score(5 - ncards)*SuitLengthProblem
+				}
+				return
+			}
+		case "4N":
+			return func(h Hand) (badness Score) {
+				hcp := h.HCP()
+				if hcp < 13 {
+					badness += Score(13-hcp)*PointValueProblem
+				}
+				dpts := h.DistPoints()
+				if dpts > 2 {
+					badness += Score(dpts-1)*SuitLengthProblem
+				}
+				return
+			}
+		}
+		return nil
+	}, nil,
+}
+
 var Splinter = BiddingRule{
 	"Splinter (forcing)",
 	regexp.MustCompile("^( P)*1([HS]) P(3S|4[CDH])$"),
