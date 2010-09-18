@@ -66,6 +66,7 @@ var Convention = []BiddingRule{ PassOfForcing,
 	StrongTwoResponse,
 	CheapNTRebid, CheapRebid, RebidSuit, Splinter,
 	MajorSupport, MajorInvitation,
+	Jacobi, JacobiResponse, JacobiRejection,
 	OneNT, Stayman, StaymanResponse, StaymanTwo, StaymanTwoResponse, TwoNT, Gambling3NT,
 	OneLevelOvercall, PreemptOvercall,
 	PassOvercall, PassHigherOvercall, Forced, Natural, LimitPass }

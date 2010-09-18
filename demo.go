@@ -56,6 +56,8 @@ func main() {
 
 	exitval += TestBids("Ax KQxx Jxx Qxxx", []string{"1C P1S P1N"}, []string{"1C P1S P2C","1C P1S P2S"})
 
+	exitval += TestBids("Qxxx qxxxx qx qj", []string{"1N P2D", "1N P2D P2H P2N"}, []string{"1N P2H", "1N P2D P2H P3N", "1N P2D P2H P3H", "1N P2D P2H P4H"})
+
 	ts := bridge.GetValidTables(bridge.South, "1C P1S P2S P", 10)
 	fmt.Println(ts)
 

@@ -4,8 +4,47 @@ import (
 	"regexp"
 )
 
+var Jacobi = BiddingRule{
+	"Jacobi transfer (forcing)",
+	regexp.MustCompile("^( P)*1N P2([DH])$"), nil,
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+		mysuit := stringToSuitNumber(ms[2])+1
+		mysuitlen := byte(h>>(4+mysuit*8)) & 15
+		if mysuitlen < 5 {
+			badness += Score(5 - mysuitlen)*SuitLengthProblem
+		}
+		return
+	},
+}
+
+var JacobiResponse = BiddingRule{
+	"Jacobi response",
+	regexp.MustCompile("^( P)*1N P2([DH]) P2([HS])$"),
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) Score) {
+		if ms[2] == "D" && ms[3] == "S" {
+			return nil
+		}
+		return func(h Hand) Score {
+			return 0
+		}
+	}, nil,
+}
+
+var JacobiRejection = BiddingRule{
+	"Jacobi rejection (bad bid)",
+	regexp.MustCompile("^( P)*1N P2([DH]) P..$"), nil,
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+		mysuit := stringToSuitNumber(ms[2])+1
+		mysuitlen := byte(h>>(4+mysuit*8)) & 15
+		if mysuitlen > 2 {
+			badness += Score(mysuitlen-2)*SuitLengthProblem
+		}
+		return SuitLengthProblem + badness
+	},
+}
+
 var Stayman = BiddingRule{
-	"Stayman",
+	"Stayman (forcing)",
 	regexp.MustCompile("^( P)*1N P2C$"), nil,
 	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
 		return // Says nothing...
@@ -13,7 +52,7 @@ var Stayman = BiddingRule{
 }
 
 var StaymanTwo = BiddingRule{
-	"Stayman",
+	"Stayman (forcing)",
 	regexp.MustCompile("^( P)*2N P3C$"), nil,
 	Stayman.score,
 }
