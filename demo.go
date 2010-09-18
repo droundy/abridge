@@ -48,7 +48,7 @@ func main() {
 
 	exitval += TestBids("Axxx xxx Kxxx xx", []string{"1C P1S", "1C P1S P2S P"}, []string{"1C P2S", "1C P1S P2S3S"})
 
-	exitval += TestBids("AKQx AQx Kxxx KQ", []string{"1C P1S", "1C P1S P2S P4S"}, []string{"1C P2S", "1C P1S P2S P3S", "1C P1S P2S P P"})
+	exitval += TestBids("AKQx AQx Kxxx KQ", []string{"1C P1S", "1C P1S P2S P4S"}, []string{"1C P2S", "1C P1S P2S P3S", "1C P1S P2S P5S", "1C P1S P2S P2N", "1C P1S P2S P3N", "1C P1S P2S P P"})
 
 	exitval += TestBids("x aq qjxx qxxxxx", []string{"1C P1S P2C"}, []string{"1C P1S P1N","1C P1S P2S"})
 
@@ -71,5 +71,11 @@ func main() {
 	fmt.Print("Valid table for a 1S ... 3S opener:\n",
 		bridge.ShuffleValidTable(bridge.South, " P1S P3S"))
 	 */
+
+	switch exitval {
+	case 0: fmt.Println("Passed tests.")
+	case 1: fmt.Println("Failed with one error!")
+	default: fmt.Println("Failed with", exitval, "errors!")
+	}
 	os.Exit(exitval)
 }
