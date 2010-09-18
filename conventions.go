@@ -11,8 +11,8 @@ type Color byte
 
 type Score float64
 const (
-	SuitLengthProblem Score = 1000
-	PointValueProblem Score = 100
+	SuitLengthProblem Score = 100
+	PointValueProblem Score = 30
 	BigFudge Score = 3
 	Fudge Score = 1
 )
@@ -118,7 +118,7 @@ func makeUnforcedScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule 
 }
 
 func RateBid(h Hand, bid string) (badness Score, convention string) {
-	e := GetValidTables(South, bid[0:len(bid)-2], 1000)
+	e := GetValidTables(South, bid[0:len(bid)-2], 100)
 	rule := makeScoringRule(Seat((len(bid)/2-1) % 4), bid, e)
 	return simpleScore(h, rule)
 }
