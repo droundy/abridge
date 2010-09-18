@@ -229,7 +229,7 @@ var Natural = BiddingRule{
 			} else if minpts >= pointlevels[num+1] && (num < gamelevel || num == 5 || num == 6) {
 				// if we can guarantee pointlevels[num+1], then we should bid at
 				// *that* level (if it's at-or-below game, or a slam bid)
-				badness += Score(minpts - pointlevels[num+1])*PointValueProblem
+				badness += Score(1 + minpts - pointlevels[num+1])*PointValueProblem
 			}
 			/*
 			 if num < gamelevel && (maxpts+minpts+1)/2 < pointlevels[num+1] {
