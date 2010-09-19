@@ -56,6 +56,7 @@ padding: 5px;
 clear: right;
 float: right;
 width: 300px;
+padding: 5px;
 /* margin: 0 0 0 220px; */
 }
 
