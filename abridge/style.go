@@ -47,6 +47,7 @@ padding: 5px;
 }
 
 #bidtable {
+clear:right;
 float: right;
 padding: 5px;
 }
@@ -62,8 +63,8 @@ width: 300px;
 list-style: none;
 }
 .navbar li {
-padding: 5px;
-/* display: inline; */
+padding: 2px;
+display: inline;
 }
 
 #links {
@@ -71,7 +72,7 @@ background: #eeeeff;
 float: right;
 /* width: 100px; */
 margin: 0;
-padding: 5px;
+padding: 4px;
 }
 
 #links a.x {

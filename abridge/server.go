@@ -90,9 +90,11 @@ func analyzer(c *http.Conn, req *http.Request) {
 	defer header(c, req, "Bridge bidding")()
 
 	bidbox(c, clientname, 0) // the second argument is bogus (but allows reusing bidbox)
-	cs,_ := analyzebids(c, clientname)
+	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
+	analyzebids(c, ts)
+	printstatistics(c, ts)
 	showbids(c, clientname)
-	showconventions(c, clientname, cs)
+	showconventions(c, clientname, ts.Conventions)
 }
 
 func showconventions(c io.Writer, clientname string, conventions []string) os.Error {
@@ -104,11 +106,16 @@ func showconventions(c io.Writer, clientname string, conventions []string) os.Er
 	return nil
 }
 
-func analyzebids(c io.Writer, clientname string) ([]string, os.Error) {
+func analyzebids(c io.Writer, ts *bridge.Ensemble) os.Error {
 	fmt.Fprintln(c, `<div id="analysis"><pre>`)
-	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
 	fmt.Fprintln(c, ts.HTML())
-	fmt.Fprintln(c, `</pre><table><tr><td></td>`)
+	fmt.Fprintln(c, `</pre></div>`)
+	return nil
+}
+
+func printstatistics(c io.Writer, ts *bridge.Ensemble) os.Error {
+	fmt.Fprintln(c, `<div id="statistics">`)
+	fmt.Fprintln(c, `<table><tr><td></td>`)
 	fmt.Fprintln(c, `<td align="center">South</td><td align="center">West</td><td align="center">North</td><td align="center">East</td>`)
 	fmt.Fprintln(c, `</tr><tr><td>HCP</td>`)
 	for i:=0; i<4; i++ {
@@ -121,7 +128,7 @@ func analyzebids(c io.Writer, clientname string) ([]string, os.Error) {
 		fmt.Fprintf(c, `<td align="center">%d-%.1f-%d</td>`, pts.Min, pts.Mean, pts.Max)
 	}
 	fmt.Fprintln(c, `</tr></table></div>`)
-	return ts.Conventions, nil
+	return nil
 }
 
 func htmlbid(bid string) string {
@@ -282,13 +289,10 @@ func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Se
 		ts = bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
 	}
 	defer header(c, req, "Bridge bidder")()
-	fmt.Fprintln(c, "<table><tr><td>")
 	bidbox(c, clientname, bidfor)
-	io.WriteString(c, `</td><td>`)
+	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
+	analyzebids(c, stats)
 	showbids(c, clientname)
-	io.WriteString(c, `</td><td>`)
-	analyzebids(c, clientname)
-	fmt.Fprintln(c, `</td></tr></table>`)
 	showconventions(c, clientname, ts.Conventions)
 }
 
