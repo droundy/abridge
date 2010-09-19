@@ -73,7 +73,7 @@ var Convention = []BiddingRule{ PassOfForcing,
 	Jacobi, JacobiResponse, JacobiRejection,
 	OneNT, Stayman, StaymanResponse, StaymanTwo, StaymanTwoResponse, TwoNT, Gambling3NT,
 	OneLevelOvercall, PreemptOvercall,
-	PassOvercall, PassHigherOvercall, Forced, Natural, LimitPass }
+	PassOvercall, PassHigherOvercall, NewSuitForcing, Forced, Natural, LimitPass }
 
 func makeScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule {
 	if sc,ok := e.scorers[bid]; ok {

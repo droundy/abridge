@@ -91,6 +91,121 @@ var LimitPass = BiddingRule {
 	nil,
 }
 
+var suitlevels = map[int]Points{ 1:13, 2:19, 3:23, 4:26, 5:29, 6:33, 7:37, 8:60 }
+var ntlevels = map[int]Points{ 1:15, 2:20, 3:26, 4:33, 5:33, 6:33, 7:37, 8:60 }
+
+func ScoreHands(h1, h2 Hand, bidlevel int, suitvalue uint) (badness Score) {
+	hcp1 := h1.HCP()
+	hcp2 := h2.HCP()
+	hcp := hcp1 + hcp2
+	if suitvalue == NoTrump {
+		if hcp < ntlevels[bidlevel] {
+			// One point short is a fudge...
+			badness += Score(ntlevels[bidlevel] - hcp)*Fudge
+		}
+		if hcp < ntlevels[bidlevel]-1 {
+			// More than one point short is pretty bad
+			badness += Score(ntlevels[bidlevel] - 1 - hcp)*PointValueProblem
+		}
+		return
+	}
+	n1 := byte(h1 >> (4+8*suitvalue)) & 15
+	n2 := byte(h2 >> (4+8*suitvalue)) & 15
+	n := n1 + n2
+	pts1 := h1.PointCount()
+	pts2 := h2.PointCount()
+	if n < 8 {
+		badness += Score(8 - n)*SuitLengthProblem
+	}
+	// Grant an extra point for each trump beyond eight...
+	adjusted_pts := Points(n1 + n2) + pts1 + pts2 - 8
+	switch n1 {
+	case 0: adjusted_pts -= 4 // a trump void counts negative!
+	case 1: adjusted_pts -= 2
+	case 2: adjusted_pts -= 1
+	}
+	switch n2 {
+	case 0: adjusted_pts -= 4 // a trump void counts negative!
+	case 1: adjusted_pts -= 2
+	case 2: adjusted_pts -= 1
+	}
+	if adjusted_pts < suitlevels[bidlevel] {
+		// One point short is a fudge...
+		badness += Score(suitlevels[bidlevel] - adjusted_pts)*Fudge
+	}
+	if adjusted_pts < suitlevels[bidlevel] - 1 {
+		// More than one point short is pretty bad
+		badness += Score(suitlevels[bidlevel] - 1 - adjusted_pts)*PointValueProblem
+	}
+	return
+}
+
+func WorstCaseScenario(bidder Seat, h Hand, bidlevel int, suitvalue uint, e *Ensemble) (badness Score, explanation string) {
+	partner := (bidder+2)&3
+	worsthand := Hand(0)
+	for _,t := range e.tables {
+		h2bad := Score(1000000)
+		for sv := uint(Clubs); sv <= NoTrump; sv++ {
+			thislevel := bidlevel
+			if sv <= suitvalue {
+				thislevel++
+			}
+			if b := ScoreHands(h,t[partner],thislevel,sv); b < h2bad {
+				h2bad = b
+			}
+		}
+		if badness < h2bad {
+			// This is the worst hand we've seen yet!
+			badness = h2bad
+			worsthand = t[partner]
+		}
+	}
+	return badness, worsthand.String()
+}
+
+var NewSuitForcing = BiddingRule {
+	"New suit (forcing)",
+	regexp.MustCompile("^.+(.)([^PX])( P)*(.)([CDHS])$"),	
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score,string)) {
+		suitvalue := stringToSuitNumber(ms[5])
+		bidlevel := int(ms[4][0] - '0') // the level we are bid to
+		oldlevel := int(ms[1][0] - '0') // the previous level bid
+		if bidlevel > oldlevel + 1 {
+			// We've obviously jumped!
+			return nil
+		}
+		if (ms[2] != "N" && stringToSuitNumber(ms[2]) < suitvalue) && bidlevel > oldlevel {
+			// We've jumped, which doesn't count as "new suit forcing".
+			return nil
+		}
+		allpassed := true
+		for i:=1; 4*i < len(ms[0]); i++ {
+			this := ms[0][len(ms[0])-1-4*i]
+			if this == ms[5][0] {
+				// This suit is not new!
+				return nil
+			}
+			if this != 'P' {
+				allpassed = false
+			}
+		}
+		if allpassed {
+			// We haven't done anything but pass yet (so this bid is not
+			// forcing)
+			return nil
+		}
+		// At this point we know it's a "new suit forcing" bid.
+		return func(h Hand) (badness Score, explanation string) {
+			badness, explanation = WorstCaseScenario(bidder, h, bidlevel, suitvalue, e)
+			suitlen := byte(h >> (4+8*suitvalue)) & 15
+			if suitlen < 4 {
+				badness += Score(4-suitlen)*SuitLengthProblem
+			}
+			return
+		}
+	}, nil,
+}
+
 var Natural = BiddingRule{
 	"Natural",
 	regexp.MustCompile("(.)([^PX])$"),	
@@ -99,7 +214,7 @@ var Natural = BiddingRule{
 		// gamelevel is the bid needed for game.
 		gamelevel := 4
 		// pointlevels are the points that are needed for various bids
-		pointlevels := map[int]Points{ 2:19, 3:23, 4:26, 5:29, 6:33, 7:37, 8:60 }
+		pointlevels := suitlevels
 		num := int(ms[1][0] - '0') // the level we are bid to
 
 		gotsplinter := false
@@ -111,7 +226,7 @@ var Natural = BiddingRule{
 		case "N":
 			// redefine gamelevel and pointlevels appropriately
 			gamelevel = 3
-			pointlevels = map[int]Points{ 2:20, 3:26, 4:33, 5:33, 6:33, 7:37, 8:60 }
+			pointlevels = ntlevels
 		case "S","H","D","C":
 			mysuit = stringToSuitNumber(ms[2])
 			if mysuit < Hearts {
