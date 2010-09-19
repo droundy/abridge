@@ -247,6 +247,7 @@ var Natural = BiddingRule{
 				// *that* level (if it's at-or-below game, or a slam bid)
 				if explain {
 					explanation += fmt.Sprintln("We have more than the", pointlevels[num+1], "needed for the next bid up!")
+					explanation += fmt.Sprintln("We have at least", minpts)
 				}
 				badness += Score(1 + minpts - pointlevels[num+1])*PointValueProblem
 			}
