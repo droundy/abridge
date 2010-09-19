@@ -9,6 +9,10 @@ import (
 
 type Color byte
 
+const (
+	explain = false
+)
+
 type Score float64
 const (
 	SuitLengthProblem Score = 100
@@ -26,13 +30,13 @@ func (s Score) min(s2 Score) Score {
 type BiddingRule struct {
 	name string
 	match *regexp.Regexp
-	mkscore func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (badness Score))
-	score func(bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score)
+	mkscore func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (badness Score, explanation string))
+	score func(bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string)
 }
 
 type ScoringRule struct {
 	name string
-	score func(h Hand) Score
+	score func(h Hand) (badness Score, explanation string)
 }
 
 func LastBid(bid string) (val int, s Color) {
@@ -79,7 +83,7 @@ func makeScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule {
 		ms := c.match.FindStringSubmatch(bid)
 		if ms != nil {
 			if c.mkscore == nil {
-				score := func(h Hand) Score {
+				score := func(h Hand) (Score,string) {
 					return c.score(bidder, h, ms, e)
 				}
 				e.scorers[bid] = &ScoringRule{c.name, score}
@@ -103,7 +107,7 @@ func makeUnforcedScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule 
 		ms := c.match.FindStringSubmatch(bid)
 		if ms != nil && c.name != "Forced" {
 			if c.mkscore == nil {
-				score := func(h Hand) Score {
+				score := func(h Hand) (Score,string) {
 					return c.score(bidder, h, ms, e)
 				}
 				e.unforced[bid] = &ScoringRule{c.name, score}
@@ -119,8 +123,8 @@ func makeUnforcedScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule 
 	return nil
 }
 
-func RateBid(h Hand, bid string) (badness Score, convention string) {
-	e := GetValidTables(South, bid[0:len(bid)-2], 100)
+func RateBid(h Hand, bid string) (badness Score, explanation string, convention string) {
+	e := GetValidTables(South, bid[0:len(bid)-2], 200)
 	rule := makeScoringRule(Seat((len(bid)/2-1) % 4), bid, e)
 	return simpleScore(h, rule)
 }
@@ -135,17 +139,18 @@ func subBids(dealer Seat, bid string) (seats []Seat, bids []string) {
 	return
 }
 
-func simpleScore(h Hand, rule *ScoringRule) (badness Score, convention string) {
+func simpleScore(h Hand, rule *ScoringRule) (badness Score, explanation string, convention string) {
 	if rule == nil {
-		return 0, "no convention matches"
+		return 0, "", "no convention matches"
 	}
-	return rule.score(h), rule.name
+	b,e := rule.score(h)
+	return b, e, rule.name
 }
 
 func TableScore(t Table, bidders []Seat, rules []*ScoringRule) (badness Score, conventions []string) {
 	conventions = make([]string, len(rules))
 	for i, bidder := range bidders {
-		b,c := simpleScore(t[bidder], rules[i])
+		b,_,c := simpleScore(t[bidder], rules[i])
 		conventions[i] = c
 		badness += b
 	}
@@ -191,7 +196,7 @@ func GetValidTables(dealer Seat, bid string, num int) *Ensemble {
 				beta *= betainc // Here's our annealing schedule...
 			}
 			if badness > 0 {
-				fmt.Printf("Badness %4g -> %4g\n", oldbadness, badness)
+				fmt.Printf("Badness %4g -> %4g for bid %s\n", oldbadness, badness, bids[bidnum])
 			}
 			es.tables[i] = t
 			es.Conventions = conventions

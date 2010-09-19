@@ -12,19 +12,19 @@ func TestBids(handstring string, good, bad []string) int {
 	fmt.Sscan(handstring, &h)
 	fmt.Print("\nTesting bids with hand:\n", h)
 	for _,g := range good {
-		sc,con := bridge.RateBid(h, g)
+		sc,expl,con := bridge.RateBid(h, g)
 		fmt.Println("Good bid", g,"has score", sc,"using convention", con)
 		if sc != 0 {
-			fmt.Println("FAIL: But it's an ok bid!")
+			fmt.Println("FAIL: But", g, "is an ok bid, which was rejected because:")
+			fmt.Println(expl)
 			retval++
-			return retval
 		}
 	}
 	for _,b := range bad {
-		sc,con := bridge.RateBid(h, b)
+		sc,_,con := bridge.RateBid(h, b)
 		fmt.Println("Bad bid", b,"has score", sc,"using convention", con)
 		if sc == 0 {
-			fmt.Println("FAIL: But it's a bad bid!")
+			fmt.Println("FAIL: But", b, "is a bad bid!")
 			retval++
 		}
 	}
@@ -46,9 +46,11 @@ func main() {
 	fmt.Println("Watch me shuffle:")
 	fmt.Print("Deal is now:\n", bridge.Shuffle())
 
-	exitval += TestBids("Axxx xxx Kxxx xx", []string{"1C P1S", "1C P1S P2S P"}, []string{"1C P2S", "1C P1S P2S3S"})
+	exitval += TestBids("Axxx xxx Kxxx xx", []string{"1C P1S", "1C P1S P3S P"}, []string{"1C P2S", "1C P1S P3S"})
 
-	exitval += TestBids("AKQx AQx Kxxx KQ", []string{"1C P1S", "1C P1S P2S P4S"}, []string{"1C P2S", "1C P1S P2S P3S", "1C P1S P2S P5S", "1C P1S P2S P2N", "1C P1S P2S P3N", "1C P1S P2S P P"})
+	exitval += TestBids("AQxx Axx Kxxx xx", []string{"1C P1S", "1C P1S P2S P4S"}, []string{"1C P2S", "1C P1S P2S P3S", "1C P1S P2S P5S", "1C P1S P2S P2N", "1C P1S P2S P6S", "1C P1S P2S P3N", "1C P1S P2S P P"})
+
+	exitval += TestBids("AKQx Axx Kxxx KQ", []string{"1C P1S P4S"}, []string{"1C P2S", "1C P1S P3S", "1C P1S P2S", "1C P1S P2N", "1C P1S P6S", "1C P1S P3N"})
 
 	exitval += TestBids("x aq qjxx qxxxxx", []string{"1C P1S P2C"}, []string{"1C P1S P1N","1C P1S P2S"})
 
@@ -58,7 +60,7 @@ func main() {
 
 	exitval += TestBids("Qxxx qxxxx qx qj", []string{"1N P2D", "1N P2D P2H P2N"}, []string{"1N P2H", "1N P2D P2H P3N", "1N P2D P2H P3H", "1N P2D P2H P4H"})
 
-	ts := bridge.GetValidTables(bridge.South, "1C P1S P2S P", 10)
+	ts := bridge.GetValidTables(bridge.South, "1C P1S P2S P", 100)
 	fmt.Println(ts)
 
 	/*

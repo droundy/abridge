@@ -7,7 +7,7 @@ import (
 var Jacobi = BiddingRule{
 	"Jacobi transfer (forcing)",
 	regexp.MustCompile("^( P)*1N P2([DH])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		mysuit := stringToSuitNumber(ms[2])+1
 		mysuitlen := byte(h>>(4+mysuit*8)) & 15
 		if mysuitlen < 5 {
@@ -20,12 +20,12 @@ var Jacobi = BiddingRule{
 var JacobiResponse = BiddingRule{
 	"Jacobi response",
 	regexp.MustCompile("^( P)*1N P2([DH]) P2([HS])$"),
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) Score) {
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score,string)) {
 		if ms[2] == "D" && ms[3] == "S" {
 			return nil
 		}
-		return func(h Hand) Score {
-			return 0
+		return func(h Hand) (Score,string) {
+			return 0, ""
 		}
 	}, nil,
 }
@@ -33,20 +33,20 @@ var JacobiResponse = BiddingRule{
 var JacobiRejection = BiddingRule{
 	"Jacobi rejection (bad bid)",
 	regexp.MustCompile("^( P)*1N P2([DH]) P..$"), nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		mysuit := stringToSuitNumber(ms[2])+1
 		mysuitlen := byte(h>>(4+mysuit*8)) & 15
 		if mysuitlen > 2 {
 			badness += Score(mysuitlen-2)*SuitLengthProblem
 		}
-		return SuitLengthProblem + badness
+		return SuitLengthProblem + badness, ""
 	},
 }
 
 var Stayman = BiddingRule{
 	"Stayman (forcing)",
 	regexp.MustCompile("^( P)*1N P2C$"), nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		return // Says nothing...
 	},
 }
@@ -60,7 +60,7 @@ var StaymanTwo = BiddingRule{
 var StaymanResponse = BiddingRule{
 	"Stayman",
 	regexp.MustCompile("^( P)*1N P2C P2([DHS])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		lh := byte(h>>20) & 15
 		ls := byte(h>>28) & 15
 		switch ms[2] {
@@ -96,7 +96,7 @@ var StaymanTwoResponse = BiddingRule{
 var OneNT = BiddingRule{
 	"1NT opening",
 	regexp.MustCompile("^( P)*1N$"), nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		hcp := h.HCP()
 		dist := h.DistPoints()
 		if hcp > 17 {
@@ -122,7 +122,7 @@ var OneNT = BiddingRule{
 var TwoNT = BiddingRule{
 	"2NT opening",
 	regexp.MustCompile("^( P)*2N$"), nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		hcp := h.HCP()
 		dist := h.DistPoints()
 		if hcp > 21 {
@@ -148,7 +148,7 @@ var TwoNT = BiddingRule{
 var Gambling3NT = BiddingRule{
 	"Gambling 3NT",
 	regexp.MustCompile("^( P)*3N$"), nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		hcp := h.HCP()
 		d := Suit(h >> 8)
 		c := Suit(h)

@@ -3,6 +3,7 @@ package bridge
 import (
 	"strings"
 	"regexp"
+	"fmt"
 )
 
 func PickBid(h Hand, bidder Seat, oldbid string, e *Ensemble) (bid string, convention string) {
@@ -10,7 +11,7 @@ func PickBid(h Hand, bidder Seat, oldbid string, e *Ensemble) (bid string, conve
 	pbids := PossibleNondoubleBids(oldbid)
 	for _,b := range pbids {
 		r := makeScoringRule(bidder, oldbid + b, e)
-		if r.score(h) == 0 {
+		if sc,_ := r.score(h); sc == 0 {
 			return b, r.name
 		}
 	}
@@ -50,12 +51,12 @@ func PossibleNondoubleBids(bid string) []string {
 var PassOfForcing = BiddingRule {
 	"Pass of forcing bid",
 	regexp.MustCompile("^(.+) P P$"),
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (s Score)) {
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (s Score,e string)) {
 		if !strings.HasSuffix(e.Conventions[len(e.Conventions)-2], "(forcing)") {
 			return nil
 		}
-		return func(h Hand) Score {
-			return 1000
+		return func(h Hand) (Score,string) {
+			return 1000, ""
 		}
 	},
 	nil,
@@ -64,20 +65,24 @@ var PassOfForcing = BiddingRule {
 var LimitPass = BiddingRule {
 	"Limiting pass",
 	regexp.MustCompile("^(..)?(..)?(..)?(.[^P]......)* P$"),
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (s Score)) {
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (s Score, e string)) {
 		possbids := PossibleNondoubleBids(ms[0])
 		allrules := make([]*ScoringRule,0,len(possbids))
+		allbids := make([]string,0,len(possbids))
 		for _,b := range possbids {
 			if rule := makeScoringRule(bidder, ms[0] + b, e); rule != nil {
 				allrules = allrules[0:len(allrules)+1]
 				allrules[len(allrules)-1] = rule
+				allbids = allbids[0:len(allbids)+1]
+				allbids[len(allbids)-1] = b
 			}
 		}
-		return func(h Hand) (badness Score) {
-			for _,r := range allrules {
-				sc := r.score(h)
+		return func(h Hand) (badness Score, explanation string) {
+			for i,r := range allrules {
+				sc,_ := r.score(h)
 				if sc == 0 {
 					badness += 137
+					explanation += allbids[i] + " is a better bid\n"
 				}
 			}
 			return
@@ -89,7 +94,7 @@ var LimitPass = BiddingRule {
 var Natural = BiddingRule{
 	"Natural",
 	regexp.MustCompile("(.)([^PX])$"),	
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) Score) {
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score,string)) {
 		partner := (bidder+2)&3
 		// gamelevel is the bid needed for game.
 		gamelevel := 4
@@ -134,7 +139,7 @@ var Natural = BiddingRule{
 			}
 		}
 
-		score = func(h Hand) (badness Score) {
+		score = func(h Hand) (badness Score, explanation string) {
 			partner := (bidder+2)&3
 			hcprange := e.HCP(partner)
 			ptsrange := e.PointCount(partner)
@@ -146,13 +151,18 @@ var Natural = BiddingRule{
 			maxpts := pts + ptsrange.Max
 			minS := rspades.Min + byte((h >> 28)&15)
 			minH := rhearts.Min + byte((h >> 20)&15)
-			extrapts := Points(0)
 			switch ms[2] {
 			case "N":
 				if minS > 7 {
+					if explain {
+						explanation = "There is a spade fit!\n"
+					}
 					badness += Score(minS - 7)*SuitLengthProblem
 				}
 				if minH > 7 {
+					if explain {
+						explanation += "There is a hearts fit!\n"
+					}
 					badness += Score(minH - 7)*SuitLengthProblem
 				}
 				// in notrump, hcp are what is relevant
@@ -164,13 +174,15 @@ var Natural = BiddingRule{
 				mysuitlen := myownsuitlen + partnerlen.Min
 				if mysuitlen < 8 {
 					// We always want a guaranteed fit.
+					if explain {
+						explanation += "We don't have a fit!\n"
+					}
 					badness += Score(8 - mysuitlen)*SuitLengthProblem
 				}
-				if mysuitlen > 8 {
-					for i:=2; i<6; i++ {
-						extrapts += Points(mysuitlen-8) // we need a one fewer point per extra trump?
-					}
-				}
+				// We get an extra point per trump beyond 8:
+				partnersuitpts := e.PointsAndSuit(partner, mysuit)
+				minpts = pts + (partnersuitpts.Min + Points(mysuitlen)) - 8
+				maxpts = pts + (partnersuitpts.Max + Points(mysuitlen)) - 8
 				if num > 4 && gotsplinter {
 					// Special case for splinter slams and slam invites:
 					if splintersuit != mysuit {
@@ -215,7 +227,7 @@ var Natural = BiddingRule{
 									// Ugly... I don't want to "add badness" in case
 									// there's another way of counting that gives us
 									// slam...
-									return 0
+									return 0, ""
 									//badness += Score(neededpts - theirhcprange.Min - myhcp)*PointValueProblem;
 								}
 							}
@@ -225,10 +237,17 @@ var Natural = BiddingRule{
 			}	
 			if minpts < pointlevels[num] {
 				// we need to guarantee pointlevels[num] to bid at this level
+				if explain {
+					explanation += fmt.Sprintln("We don't have the", pointlevels[num], "needed!")
+					explanation += fmt.Sprintln("We only have", minpts, "together, and I have", )
+				}
 				badness += Score(pointlevels[num]-minpts)*PointValueProblem
 			} else if minpts >= pointlevels[num+1] && (num < gamelevel || num == 5 || num == 6) {
 				// if we can guarantee pointlevels[num+1], then we should bid at
 				// *that* level (if it's at-or-below game, or a slam bid)
+				if explain {
+					explanation += fmt.Sprintln("We have more than the", pointlevels[num+1], "needed for the next bid up!")
+				}
 				badness += Score(1 + minpts - pointlevels[num+1])*PointValueProblem
 			}
 			/*
@@ -244,12 +263,18 @@ var Natural = BiddingRule{
 				// We never want to bid a natural bid unless there is at least
 				// some chance of game.  This assumes we are bidding for game,
 				// and leaves out competitive bidding...
+				if explain {
+					explanation += "We have no chance at game!\n"
+				}
 				badness += Score(pointlevels[gamelevel] - maxpts)*PointValueProblem
 			}
 			if num > gamelevel && num < 6 && minpts < pointlevels[6]-2 {
 				// We don't want to invite slam (i.e. bid over game) unless
 				// there's a good reason to suspect that we've got the points
 				// for slam.
+				if explain {
+					explanation += "No point bidding beyond game if we know we can't make slam!\n"
+				}
 				badness += Score(pointlevels[6] - 2 - minpts)*Fudge
 			}
 			return
@@ -261,7 +286,7 @@ var Natural = BiddingRule{
 var Forced = BiddingRule{
 	"Forced",
 	regexp.MustCompile("(.+) P(.[^PX])$"),	
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) Score) {
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score,string)) {
 		if len(e.Conventions) < 2 {
 			return nil
 		}
@@ -300,36 +325,37 @@ var Forced = BiddingRule{
 			}
 			if ms[2] == b {
 				// This may be our best option
-				return func(h Hand) (badness Score) {
-					badness = scorer.score(h)
+				return func(h Hand) (badness Score, explanation string) {
+					badness,explanation = scorer.score(h)
 					if badness > 0 {
 						//fmt.Print("I am running Forced on:\n", h, "for a bid of ", ms[2],"\n")
 						//fmt.Println("Native badness is", badness)
 						// Need to figure out if this is our only option
 						bestlow := Score(1000000)
 						for _,r := range lowrules {
-							b := r.score(h)
+							b,_ := r.score(h)
 							//fmt.Println("I see that", lownames[rnum], "gives", b)
 							if b < bestlow {
 								bestlow = b
 								if b == 0 {
 									//fmt.Println("Okay, no point fudging!")
-									return badness
+									return
 								}
 							}
 						}
 						for _,r := range hirules {
-							if b := r.score(h); b == 0 {
+							if b,_ := r.score(h); b == 0 {
 								//fmt.Println("A bid of", hinames[rnum],"would be great.")
-								return badness
+								return
 							}
 						}
 						if badness < bestlow {
 							//fmt.Println("I'm going with", ms[2],"which seems my best option.")
-							return 0
+							explanation += "...but it seems to be the best option.\n"
+							return 0, explanation
 						}
 						//fmt.Println("I'm returning a modified value of", badness - bestlow)
-						return badness - bestlow
+						return badness - bestlow, explanation
 					}
 					return
 				}

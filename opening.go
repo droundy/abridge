@@ -20,12 +20,14 @@ var Opening = BiddingRule{
 	"Opening",
 	regexp.MustCompile("^( P)*1([CDHS])$"),
 	nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		pts := h.PointCount()
 		if pts < 13 {
+			explanation = "Opening with 12 points is a fudge!\n"
 			badness += Fudge
 		}
 		if pts < 12 {
+			explanation = "Opening with under 12 points is just wrong!\n"
 			badness += Score(12-pts)*PointValueProblem
 		}
 		ls := byte(h >> 28)
@@ -83,7 +85,7 @@ var PreemptOvercall = BiddingRule{
 var Preempt = BiddingRule{
 	"Preempt",
 	regexp.MustCompile("^( P)*([23])([CDHS])$"),
-	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score)) {
+	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score,string)) {
 		if ms[2] == "2" && ms[3] == "C" {
 			return nil // it's not a weak two bid
 		}
@@ -91,7 +93,7 @@ var Preempt = BiddingRule{
 		if ms[2] == "3" {
 			goal = 7
 		}
-		return func(h Hand) (badness Score) {
+		return func(h Hand) (badness Score, explanation string) {
 			pts := h.PointCount()
 			hcp := h.HCP()
 			if pts > 12 {
@@ -119,8 +121,8 @@ var Preempt = BiddingRule{
 var StrongTwoClubs = BiddingRule{
 	"Strong two clubs (forcing)",
 	regexp.MustCompile("^( P)*2C$"),
-	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score)) {
-		return func(h Hand) (badness Score) {
+	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score, string)) {
+		return func(h Hand) (badness Score, explanation string) {
 			pts := h.PointCount()
 			if pts < 23 {
 				badness += Score(23-pts)*PointValueProblem
@@ -134,7 +136,7 @@ var PassOpening = BiddingRule{
 	"Pass opening",
 	regexp.MustCompile("^( P)* P$"),
 	nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		pts := h.PointCount()
 		hcp := h.HCP()
 		if pts > 12 {

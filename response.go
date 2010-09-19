@@ -7,10 +7,10 @@ import (
 var StrongTwoResponse = BiddingRule{
 	"Strong two response (forcing)",
 	regexp.MustCompile("^( P)*2C P(.[^P])$"),
-	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score)) {
+	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score,string)) {
 		switch ms[2] {
 		case "2D":
-			return func(h Hand) (badness Score) {
+			return func(h Hand) (badness Score, explanation string) {
 				hcp := h.HCP()
 				if hcp > 6 {
 					badness += Score(hcp-6)*PointValueProblem
@@ -22,7 +22,7 @@ var StrongTwoResponse = BiddingRule{
 			if ms[2] == "2S" {
 				sv = Spades
 			}
-			return func(h Hand) (badness Score) {
+			return func(h Hand) (badness Score, explanation string) {
 				hcp := h.HCP()
 				if hcp < 7 {
 					badness += Score(7-hcp)*PointValueProblem
@@ -36,7 +36,7 @@ var StrongTwoResponse = BiddingRule{
 				return
 			}
 		case "2N":
-			return func(h Hand) (badness Score) {
+			return func(h Hand) (badness Score, explanation string) {
 				hcp := h.HCP()
 				if hcp < 7 {
 					badness += Score(7-hcp)*PointValueProblem
@@ -51,7 +51,7 @@ var StrongTwoResponse = BiddingRule{
 			}
 		case "3C", "3D", "3H", "3S":
 			sv := stringToSuitNumber(ms[2][1:])
-			return func(h Hand) (badness Score) {
+			return func(h Hand) (badness Score, explanation string) {
 				hcp := h.HCP()
 				if hcp < 10 {
 					badness += Score(10-hcp)*PointValueProblem
@@ -63,7 +63,7 @@ var StrongTwoResponse = BiddingRule{
 				return
 			}
 		case "3N":
-			return func(h Hand) (badness Score) {
+			return func(h Hand) (badness Score, explanation string) {
 				hcp := h.HCP()
 				if hcp < 10 {
 					badness += Score(10-hcp)*PointValueProblem
@@ -76,7 +76,7 @@ var StrongTwoResponse = BiddingRule{
 			}
 		case "4C", "4D", "4H", "4S":
 			sv := stringToSuitNumber(ms[2][1:])
-			return func(h Hand) (badness Score) {
+			return func(h Hand) (badness Score, explanation string) {
 				hcp := h.HCP()
 				if hcp < 13 {
 					badness += Score(13-hcp)*PointValueProblem
@@ -88,7 +88,7 @@ var StrongTwoResponse = BiddingRule{
 				return
 			}
 		case "4N":
-			return func(h Hand) (badness Score) {
+			return func(h Hand) (badness Score, explanation string) {
 				hcp := h.HCP()
 				if hcp < 13 {
 					badness += Score(13-hcp)*PointValueProblem
@@ -107,7 +107,7 @@ var StrongTwoResponse = BiddingRule{
 var Splinter = BiddingRule{
 	"Splinter (forcing)",
 	regexp.MustCompile("^( P)*1([HS]) P(3S|4[CDH])$"),
-	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score)) {
+	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score,string)) {
 		opensuit := stringToSuitNumber(ms[2])
 		splintersuit := uint(Spades)
 		switch ms[3] {
@@ -118,7 +118,7 @@ var Splinter = BiddingRule{
 		if opensuit == splintersuit {
 			return nil // Not a splinter!
 		}
-		return func(h Hand) (badness Score) {
+		return func(h Hand) (badness Score, explanation string) {
 			openlen := byte(h >> (4+opensuit*8)) & 15
 			splinterlen := byte(h >> (4+splintersuit*8)) & 15
 			if splinterlen > 1 {
@@ -149,13 +149,13 @@ var Splinter = BiddingRule{
 var MajorInvitation = BiddingRule{
 	"Major invitation",
 	regexp.MustCompile("^( P)*1([HS]) P3([HS])$"),
-	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) Score) {
+	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score,string)) {
 		opensuit := stringToSuitNumber(ms[2])
 		mysuit := stringToSuitNumber(ms[3])
 		if mysuit != opensuit {
 			return nil // This isn't support
 		}
-		return func(h Hand) (badness Score) {
+		return func(h Hand) (badness Score, explanation string) {
 			pts := h.PointCount()
 			if pts < 10 {
 				badness += Score(10-pts)*PointValueProblem
@@ -174,13 +174,13 @@ var MajorInvitation = BiddingRule{
 var MajorSupport = BiddingRule{
 	"Major support",
 	regexp.MustCompile("^( P)*1([HS]) P2([HS])$"),
-	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score)) {
+	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score,string)) {
 		opensuit := stringToSuitNumber(ms[2])
 		mysuit := stringToSuitNumber(ms[3])
 		if mysuit != opensuit {
 			return nil // This isn't support
 		}
-		return func(h Hand) (badness Score) {
+		return func(h Hand) (badness Score, explanation string) {
 			pts := h.PointCount()
 			if pts < 6 {
 				badness += Score(6-pts)*PointValueProblem
@@ -199,13 +199,13 @@ var MajorSupport = BiddingRule{
 var TwoOverOne = BiddingRule{
 	"Two over one (forcing)",
 	regexp.MustCompile("^( P)*1([DHS]) P2([CDH])$"),
-	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score)) {
+	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score,string)) {
 		opensuit := stringToSuitNumber(ms[2])
 		mysuit := stringToSuitNumber(ms[3])
 		if mysuit == opensuit {
 			return nil // This isn't a two-over-one bid
 		}
-		return func(h Hand) (badness Score) {
+		return func(h Hand) (badness Score, explanation string) {
 			pts := h.PointCount()
 			if pts < 10 {
 				badness += Score(10-pts)*PointValueProblem
@@ -240,7 +240,7 @@ var TwoOverOne = BiddingRule{
 var CheapResponse = BiddingRule{
 	"Cheap response to one (forcing)",
 	regexp.MustCompile("^( P)*1([CDH]) P1([DHS])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		pts := h.PointCount()
 		if pts < 6 {
 			badness += Score(6-pts)*PointValueProblem
@@ -293,7 +293,7 @@ var CheapResponse = BiddingRule{
 var CheapNTResponse = BiddingRule{
 	"Weak NT response",
 	regexp.MustCompile("^( P)*1([CDHS]) P1N$"), nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		pts := h.PointCount()
 		if pts < 6 {
 			badness += Score(6-pts)*PointValueProblem
@@ -327,7 +327,7 @@ var CheapNTResponse = BiddingRule{
 var CheapCompetitionResponse = BiddingRule{
 	"Cheap response to one over opponent (forcing)",
 	regexp.MustCompile("^( P)*1([CDHS]).([^P])1([DHSN])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score) {
+	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		pts := h.PointCount()
 		if pts < 8 {
 			badness += Score(8-pts)*PointValueProblem
