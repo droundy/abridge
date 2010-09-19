@@ -50,6 +50,10 @@ func main() {
 
 	exitval += TestBids("AQxx Axx Kxxx xx", []string{"1C P1S", "1C P1S P2S P4S"}, []string{"1C P2S", "1C P1S P2S P3S", "1C P1S P2S P5S", "1C P1S P2S P2N", "1C P1S P2S P6S", "1C P1S P2S P3N", "1C P1S P2S P P"})
 
+	exitval += TestBids("KJxx xxxxx xx xx", []string{"1C P1H", "1C P1H P1S P2S"},
+		[]string{"1C P2S", "1C P1H P1S P3S",
+		         "1C P1H P1S P1N", "1C P1H P1S P2N"})
+
 	exitval += TestBids("AKQx Axx Kxxx KQ", []string{"1C P1S P4S"}, []string{"1C P2S", "1C P1S P3S", "1C P1S P2S", "1C P1S P2N", "1C P1S P6S", "1C P1S P3N"})
 
 	exitval += TestBids("x aq qjxx qxxxxx", []string{"1C P1S P2C"}, []string{"1C P1S P1N","1C P1S P2S"})

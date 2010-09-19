@@ -181,8 +181,8 @@ var Natural = BiddingRule{
 				}
 				// We get an extra point per trump beyond 8:
 				partnersuitpts := e.PointsAndSuit(partner, mysuit)
-				minpts = pts + (partnersuitpts.Min + Points(mysuitlen)) - 8
-				maxpts = pts + (partnersuitpts.Max + Points(mysuitlen)) - 8
+				minpts = pts + (partnersuitpts.Min + Points(myownsuitlen)) - 8
+				maxpts = pts + (partnersuitpts.Max + Points(myownsuitlen)) - 8
 				if num > 4 && gotsplinter {
 					// Special case for splinter slams and slam invites:
 					if splintersuit != mysuit {
