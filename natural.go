@@ -163,6 +163,68 @@ func WorstCaseScenario(bidder Seat, h Hand, bidlevel int, suitvalue uint, e *Ens
 	return badness, worsthand.String()
 }
 
+func WorstCaseSuit(bidder Seat, h Hand, bidlevel int, suitvalue uint, e *Ensemble) (badness Score, explanation string) {
+	partner := (bidder+2)&3
+	worsthand := Hand(0)
+	for _,t := range e.tables {
+		h2bad := Score(1000000)
+		for sv := uint(Clubs); sv < NoTrump; sv++ {
+			thislevel := bidlevel
+			if sv <= suitvalue {
+				thislevel++
+			}
+			if b := ScoreHands(h,t[partner],thislevel,sv); b < h2bad {
+				h2bad = b
+			}
+		}
+		if badness < h2bad {
+			// This is the worst hand we've seen yet!
+			badness = h2bad
+			worsthand = t[partner]
+		}
+	}
+	return badness, worsthand.String()
+}
+
+var TakeOutDouble = BiddingRule {
+	"Takeout double (forcing)",
+	regexp.MustCompile("^.*([123])([CDHSN])( P P)? X$"),	
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score,string)) {
+		suitvalue := stringToSuitNumber(ms[2])
+		bidlevel := int(ms[1][0] - '0') // the level they are bid to
+		return func(h Hand) (badness Score, explanation string) {
+			badness, explanation = WorstCaseSuit(bidder, h, bidlevel, suitvalue, e)
+			if badness > 0 {
+				// We are willing to fudge by one point, since WorstCaseSuit
+				// is pretty pessimistic.  Better might be to use a median or
+				// something.
+				if badness < PointValueProblem {
+					badness = 0
+				} else {
+					badness -= PointValueProblem
+				}
+			}
+			if bidlevel == 1 && suitvalue < Spades {
+				lsp := byte(h >> 28) & 15
+				if lsp > 4 {
+					badness += Score(lsp-4)*SuitLengthProblem
+				} else if lsp < 4 {
+					badness += Score(4-lsp)*SuitLengthProblem
+				}
+			}
+			if bidlevel == 1 && suitvalue < Hearts {
+				lh := byte(h >> 20) & 15
+				if lh > 4 {
+					badness += Score(lh-4)*SuitLengthProblem
+				} else if lh < 4 {
+					badness += Score(4-lh)*SuitLengthProblem
+				}
+			}
+			return 
+		}
+	}, nil,
+}
+
 var NewSuitForcing = BiddingRule {
 	"New suit (forcing)",
 	regexp.MustCompile("^.+(.)([^PX])( P)*(.)([CDHS])$"),	
@@ -403,6 +465,10 @@ var Forced = BiddingRule{
 	"Forced",
 	regexp.MustCompile("(.+) P(.[^PX])$"),	
 	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score,string)) {
+		// FIXME: Forced ought perhaps to use WorstCaseScenario (or
+		// something like it) to see which undesirable bids might possibly
+		// lead to better contracts and favor those (e.g. to favor a suit
+		// bid over a NT bid, even if we don't know we have a fit).
 		if len(e.Conventions) < 2 {
 			return nil
 		}
