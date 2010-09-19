@@ -16,6 +16,7 @@ func main() {
 	http.HandleFunc("/bidder", bidder)
 	http.HandleFunc("/about", about)
 	http.HandleFunc("/favicon.ico", faviconServer)
+	http.HandleFunc("/style.css", styleServer)
 	http.HandleFunc("/", analyzer)
 	err := http.ListenAndServe("0.0.0.0:12345", nil)
 	if err != nil {
@@ -87,26 +88,24 @@ func analyzer(c *http.Conn, req *http.Request) {
 	}
 	fmt.Println(req.Method, req.RawURL)
 	defer header(c, req, "Bridge bidding")()
-	fmt.Fprintln(c, "<table><tr><td>")
+
 	bidbox(c, clientname, 0) // the second argument is bogus (but allows reusing bidbox)
-	io.WriteString(c, `</td><td>`)
 	cs,_ := analyzebids(c, clientname)
-	io.WriteString(c, `</td><td>`)
 	showbids(c, clientname)
-	fmt.Fprintln(c, `</td></tr></table>`)
 	showconventions(c, clientname, cs)
 }
 
 func showconventions(c io.Writer, clientname string, conventions []string) os.Error {
-	fmt.Fprintln(c, `<br/>`)
+	fmt.Fprintln(c, `<div id="conventions"><br/>`)
 	for i,cc := range conventions {
 		fmt.Fprintln(c, htmlbid(bids[clientname][2*i:2*i+2]), "=", cc, "<br/>")
 	}
+	fmt.Fprintln(c, `</div>`)
 	return nil
 }
 
 func analyzebids(c io.Writer, clientname string) ([]string, os.Error) {
-	fmt.Fprintln(c, "<pre>")
+	fmt.Fprintln(c, `<div id="analysis"><pre>`)
 	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
 	fmt.Fprintln(c, ts.HTML())
 	fmt.Fprintln(c, `</pre><table><tr><td></td>`)
@@ -121,7 +120,7 @@ func analyzebids(c io.Writer, clientname string) ([]string, os.Error) {
 		pts := ts.PointCount(bridge.Seat(i))
 		fmt.Fprintf(c, `<td align="center">%d-%.1f-%d</td>`, pts.Min, pts.Mean, pts.Max)
 	}
-	fmt.Fprintln(c, `</tr></table>`)
+	fmt.Fprintln(c, `</tr></table></div>`)
 	return ts.Conventions, nil
 }
 
@@ -142,7 +141,7 @@ func htmlbid(bid string) string {
 }
 
 func showbids(c io.Writer, clientname string) os.Error {
-	fmt.Fprintln(c, `<table><tr><td>South</td><td>West</td><td>North</td><td>East</td></tr><tr>`)
+	fmt.Fprintln(c, `<div id="bidtable"><table><tr><td>South</td><td>West</td><td>North</td><td>East</td></tr><tr>`)
 	for i:=bridge.Seat(0); i<dealer[clientname]; i++ {
 		fmt.Fprintln(c, `<td align="center">-</td>`)		
 	}
@@ -152,18 +151,18 @@ func showbids(c io.Writer, clientname string) os.Error {
 		}
 		fmt.Fprintln(c, `<td align="center">`, htmlbid(bids[clientname][2*i:2*i+2]), `</td>`)
 	}
-	for i:=bridge.Seat(len(bids[clientname])/2); i<50; i++ {
+	for i:=bridge.Seat(len(bids[clientname])/2); i<5; i++ {
 		if (i + dealer[clientname]) & 3 == 0 {
 			fmt.Fprintln(c, `</tr><tr>`)
 		}
 		fmt.Fprintln(c, `<td align="center"><font color="#FFFFFF">.</font></td>`)
 	}
-	fmt.Fprintln(c, `</tr></table>`)
+	fmt.Fprintln(c, `</tr></table></div>`)
 	return nil
 }
 
 func bidbox(c io.Writer, clientname string, bidfor bridge.Seat) os.Error {
-	fmt.Fprintln(c, `<form method=post>`)
+	fmt.Fprintln(c, `<div id="bidbox"><form method=post>`)
 	candouble := regexp.MustCompile(".[CDHSN]( P P)?$").MatchString(bids[clientname])
 	canredouble := regexp.MustCompile(" X( P P)?$").MatchString(bids[clientname])
 	fmt.Fprintln(c, `<table><tr>
@@ -218,7 +217,7 @@ func bidbox(c io.Writer, clientname string, bidfor bridge.Seat) os.Error {
 	}
 	fmt.Fprintf(c, `<input type="hidden" name="bidfor" value="%d" />`, int(bidfor))
 	fmt.Fprintf(c, `<input type="hidden" name="client" value="%s" />`, clientname)
-	fmt.Fprintln(c, `</form>`)
+	fmt.Fprintln(c, `</form></div>`)
 	return nil
 }
 

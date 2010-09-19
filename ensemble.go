@@ -8,6 +8,7 @@ type Ensemble struct {
 	tables []Table
 	hcp [4]*PointRange
 	pts [4]*PointRange
+	ptsandsuit [4][4]*PointRange
 	suits [4][4]*Range
 	Conventions []string // the names of all our conventions
 	scorers, unforced map[string]*ScoringRule
@@ -27,6 +28,7 @@ func (e *Ensemble) RotateToSouth(dealer Seat) (out *Ensemble) {
 		out.pts[snew] = e.pts[sold]
 		for sv := range out.suits[snew] {
 			out.suits[snew][sv] = e.suits[sold][sv]
+			out.ptsandsuit[snew][sv] = e.ptsandsuit[sold][sv]
 		}
 		out.Conventions = e.Conventions
 		for i,t := range e.tables {
@@ -238,6 +240,33 @@ func (e *Ensemble) SuitLength(seat Seat, suit uint) (r Range) {
 	}
 	r.Mean /= float64(len(e.tables))
 	e.suits[seat][suit] = &r
+	return
+}
+
+func (e *Ensemble) PointsAndSuit(seat Seat, suit uint) (r PointRange) {
+	suit = suit % 4 // ...just to be careful
+	if e.ptsandsuit[seat][suit] != nil {
+		return *e.ptsandsuit[seat][suit]
+	}
+	r.Min = Points(100)
+	for _,t := range e.tables {
+		suitlen := Points((t[seat] >> (4+8*suit)) & 15)
+		num := suitlen + t[seat].PointCount()
+		switch suitlen {
+		case 0: num -= 3
+		case 1: num -= 2
+		case 2: num -= 1
+		}
+		if num < r.Min {
+			r.Min = num
+		}
+		if num > r.Max {
+			r.Max = num
+		}
+		r.Mean += float64(num)
+	}
+	r.Mean /= float64(len(e.tables))
+	e.ptsandsuit[seat][suit] = &r
 	return
 }
 

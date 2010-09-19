@@ -9,5 +9,6 @@ GOFILES=\
 	server.go\
 	header.go\
 	about.go\
+	style.go\
 
 include $(GOROOT)/src/Make.cmd
