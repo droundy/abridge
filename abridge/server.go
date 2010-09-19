@@ -91,25 +91,22 @@ func analyzer(c *http.Conn, req *http.Request) {
 
 	bidbox(c, clientname, 0) // the second argument is bogus (but allows reusing bidbox)
 	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
-	analyzebids(c, ts)
+	fmt.Fprintln(c, ts.HTML())
 	printstatistics(c, ts)
 	showbids(c, clientname)
 	showconventions(c, clientname, ts.Conventions)
+	fmt.Fprintln(c, ts.ExampleHTML())
 }
 
 func showconventions(c io.Writer, clientname string, conventions []string) os.Error {
-	fmt.Fprintln(c, `<div id="conventions"><br/>`)
+	if len(conventions) == 0 {
+		return nil
+	}
+	fmt.Fprintln(c, `<div id="conventions"><h3>Conventions</h3>`)
 	for i,cc := range conventions {
 		fmt.Fprintln(c, htmlbid(bids[clientname][2*i:2*i+2]), "=", cc, "<br/>")
 	}
 	fmt.Fprintln(c, `</div>`)
-	return nil
-}
-
-func analyzebids(c io.Writer, ts *bridge.Ensemble) os.Error {
-	fmt.Fprintln(c, `<div id="analysis"><pre>`)
-	fmt.Fprintln(c, ts.HTML())
-	fmt.Fprintln(c, `</pre></div>`)
 	return nil
 }
 
@@ -291,7 +288,8 @@ func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Se
 	defer header(c, req, "Bridge bidder")()
 	bidbox(c, clientname, bidfor)
 	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
-	analyzebids(c, stats)
+	fmt.Fprintln(c, stats.HTML())
+	fmt.Fprintln(c, stats.ExampleHTML())
 	showbids(c, clientname)
 	showconventions(c, clientname, ts.Conventions)
 }

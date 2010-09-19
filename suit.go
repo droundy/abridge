@@ -98,7 +98,7 @@ func (s Suit) String() string {
 	return stringTable[s]
 }
 func ReadSuit(x string) Suit {
-	if x == "~" {
+	if x == "~" || x == "-" {
 		return Suit(0) // special name for void suit
 	}
 	out := Suit(len(x) << 4)

@@ -41,7 +41,7 @@ color: #555599;
 float: left;
 }
 
-#analysis {
+.analysis {
 float: left;
 padding: 5px;
 }
@@ -58,6 +58,12 @@ float: right;
 width: 300px;
 padding: 5px;
 /* margin: 0 0 0 220px; */
+}
+
+.bridgetable {
+clear: left;
+float: left;
+padding: 5px;
 }
 
 .navbar {

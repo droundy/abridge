@@ -60,8 +60,9 @@ func (d Table) String() string {
 	return out
 }
 
-func (d Table) HTML() string {
-	out := ""
+func (d Table) HTML(title string) string {
+	out := `<div class="bridgetable">`
+	out += fmt.Sprintf("<h3>%s</h3>\n<pre>", title)
 	out += fmt.Sprintf("         (%d)\n", d[North].HCP())
 	for sv:=uint(Spades); sv>Clubs; sv-- {
 		out += fmt.Sprintf("        %s %v\n", SuitColorHTML[sv], Suit(d[North] >> (8*sv)))
@@ -74,7 +75,7 @@ func (d Table) HTML() string {
 	for sv:=uint(Spades); sv<=Spades; sv-- {
 		out += fmt.Sprintf("        %s %v\n", SuitColorHTML[sv], Suit(d[South] >> (8*sv)))
 	}
-	return out
+	return out + "</pre></div>\n"
 }
 
 const FullSuit = 15+(13<<4)

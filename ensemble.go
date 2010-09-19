@@ -115,7 +115,7 @@ func (e *Ensemble) String() string {
 
 
 func (e *Ensemble) HTML() string {
-	out := ""
+	out := `<div class="analysis"><pre>`
 	N := e.HCP(North)
 	S := e.HCP(South)
 	E := e.HCP(East)
@@ -142,8 +142,11 @@ func (e *Ensemble) HTML() string {
 	for sv:=uint(Spades); sv<=Spades; sv-- {
 		out += fmt.Sprintf("          %s %v\n", SuitColorHTML[sv], e.SuitLength(South,sv))
 	}
-	out += "\n\n" + e.tables[0].HTML()
-	return out
+	return out + "</pre></div>\n"
+}
+
+func (e *Ensemble) ExampleHTML() string {
+	return e.tables[0].HTML("Example hand")
 }
 
 func (e *Ensemble) Invalidate() {
