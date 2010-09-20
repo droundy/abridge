@@ -9,7 +9,7 @@ import (
 )
 
 func bidbox(c io.Writer, clientname string, bidfor bridge.Seat) os.Error {
-	fmt.Fprintln(c, `<div id="bidbox"><form method=post>`)
+	fmt.Fprintln(c, `<div id="bidbox"><form method="post">`)
 	candouble := regexp.MustCompile(".[CDHSN]( P P)?$").MatchString(bids[clientname])
 	canredouble := regexp.MustCompile(" X( P P)?$").MatchString(bids[clientname])
 	fmt.Fprintln(c, `<table><tr>

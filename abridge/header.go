@@ -15,19 +15,23 @@ func link(c *http.Conn, req *http.Request, url, label string) {
 }
 
 func header(c *http.Conn, req *http.Request, title string) (footer func()) {
-	c.SetHeader("Content-Type", "text/html")
+	c.SetHeader("Content-Type", "application/xhtml+xml")
 	fmt.Fprintf(c, `
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 
-<link rel="stylesheet" href="style.css">
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link href="style.css" rel="stylesheet" type="text/css"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 <title>%s</title>
 
 </head>
 
-<body>`, title)
-	fmt.Fprintln(c, `<div id="everything">
+<body id="body">`, title)
+	fmt.Fprintln(c, `
+
 <div id="links">
 <ul class="navbar"><li>`)
 	link(c, req, "/", "Analyze bids")
@@ -40,7 +44,23 @@ func header(c *http.Conn, req *http.Request, title string) (footer func()) {
 
 	return func() {
 		// This is the footer... which is intended to be deferred.
-		fmt.Fprintln(c, `</div></body></html>`)
+		fmt.Fprintln(c, `
+
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1"  
+viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"  
+style="width:100%; height:100%; position:absolute; top:0; left:0; z-index:-1;">  
+<linearGradient id="gradient">  
+<stop stop-color="#ffeeff" offset="0%"/>  
+<stop stop-color="#ffffee" offset="100%"/>  
+</linearGradient>  
+<rect x="0" y="0" width="100" height="100" style="fill:url(#gradient)" />  
+<circle cx="50" cy="50" r="30" style="fill:url(#gradient)" />  
+</svg>
+
+</body></html>`)
 	}
 }
 
+/*
+
+*/

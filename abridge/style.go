@@ -6,31 +6,33 @@ import (
 )
 
 func styleServer(c *http.Conn, req *http.Request) {
-	// The following is a literal storing my favicon...
+	c.SetHeader("Content-Type", "text/css")
 	fmt.Fprint(c, `
-html, body {
+html {
     margin: 0;
     padding: 0;
 }
 
 body {
-background: #ffffff;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
 }
 h1 {
-font-family: verdana,helvetica,sans serif;
+font-family: verdana,helvetica,"sans serif";
 font-weight: bold;
 font-size: 16pt;
 }
-h2 { font-family: verdana,helvetica,sans serif;
+h2 { font-family: verdana,helvetica,"sans serif";
 font-weight: bold;
 font-size: 14pt;
 }
 p {
-font-family: arial,helvetica,sans serif;
+font-family: arial,helvetica,"sans serif";
 font-size:10pt;
 }
 li {
-  font-family: arial,helvetica,sans serif;
+  font-family: arial,helvetica,"sans serif";
   font-size: 10pt;
 }
 a {

@@ -155,7 +155,7 @@ func bidder(c *http.Conn, req *http.Request) {
 
 
 func askhand(c io.Writer, clientname string) os.Error {
-	fmt.Fprintln(c, `<form method=post><table><tr><td></td><td align="center">`)
+	fmt.Fprintln(c, `<form method="post"><fieldset><table><tr><td></td><td align="center">`)
 	t := hands[clientname]
 	if t[bridge.North] == 0 {
 		fmt.Fprintln(c, `North: <input type="text" name="northhand" value="" />`)
@@ -183,6 +183,6 @@ func askhand(c io.Writer, clientname string) os.Error {
 	fmt.Fprintln(c, `</td></tr></table>`)
 	fmt.Fprintln(c, `<input type="submit" value="Enter" />`)
 	fmt.Fprintf(c, `<input type="hidden" name="client" value="%s" />`, clientname)
-	fmt.Fprintln(c, `</form>`)
+	fmt.Fprintln(c, `</fieldset></form>`)
 	return nil
 }
