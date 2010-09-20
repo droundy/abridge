@@ -10,5 +10,8 @@ GOFILES=\
 	header.go\
 	about.go\
 	style.go\
+	bidbox.go\
+	favicon.go\
+	bidder.go\
 
 include $(GOROOT)/src/Make.cmd
