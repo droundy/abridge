@@ -30,6 +30,28 @@ var JacobiResponse = BiddingRule{
 	}, nil,
 }
 
+var JacobiSuperAccept = BiddingRule{
+	"Jacobi super accept",
+	regexp.MustCompile("^( P)*1N P2([DH]) P3([HS])$"),
+	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score,string)) {
+		sv := stringToSuitNumber(ms[3])
+		if ms[2] == "D" && ms[3] == "S" {
+			return nil
+		}
+		return func(h Hand) (badness Score, explanation string) {
+			ns := byte(h << (4+8*sv)) & 15
+			if ns < 4 {
+				badness += Score(4-ns)*SuitLengthProblem
+			}
+			pts := h.PointCount()
+			if pts < 17 {
+				badness += Score(17-pts)*PointValueProblem
+			}
+			return
+		}
+	}, nil,
+}
+
 var JacobiRejection = BiddingRule{
 	"Jacobi rejection (bad bid)",
 	regexp.MustCompile("^( P)*1N P2([DH]) P..$"), nil,
@@ -58,7 +80,7 @@ var StaymanTwo = BiddingRule{
 }
 
 var StaymanResponse = BiddingRule{
-	"Stayman",
+	"Stayman response",
 	regexp.MustCompile("^( P)*1N P2C P2([DHS])$"), nil,
 	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
 		lh := byte(h>>20) & 15
