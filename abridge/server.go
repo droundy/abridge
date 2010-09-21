@@ -13,6 +13,7 @@ func main() {
 	fmt.Println("This is only a test...")
 	
 	http.HandleFunc("/bidder", bidder)
+	http.HandleFunc("/bidforme", bidforme)
 	http.HandleFunc("/about", about)
 	http.HandleFunc("/favicon.ico", faviconServer)
 	http.HandleFunc("/style.css", styleServer)

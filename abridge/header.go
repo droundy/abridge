@@ -39,6 +39,8 @@ func header(c *http.Conn, req *http.Request, title string) (footer func()) {
 	fmt.Fprintln(c, `</li><li>`)
 	link(c, req, "/bidder", "Bid fourth hand")
 	fmt.Fprintln(c, `</li><li>`)
+	link(c, req, "/bidforme", "Bid for me")
+	fmt.Fprintln(c, `</li><li>`)
 	link(c, req, "/about", "About aBridge")
 	fmt.Fprintln(c, `</li></ul>`)
 	fmt.Fprintln(c, `</div>`)

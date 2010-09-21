@@ -13,5 +13,6 @@ GOFILES=\
 	bidbox.go\
 	favicon.go\
 	bidder.go\
+	bidforme.go\
 
 include $(GOROOT)/src/Make.cmd
