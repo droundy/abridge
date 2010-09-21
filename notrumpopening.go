@@ -35,7 +35,7 @@ var JacobiSuperAccept = BiddingRule{
 	regexp.MustCompile("^( P)*1N P2([DH]) P3([HS])$"),
 	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score,string)) {
 		sv := stringToSuitNumber(ms[3])
-		if ms[2] == "D" && ms[3] == "S" {
+		if ms[2] == "D" && sv == Spades {
 			return nil
 		}
 		return func(h Hand) (badness Score, explanation string) {
