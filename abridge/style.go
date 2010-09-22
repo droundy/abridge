@@ -38,7 +38,7 @@ li {
   font-size: 12pt;
 }
 a {
-color: #555599;
+  color: #555599;
 }
 
 #bidbox {
@@ -63,10 +63,15 @@ padding: 5px;
 
 .bridgehand {
   float: right;
+  color: #666666;
+  font-family: serif;
+  font-size: 10pt;
 }
 
 .bridgecards {
+  color: #000000;
   font-family: monospace;
+  font-size: 12pt;
 }
 
 #conventions {

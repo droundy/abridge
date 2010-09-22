@@ -32,11 +32,11 @@ func (h Hand) HTML(title string) string { // FIXME!
 		out += fmt.Sprintf("<strong>%s</strong>\n", title)
 	}
 	out += "<table>\n"
-	out += fmt.Sprintf("<tr><td>%d&nbsp;Points</td></tr>\n", h.PointCount())
-	out += fmt.Sprintf("<tr><td>%d&nbsp;HCP</td></tr>\n", h.HCP())
+	out += fmt.Sprintf("<tr><td>&nbsp;&nbsp;&nbsp;<em>%d&nbsp;Points</em></td></tr>\n", h.PointCount())
+	out += fmt.Sprintf("<tr><td>&nbsp;&nbsp;&nbsp;<em>%d&nbsp;HCP</em></td></tr>\n", h.HCP())
 	for sv := uint(Spades); sv <= Spades; sv-- {
 		s := Suit(h >> (8*sv))
-		out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + " " + s.String()
+		out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + "&nbsp;" + s.String()
 		out += `</div></td></tr>`
 	}
 	out += "</table></div>\n"
