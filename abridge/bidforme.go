@@ -68,7 +68,7 @@ func bidForMeNow(c *http.Conn, req *http.Request, clientname string) {
 	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
 	fmt.Fprintln(c, stats.HTML())
 	fmt.Fprintln(c, stats.ExampleHTML())
-	fmt.Fprintln(c, hands[clientname].HTML("My hand"))
+	fmt.Fprintln(c, hands[clientname][0].HTML("My hand"))
 	showbids(c, clientname)
 	showconventions(c, clientname, ts.Conventions)
 }

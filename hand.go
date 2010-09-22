@@ -25,6 +25,21 @@ func (h Hand) DistPoints() Points {
 func (h Hand) PointCount() Points {
 	return PointCount[255 & h] + PointCount[255 & (h>>8)] + PointCount[255 & (h >>16)] + PointCount[255 & (h>>24)]
 }
+
+func (h Hand) HTML(title string) string { // FIXME!
+	out := `<div class="bridgetable">`
+	if title != "" {
+		out += fmt.Sprintf("<strong>%s</strong>\n", title)
+	}
+	out += "<table>\n"
+	for sv := uint(Spades); sv <= Spades; sv-- {
+		s := Suit(h >> (8*sv))
+		out += "<tr><td>\n" + SuitColorHTML[sv] + ": " + s.String() + "\n</td></tr>\n"
+	}
+	out += "</table></div>\n"
+	return out
+}
+
 func (h Hand) String() string {
 	if h.Length() == 0 {
 		return "Empty"
