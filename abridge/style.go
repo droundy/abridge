@@ -65,7 +65,6 @@ padding: 5px;
 }
 
 .bridgehand {
-  float: right;
   color: #666666;
   font-family: serif;
   font-size: 10pt;

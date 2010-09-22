@@ -42,6 +42,9 @@ func bidForMeNow(c *http.Conn, req *http.Request, clientname string) {
 			bids[clientname] = bids[clientname][0:len(bids[clientname])-2]
 		}
 	}
+	if _,ok := req.Form["refresh"]; ok {
+		bridge.ClearBid(bids[clientname])
+	}
 	if _,ok := req.Form["clear"]; ok {
 		bids[clientname] = ""
 		dealer[clientname] = (dealer[clientname] + 1) % 4
@@ -66,14 +69,17 @@ func bidForMeNow(c *http.Conn, req *http.Request, clientname string) {
 	defer header(c, req, "Bridge bidder")()
 	bidbox(c, clientname, bridge.South)
 	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
-	fmt.Fprintln(c, stats.HTML())
-	fmt.Fprintln(c, stats.ExampleHTML())
+	fmt.Fprintln(c, `<table><tr><td>`)
 	fmt.Fprintln(c, hands[clientname][0].HTML("My hand"))
+	fmt.Fprintln(c, `</td><td>`)
+	fmt.Fprintln(c, stats.HTML())
+	fmt.Fprintln(c, `</td></tr></table>`)
+	fmt.Fprintln(c, stats.ExampleHTML())
 	showbids(c, clientname)
 	showconventions(c, clientname, ts.Conventions)
 }
 
-// Bid the fourth hand...
+// Bid my hand...
 func bidforme(c *http.Conn, req *http.Request) {
 	clientname := ""
 	if req.Method == "POST" {

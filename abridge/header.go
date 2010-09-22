@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"http"
-	"github.com/ajstarks/svgo"
+	//"github.com/ajstarks/svgo"
 )
 
 func link(c *http.Conn, req *http.Request, url, label string) {
@@ -48,6 +48,13 @@ func header(c *http.Conn, req *http.Request, title string) (footer func()) {
 	return func() {
 		// This is the footer... which is intended to be deferred.
 
+		fmt.Fprintln(c, `
+
+</body></html>`)
+	}
+}
+
+/*
 		s := svg.New(c)
 		// Start begins a new XML document!
 		//s.Start(500, 500)
@@ -60,7 +67,6 @@ func header(c *http.Conn, req *http.Request, title string) (footer func()) {
 		s.Circle(350, 150, 125, "fill:#ffbbff;stroke:#ffddff")
 		s.End()
 
-		fmt.Fprintln(c, `
 
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1"  
 viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"  
@@ -72,11 +78,5 @@ style="width:100%; height:100%; position:absolute; top:0; left:0; z-index:-2;">
 <rect x="0" y="0" width="100" height="100" style="fill:url(#gradient)" />  
 <circle cx="50" cy="50" r="30" style="fill:url(#gradient)" />  
 </svg>
-
-</body></html>`)
-	}
-}
-
-/*
 
 */
