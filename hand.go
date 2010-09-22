@@ -27,14 +27,17 @@ func (h Hand) PointCount() Points {
 }
 
 func (h Hand) HTML(title string) string { // FIXME!
-	out := `<div class="bridgetable">`
+	out := `<div class="bridgehand">`
 	if title != "" {
 		out += fmt.Sprintf("<strong>%s</strong>\n", title)
 	}
 	out += "<table>\n"
+	out += fmt.Sprintf("<tr><td>%d&nbsp;Points</td></tr>\n", h.PointCount())
+	out += fmt.Sprintf("<tr><td>%d&nbsp;HCP</td></tr>\n", h.HCP())
 	for sv := uint(Spades); sv <= Spades; sv-- {
 		s := Suit(h >> (8*sv))
-		out += "<tr><td>\n" + SuitColorHTML[sv] + ": " + s.String() + "\n</td></tr>\n"
+		out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + " " + s.String()
+		out += `</div></td></tr>`
 	}
 	out += "</table></div>\n"
 	return out

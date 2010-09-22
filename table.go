@@ -61,21 +61,17 @@ func (d Table) String() string {
 }
 
 func (d Table) HTML(title string) string {
-	out := `<div class="bridgetable">`
-	out += fmt.Sprintf("<h3>%s</h3>\n<pre>", title)
-	out += fmt.Sprintf("         (%d)\n", d[North].HCP())
-	for sv:=uint(Spades); sv>Clubs; sv-- {
-		out += fmt.Sprintf("        %s %v\n", SuitColorHTML[sv], Suit(d[North] >> (8*sv)))
-	}
-	out += fmt.Sprintf(" (%2d)   %s %6v(%2d)\n", d[West].HCP(), SuitColorHTML[Clubs], Suit(d[North]), d[East].HCP())
-	for sv:=uint(Spades); sv>Clubs; sv-- {
-		out += fmt.Sprintf("%s %13v%s %v\n", SuitColorHTML[sv], Suit(d[West] >> (8*sv)), SuitColorHTML[sv], Suit(d[East] >> (8*sv)))
-	}
-	out += fmt.Sprintf("%s %6v(%2d)   %s %v\n", SuitColorHTML[Clubs], Suit(d[West]), d[South].HCP(), SuitColorHTML[Clubs], Suit(d[East]))
-	for sv:=uint(Spades); sv<=Spades; sv-- {
-		out += fmt.Sprintf("        %s %v\n", SuitColorHTML[sv], Suit(d[South] >> (8*sv)))
-	}
-	return out + "</pre></div>\n"
+	out := fmt.Sprintln(`<div class="bridgetable">`)
+  out += fmt.Sprintf(`<table><tr>`)
+	out += fmt.Sprintf(`<td colspan="3" align="center"><h3>%s</h3></td></tr><tr>`, title)
+  out += fmt.Sprintf(`<td>%s</td>`, d[West].HTML(""))
+  out += fmt.Sprintf("<td><table><tr><td>%s</td></tr>\n", d[North].HTML(""))
+  out += fmt.Sprintf("<tr><td>&nbsp;</td></tr>\n")
+  out += fmt.Sprintf("<tr><td>&nbsp;</td></tr>\n")
+  out += fmt.Sprintf("<tr><td>%s</td></tr></table></td>\n", d[South].HTML(""))
+  out += fmt.Sprintf(`<td>%s</td>`, d[East].HTML(""))
+	out += "</tr></table></div>\n"
+	return out
 }
 
 const FullSuit = 15+(13<<4)

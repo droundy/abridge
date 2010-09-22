@@ -56,18 +56,25 @@ float: right;
 padding: 5px;
 }
 
+.bridgetable {
+  padding: 5px;
+  width: 500px;
+}
+
+.bridgehand {
+  float: right;
+}
+
+.bridgecards {
+  font-family: monospace;
+}
+
 #conventions {
 clear: right;
 float: right;
 width: 300px;
 padding: 5px;
 /* margin: 0 0 0 220px; */
-}
-
-.bridgetable {
-clear: left;
-float: left;
-padding: 5px;
 }
 
 .navbar {
@@ -98,10 +105,6 @@ height:100%;
 position:absolute;
 top:0; left:0;
 z-index:-1;"
-}
-
-.bridgetable {
-  font-family: monospace;
 }
 
 `)
