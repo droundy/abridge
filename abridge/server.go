@@ -117,12 +117,12 @@ func printstatistics(c io.Writer, ts *bridge.Ensemble) os.Error {
 	fmt.Fprintln(c, `</tr><tr><td>HCP</td>`)
 	for i:=0; i<4; i++ {
 		hcp := ts.HCP(bridge.Seat(i))
-		fmt.Fprintf(c, `<td align="center">%d-%.1f-%d</td>`, hcp.Min, hcp.Mean, hcp.Max)
+		fmt.Fprintf(c, `<td align="center">%d‑%.1f‑%d</td>`, hcp.Min, hcp.Mean, hcp.Max)
 	}
 	fmt.Fprintln(c, `</tr><tr><td>Points</td>`)
 	for i:=0; i<4; i++ {
 		pts := ts.PointCount(bridge.Seat(i))
-		fmt.Fprintf(c, `<td align="center">%d-%.1f-%d</td>`, pts.Min, pts.Mean, pts.Max)
+		fmt.Fprintf(c, `<td align="center">%d‑%.1f‑%d</td>`, pts.Min, pts.Mean, pts.Max)
 	}
 	fmt.Fprintln(c, `</tr></table></div>`)
 	return nil

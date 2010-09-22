@@ -45,13 +45,8 @@ a {
 float: left;
 }
 
-.analysis {
-float: left;
-padding: 5px;
-}
-
 #bidtable {
-clear:right;
+clear: right;
 float: right;
 padding: 5px;
 }
@@ -61,6 +56,14 @@ padding: 5px;
   width: 500px;
 }
 
+.analysis {
+  float: left;
+  padding: 5px;
+  color: #000066;
+  font-family: serif;
+  font-size: 10pt;
+}
+
 .bridgehand {
   float: right;
   color: #666666;
@@ -68,6 +71,16 @@ padding: 5px;
   font-size: 10pt;
 }
 
+.analysis .bridgecards {
+  color: #000000;
+  font-family: monospace;
+  font-size: 12pt;
+}
+
+.analysis .bridgecards em {
+  color: #999999;
+  font-style: normal;
+}
 .bridgecards {
   color: #000000;
   font-family: monospace;
@@ -77,8 +90,8 @@ padding: 5px;
 #conventions {
 clear: right;
 float: right;
-width: 300px;
 padding: 5px;
+width: 40%;
 /* margin: 0 0 0 220px; */
 }
 

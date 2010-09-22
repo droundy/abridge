@@ -113,36 +113,30 @@ func (e *Ensemble) String() string {
 	return out
 }
 
+func (e *Ensemble) HtmlSeat(seat Seat) string {
+	out := `<div class="analysis">`
+	out += "<table>\n"
+	out += fmt.Sprintf("<tr><td>&nbsp;&nbsp;&nbsp;<em>%d-%d&nbsp;Points</em></td></tr>\n", e.PointCount(seat).Min, e.PointCount(seat).Max)
+	out += fmt.Sprintf("<tr><td>&nbsp;&nbsp;&nbsp;<em>%d-%d&nbsp;HCP</em></td></tr>\n", e.HCP(seat).Min, e.HCP(seat).Max)
+	for sv := uint(Spades); sv <= Spades; sv-- {
+		out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + "&nbsp;" + e.SuitLength(seat,sv).HTML()
+		out += `</div></td></tr>`
+	}
+	out += "</table></div>\n"
+	return out
+}
 
 func (e *Ensemble) HTML() string {
-	out := `<div class="analysis"><pre>`
-	N := e.HCP(North)
-	S := e.HCP(South)
-	E := e.HCP(East)
-	W := e.HCP(West)
-	Np := e.PointCount(North)
-	Sp := e.PointCount(South)
-	Ep := e.PointCount(East)
-	Wp := e.PointCount(West)
-	out += fmt.Sprintf("           [%2d-%2d]\n", Np.Min, Np.Max)
-	out += fmt.Sprintf("           (%2d-%2d)\n", N.Min, N.Max)
-	for sv:=uint(Spades); sv>Diamonds; sv-- {
-		out += fmt.Sprintf("          %s %v\n", SuitColorHTML[sv], e.SuitLength(North, sv))
-	}
-	out += fmt.Sprintf(" [%2d-%2d]  %s %9v[%2d-%2d]\n", Wp.Min,Wp.Max,SuitColorHTML[Diamonds],e.SuitLength(North, Diamonds),Ep.Min,Ep.Max)
-	out += fmt.Sprintf(" (%2d-%2d)  ♣ %9v(%2d-%2d)\n",W.Min,W.Max,e.SuitLength(North, Clubs),E.Min,E.Max)
-	for sv:=uint(Spades); sv>Diamonds; sv-- {
-		out += fmt.Sprintf("%s %18v%s %v\n",
-			SuitColorHTML[sv], e.SuitLength(West, sv),
-			SuitColorHTML[sv], e.SuitLength(East, sv))
-	}
-	out += fmt.Sprintf(`<font color="#ff0000">♦</font> %8v[%2d-%2d]   <font color="#ff0000">♦</font> %v
-`,e.SuitLength(West, Diamonds),Sp.Min,Sp.Max,e.SuitLength(East,Diamonds))
-	out += fmt.Sprintf("♣ %8v(%2d-%2d)   ♣ %v\n",e.SuitLength(West, Clubs),S.Min,S.Max,e.SuitLength(East,Clubs))
-	for sv:=uint(Spades); sv<=Spades; sv-- {
-		out += fmt.Sprintf("          %s %v\n", SuitColorHTML[sv], e.SuitLength(South,sv))
-	}
-	return out + "</pre></div>\n"
+	out := fmt.Sprintln(`<div class="analysis">`)
+  out += fmt.Sprintf(`<table><tr>`)
+  out += fmt.Sprintf(`<td>%s</td>`, e.HtmlSeat(West))
+  out += fmt.Sprintf("<td><table><tr><td>%s</td></tr>\n", e.HtmlSeat(North))
+  out += fmt.Sprintf("<tr><td>&nbsp;</td></tr>\n")
+  out += fmt.Sprintf("<tr><td>&nbsp;</td></tr>\n")
+  out += fmt.Sprintf("<tr><td>%s</td></tr></table></td>\n", e.HtmlSeat(South))
+  out += fmt.Sprintf(`<td>%s</td>`, e.HtmlSeat(East))
+	out += "</tr></table></div>\n"
+	return out
 }
 
 func (e *Ensemble) ExampleHTML() string {
@@ -223,6 +217,20 @@ func (r Range) Format(f fmt.State, c int) {
 			f.Write([]byte{' '})
 		}
 	}
+}
+func (r Range) HTML() string {
+	out := ""
+	i := byte(0)
+	for ; i<r.Min; i++ {
+		out += "<strong>x</strong>"
+	}
+	for ; float64(i)+0.5 < r.Mean; i++ {
+		out += "x"
+	}
+	for ; i < r.Max; i++ {
+		out += "<em>x</em>"
+	}
+	return out
 }
 
 func (e *Ensemble) SuitLength(seat Seat, suit uint) (r Range) {

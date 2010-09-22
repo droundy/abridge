@@ -63,7 +63,9 @@ func (d Table) String() string {
 func (d Table) HTML(title string) string {
 	out := fmt.Sprintln(`<div class="bridgetable">`)
   out += fmt.Sprintf(`<table><tr>`)
-	out += fmt.Sprintf(`<td colspan="3" align="center"><h3>%s</h3></td></tr><tr>`, title)
+	if title != "" {
+		out += fmt.Sprintf(`<td colspan="3" align="center"><h3>%s</h3></td></tr><tr>`, title)
+	}
   out += fmt.Sprintf(`<td>%s</td>`, d[West].HTML(""))
   out += fmt.Sprintf("<td><table><tr><td>%s</td></tr>\n", d[North].HTML(""))
   out += fmt.Sprintf("<tr><td>&nbsp;</td></tr>\n")
