@@ -51,7 +51,7 @@ func bidForMeNow(c *http.Conn, req *http.Request, clientname string) {
 		var x bridge.Table
 		hands[clientname] = x, false
 		defer header(c, req, "Enter your next hand")()
-		askhand(c, clientname)
+		askhand(c, bridge.South, clientname)
 		return
 	}
 
@@ -123,18 +123,18 @@ func bidforme(c *http.Conn, req *http.Request) {
 		clientname = fmt.Sprintf("client=%d", last_client)
 	}
 	defer header(c, req, "Enter your hand")()
-	askhand(c, clientname)
+	askhand(c, bridge.South, clientname)
 }
 
 
-func askhand(c io.Writer, clientname string) os.Error {
+func askhand(c io.Writer, seat bridge.Seat, clientname string) os.Error {
 	fmt.Fprintln(c, `<form method="post"><fieldset>`)
 	t := hands[clientname]
-	if t[bridge.South] != 13 {
+	if t[seat] != 13 {
 		fmt.Fprintln(c, `<table>`)
 		form := `<tr><td>%s</td><td><input type="text" name="%s" value="%s" /></td></tr>`+"\n"
 		for sv:=uint(bridge.Spades); sv <= bridge.Spades; sv-- {
-			fmt.Fprintf(c, form, bridge.SuitColorHTML[sv], "southhand"+bridge.SuitLetter[sv], bridge.Suit(t[bridge.South] >> (8*sv)).String())
+			fmt.Fprintf(c, form, bridge.SuitColorHTML[sv], "southhand"+bridge.SuitLetter[sv], bridge.Suit(t[seat] >> (8*sv)).String())
 		}
 		fmt.Fprintln(c, `</table>`)
 	} else {

@@ -94,37 +94,27 @@ func bidder(c *http.Conn, req *http.Request) {
 			return
 		}
 		t := hands[clientname]
-		hnd,ok := req.Form["southhand"]
-		if ok {
-			fmt.Sscan(hnd[0], &t[bridge.South])
-			fmt.Println("Got southhand of")
-			fmt.Println(t[bridge.South])
+		for seat:=bridge.Seat(0); seat<4; seat++ {
+			if t[seat].Length() != 13 {
+				newh := bridge.Hand(0)
+				for sv:=uint(0); sv < 5; sv++ {
+					if hnd,ok := req.Form[seat.String()+" hand "+bridge.SuitLetter[sv]]; ok {
+						s := bridge.Suit(t[seat] >> (sv*8))
+						fmt.Sscan(hnd[0], &s)
+						newh += bridge.Hand(s) << (sv*8)
+					}
+				}
+				t[seat] = newh
+			}
 		}
-		hnd,ok = req.Form["northhand"]
-		if ok {
-			fmt.Sscan(hnd[0], &t[bridge.North])
-			fmt.Println("Got northhand of")
-			fmt.Println(t[bridge.North])
-		}
-		hnd,ok = req.Form["easthand"]
-		if ok {
-			fmt.Sscan(hnd[0], &t[bridge.East])
-			fmt.Println("Got easthand of")
-			fmt.Println(t[bridge.East])
-		}
-		hnd,ok = req.Form["westhand"]
-		if ok {
-			fmt.Sscan(hnd[0], &t[bridge.West])
-			fmt.Println("Got westhand of")
-			fmt.Println(t[bridge.West])
-		}
+		hands[clientname] = t
 
 		// Figure out if we can fill out the last hand:
 		numhands := 0
 		var missinghand bridge.Seat
 		tothands := bridge.Hand(0)
 		for x:=bridge.Seat(bridge.South);x<4;x++ {
-			if t[x] != 0 {
+			if t[x].Length() == 13 {
 				tothands += t[x]
 				numhands++
 			} else {
@@ -156,33 +146,31 @@ func bidder(c *http.Conn, req *http.Request) {
 
 func askhands(c io.Writer, clientname string) os.Error {
 	fmt.Fprintln(c, `<form method="post"><fieldset><table><tr><td></td><td align="center">`)
-	t := hands[clientname]
-	if t[bridge.North] == 0 {
-		fmt.Fprintln(c, `North: <input type="text" name="northhand" value="" />`)
-	} else {
-		fmt.Fprintln(c, `North known`)
-	}
+	askonehand(c, bridge.North, clientname)
 	fmt.Fprintln(c, `</td></tr><tr><td align="center">`)
-	if t[bridge.West] == 0 {
-		fmt.Fprintln(c, `West: <input type="text" name="westhand" value="" />`)
-	} else {
-		fmt.Fprintln(c, `West known`)
-	}
+	askonehand(c, bridge.West, clientname)
 	fmt.Fprintln(c, `</td><td></td><td align="center">`)
-	if t[bridge.East] == 0 {
-		fmt.Fprintln(c, `East: <input type="text" name="easthand" value="" />`)
-	} else {
-		fmt.Fprintln(c, `East known`)
-	}
+	askonehand(c, bridge.East, clientname)
 	fmt.Fprintln(c, `</td></tr><tr><td></td><td align="center">`)
-	if t[bridge.South] == 0 {
-		fmt.Fprintln(c, `South: <input type="text" name="southhand" value="" />`)
-	} else {
-		fmt.Fprintln(c, `South known`)
-	}
+	askonehand(c, bridge.South, clientname)
 	fmt.Fprintln(c, `</td></tr></table>`)
 	fmt.Fprintln(c, `<input type="submit" value="Enter" />`)
 	fmt.Fprintf(c, `<input type="hidden" name="client" value="%s" />`, clientname)
 	fmt.Fprintln(c, `</fieldset></form>`)
+	return nil
+}
+
+func askonehand(c io.Writer, seat bridge.Seat, clientname string) os.Error {
+	t := hands[clientname]
+	if t[seat].Length() != 13 {
+		fmt.Fprintln(c, `<table>`)
+		form := `<tr><td>%s</td><td><input type="text" name="%s" value="%s" /></td></tr>`+"\n"
+		for sv:=uint(bridge.Spades); sv <= bridge.Spades; sv-- {
+			fmt.Fprintf(c, form, bridge.SuitColorHTML[sv], seat.String()+" hand "+bridge.SuitLetter[sv], bridge.Suit(t[seat] >> (8*sv)).String())
+		}
+		fmt.Fprintln(c, `</table>`)
+	} else {
+		fmt.Fprintln(c, seat.String(), "known")
+	}
 	return nil
 }
