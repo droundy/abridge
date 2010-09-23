@@ -101,12 +101,19 @@ func bidforme(c *http.Conn, req *http.Request) {
 			return
 		}
 		t := hands[clientname]
-		hnd,ok := req.Form["southhand"]
-		if ok {
-			fmt.Sscan(hnd[0], &t[bridge.South])
-			fmt.Println("Got southhand of")
-			fmt.Println(t[bridge.South])
-			hands[clientname] = t
+		newh := bridge.Hand(0)
+		for sv:=uint(0); sv < 5; sv++ {
+			if hnd,ok := req.Form["southhand" + bridge.SuitLetter[sv]]; ok {
+				s := bridge.Suit(t[bridge.South] >> (sv*8))
+				fmt.Sscan(hnd[0], &s)
+				fmt.Println("Got southhand", bridge.SuitLetter[sv], "of")
+				fmt.Println(s)
+				newh += bridge.Hand(s) << (sv*8)
+			}
+		}
+		t[bridge.South] = newh
+		hands[clientname] = t
+		if newh.Length() == 13 {
 			bidForMeNow(c, req, clientname)
 			return
 		}
@@ -123,8 +130,15 @@ func bidforme(c *http.Conn, req *http.Request) {
 func askhand(c io.Writer, clientname string) os.Error {
 	fmt.Fprintln(c, `<form method="post"><fieldset>`)
 	t := hands[clientname]
-	if t[bridge.North] == 0 {
-		fmt.Fprintln(c, `My hand: <input type="text" name="southhand" value="" />`)
+	if t[bridge.South] != 13 {
+		fmt.Fprintln(c, `<table>`)
+		form := `<tr><td>%s</td><td><input type="text" name="%s" value="%s" /></td></tr>`+"\n"
+		for sv:=uint(bridge.Spades); sv <= bridge.Spades; sv-- {
+			fmt.Fprintf(c, form, bridge.SuitColorHTML[sv], "southhand"+bridge.SuitLetter[sv], bridge.Suit(t[bridge.South] >> (8*sv)).String())
+		}
+		fmt.Fprintln(c, `</table>`)
+	} else {
+		fmt.Fprintln(c, "Hand already entered!")
 	}
 	fmt.Fprintln(c, `<input type="submit" value="Enter" />`)
 	fmt.Fprintln(c, `<input type="hidden" name="dealer" value="W" />`)
