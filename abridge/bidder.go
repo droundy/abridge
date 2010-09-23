@@ -32,9 +32,6 @@ func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Se
 	fmt.Println("Bids are", bids[clientname])
 	fmt.Println("allbids are", bids)
 
-	if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
-		dealer[clientname] = bridge.StringToSeat(d[0])
-	}
 	if _,ok := req.Form["undo"]; ok && len(bids[clientname]) >= 2 {
 		bids[clientname] = bids[clientname][0:len(bids[clientname])-2]
 		bidder := (dealer[clientname] + bridge.Seat(len(bids[clientname])/2)) % 4
@@ -86,6 +83,9 @@ func bidder(c *http.Conn, req *http.Request) {
 			clientname = xx[0]
 		} else {
 			fmt.Println("No client name.")
+		}
+		if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
+			dealer[clientname] = bridge.StringToSeat(d[0])
 		}
 		bidforstr,ok := req.Form["bidfor"]
 		if ok {
@@ -154,6 +154,16 @@ func askhands(c io.Writer, clientname string) os.Error {
 	fmt.Fprintln(c, `</td></tr><tr><td></td><td align="center">`)
 	askonehand(c, bridge.South, clientname)
 	fmt.Fprintln(c, `</td></tr></table>`)
+
+	fmt.Fprintln(c, `Dealer: `)
+	for s:=bridge.Seat(0); s<4; s++ {
+		fmt.Fprintf(c, `<input type="radio" name="dealer" value="%s"`, s.String())
+		if (dealer[clientname] == s) {
+			fmt.Fprint(c, ` checked="checked"`)
+		}
+		fmt.Fprintln(c, `/> `, s.String())
+	}
+	fmt.Fprintln(c, `<br/>`)
 	fmt.Fprintln(c, `<input type="submit" value="Enter" />`)
 	fmt.Fprintf(c, `<input type="hidden" name="client" value="%s" />`, clientname)
 	fmt.Fprintln(c, `</fieldset></form>`)
