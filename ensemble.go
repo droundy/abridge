@@ -116,10 +116,10 @@ func (e *Ensemble) String() string {
 func (e *Ensemble) HtmlSeat(seat Seat) string {
 	out := `<div class="analysis">`
 	out += "<table>\n"
-	out += fmt.Sprintf("<tr><td>&nbsp;&nbsp;&nbsp;<em>%d-%d&nbsp;Points</em></td></tr>\n", e.PointCount(seat).Min, e.PointCount(seat).Max)
-	out += fmt.Sprintf("<tr><td>&nbsp;&nbsp;&nbsp;<em>%d-%d&nbsp;HCP</em></td></tr>\n", e.HCP(seat).Min, e.HCP(seat).Max)
+	out += fmt.Sprintf("<tr><td>   <em>%d-%d Points</em></td></tr>\n", e.PointCount(seat).Min, e.PointCount(seat).Max)
+	out += fmt.Sprintf("<tr><td>   <em>%d-%d HCP</em></td></tr>\n", e.HCP(seat).Min, e.HCP(seat).Max)
 	for sv := uint(Spades); sv <= Spades; sv-- {
-		out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + "&nbsp;" + e.SuitLength(seat,sv).HTML()
+		out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + " " + e.SuitLength(seat,sv).HTML()
 		out += `</div></td></tr>`
 	}
 	out += "</table></div>\n"
@@ -131,8 +131,8 @@ func (e *Ensemble) HTML() string {
   out += fmt.Sprintf(`<table><tr>`)
   out += fmt.Sprintf(`<td>%s</td>`, e.HtmlSeat(West))
   out += fmt.Sprintf("<td><table><tr><td>%s</td></tr>\n", e.HtmlSeat(North))
-  out += fmt.Sprintf("<tr><td>&nbsp;</td></tr>\n")
-  out += fmt.Sprintf("<tr><td>&nbsp;</td></tr>\n")
+  out += fmt.Sprintf("<tr><td> </td></tr>\n")
+  out += fmt.Sprintf("<tr><td> </td></tr>\n")
   out += fmt.Sprintf("<tr><td>%s</td></tr></table></td>\n", e.HtmlSeat(South))
   out += fmt.Sprintf(`<td>%s</td>`, e.HtmlSeat(East))
 	out += "</tr></table></div>\n"

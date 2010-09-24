@@ -69,8 +69,8 @@ func (d Table) HTML(title string) string {
 	}
   out += fmt.Sprintf(`<td>%s</td>`, d[West].HTML(""))
   out += fmt.Sprintf("<td><table><tr><td>%s</td></tr>\n", d[North].HTML(""))
-  out += fmt.Sprintf("<tr><td>&nbsp;</td></tr>\n")
-  out += fmt.Sprintf("<tr><td>&nbsp;</td></tr>\n")
+  out += fmt.Sprintf("<tr><td> </td></tr>\n")
+  out += fmt.Sprintf("<tr><td> </td></tr>\n")
   out += fmt.Sprintf("<tr><td>%s</td></tr></table></td>\n", d[South].HTML(""))
   out += fmt.Sprintf(`<td>%s</td>`, d[East].HTML(""))
 	out += "</tr></table></div>\n"
