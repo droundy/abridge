@@ -145,23 +145,23 @@ z-index:-1;"
 }
 
 .disabledclubs {
-  color: #000000;
+  color: #aaaaaa;
 }
 
 .disableddiamonds {
-  color: #ff0000;
+  color: #ffaaaa;
 }
 
 .disabledhearts {
-  color: #ff0000;
+  color: #ffaaaa;
 }
 
 .disabledspades {
-  color: #000000;
+  color: #aaaaaa;
 }
 
 .disablednotrump {
-  color: #000000;
+  color: #aaaaaa;
 }
 
 .disabled {
