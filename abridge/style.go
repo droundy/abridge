@@ -124,5 +124,49 @@ top:0; left:0;
 z-index:-1;"
 }
 
+.clubs {
+  color: #000000;
+}
+
+.diamonds {
+  color: #ff0000;
+}
+
+.hearts {
+  color: #ff0000;
+}
+
+.spades {
+  color: #000000;
+}
+
+.notrump {
+  color: #000000;
+}
+
+.disabledclubs {
+  color: #000000;
+}
+
+.disableddiamonds {
+  color: #ff0000;
+}
+
+.disabledhearts {
+  color: #ff0000;
+}
+
+.disabledspades {
+  color: #000000;
+}
+
+.disablednotrump {
+  color: #000000;
+}
+
+.disabled {
+  color: #aaaaaa;
+}
+
 `)
 }

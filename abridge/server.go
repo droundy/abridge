@@ -134,11 +134,11 @@ func htmlbid(bid string) string {
 	}
 	out := bid[0:1]
 	switch bid[1] {
-	case 'S': out += bridge.SuitHTML[bridge.Spades]
-	case 'C': out += bridge.SuitHTML[bridge.Clubs]
-	case 'N': out += bridge.SuitHTML[bridge.NoTrump]
-	case 'D': out = `<font color="#ff0000">` + out + bridge.SuitHTML[bridge.Diamonds]+`</font>`
-	case 'H': out = `<font color="#ff0000">` + out + bridge.SuitHTML[bridge.Hearts]+`</font>`
+	case 'S': out += bridge.SuitColorHTML[bridge.Spades]
+	case 'C': out += bridge.SuitColorHTML[bridge.Clubs]
+	case 'N': out += bridge.SuitColorHTML[bridge.NoTrump]
+	case 'D': out += bridge.SuitColorHTML[bridge.Diamonds]
+	case 'H': out += bridge.SuitColorHTML[bridge.Hearts]
 	default: out = bid
 	}
 	return out
@@ -159,7 +159,7 @@ func showbids(c io.Writer, clientname string) os.Error {
 		if (i + dealer[clientname]) & 3 == 0 {
 			fmt.Fprintln(c, `</tr><tr>`)
 		}
-		fmt.Fprintln(c, `<td align="center"><font color="#FFFFFF">.</font></td>`)
+		fmt.Fprintln(c, `<td align="center"><span style="color:white">.</span></td>`)
 	}
 	fmt.Fprintln(c, `</tr></table></div>`)
 	return nil

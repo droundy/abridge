@@ -8,7 +8,6 @@ import (
 
 func link(c *http.Conn, req *http.Request, url, label string) {
 	if req.URL.Path == url {
-		//fmt.Fprintf(c, `<font color="#aaaaaa">%s</font>`, label)
 		fmt.Fprintf(c, `<a class="x">%s</a>`, label)
 	} else {
 		fmt.Fprintf(c, `<a href="%s">%s</a>`, url, label)

@@ -17,12 +17,12 @@ func bidbox(c io.Writer, clientname string, bidfor bridge.Seat) os.Error {
 	if candouble {
 		fmt.Fprintln(c, `<td align="center"><input type="submit" name="bid" value=" X" /></td>`)
 	} else {
-		fmt.Fprintln(c, `<td align="center"><font color="#aaaaaa">X</font></td>`)
+		fmt.Fprintln(c, `<td align="center"><span class="disablednotrump">X</span></td>`)
 	}
 	if canredouble {
 		fmt.Fprintln(c, `<td align="center"><input type="submit" name="bid" value="XX" /></td></tr>`)
 	} else {
-		fmt.Fprintln(c, `<td align="center"><font color="#aaaaaa">XX</font></td></tr>`)
+		fmt.Fprintln(c, `<td align="center"><span class="disablednotrump">XX</span></td></tr>`)
 	}
 	bv, bs := bridge.LastBid(bids[clientname])
 	for bidlevel:=1;bidlevel<8;bidlevel++ {
@@ -30,21 +30,11 @@ func bidbox(c io.Writer, clientname string, bidfor bridge.Seat) os.Error {
 		for sv:=bridge.Color(bridge.Clubs); sv<=bridge.NoTrump; sv++ {
 			fmt.Fprint(c, `<td align="center">`)
 			if bidlevel > bv || (bidlevel == bv && sv > bs) {
-				if sv > bridge.Clubs && sv < bridge.Spades {
-					fmt.Fprintf(c, `<input type="submit" name="bid" style="color:red" value="%d%v" /></td>`,
-						bidlevel, bridge.SuitHTML[sv])
-				} else {
-					fmt.Fprintf(c, `<input type="submit" name="bid" value="%d%v" /></td>`,
-						bidlevel, bridge.SuitHTML[sv])
-				}
+				fmt.Fprintf(c, `<input type="submit" name="bid" class="%s" value="%d%v" /></td>`,
+					bridge.SuitName[sv], bidlevel, bridge.SuitHTML[sv])
 			} else {
-				if sv > bridge.Clubs && sv < bridge.Spades {
-					fmt.Fprintf(c, `<font color="#ffaaaa">%d%v</font></td>`,
-						bidlevel, bridge.SuitHTML[sv])
-				} else {
-					fmt.Fprintf(c, `<font color="#aaaaaa">%d%v</font></td>`,
-						bidlevel, bridge.SuitHTML[sv])
-				}
+				fmt.Fprintf(c, `<span class="disabled%s">%d%v</span></td>`,
+					bridge.SuitName[sv], bidlevel, bridge.SuitHTML[sv])
 			}
 		}
 		fmt.Fprintln(c, "</tr>")

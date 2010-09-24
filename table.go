@@ -40,8 +40,9 @@ func init() {
 }
 
 var SuitLetter = []string{"C", "D", "H", "S", "N"}
+var SuitName = []string{"clubs", "diamonds", "hearts", "spades", "notrump"}
 var SuitHTML = []string{"♣", "♦", "♥", "♠", "NT"}
-var SuitColorHTML = []string{"♣", `<font color="#ff0000">♦</font>`, `<font color="#ff0000">♥</font>`, "♠", "NT"}
+var SuitColorHTML = []string{`<span class="clubs">♣</span>`, `<span class="diamonds">♦</span>`, `<span class="hearts">♥</span>`, `<span class="spades">♠</span>`, `<span class="notrump">NT</span>`}
 
 func (d Table) String() string {
 	out := ""
