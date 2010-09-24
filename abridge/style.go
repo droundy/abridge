@@ -41,6 +41,10 @@ a {
   color: #555599;
 }
 
+.textish {
+  padding: 10pt;
+}
+
 #bidbox {
 float: left;
 }

@@ -39,8 +39,7 @@ func settings(c *http.Conn, req *http.Request) {
 	}
 	p.Set(c)
 	defer header(c, req, "aBridge settings")()
-	fmt.Fprintln(c, `<div style="padding 20pt">`)
-	fmt.Fprintln(c, "<p>Your style is", p.Style, "</p>")
+	fmt.Fprintln(c, `<div class="textish">`)
 	fmt.Fprint(c, `
 
 <p> I am planning to add various configuration options here.  Ideally,

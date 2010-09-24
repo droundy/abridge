@@ -8,7 +8,7 @@ import (
 func about(c *http.Conn, req *http.Request) {
 	defer header(c, req, "About aBridge")()
 	fmt.Fprint(c, `
-
+<div class="textish">
 <p>
 The aBridge program is a hacky little program that I wrote in <a
 href="http://golang.org">go</a> to play with.  It's pretty easy to
@@ -26,6 +26,6 @@ I wrote, which was quite different, and which is now quite dead.  So I
 figured I may as well reuse the name, particularly as I still own the
 domain.
 </p>
-
+</div>
 `)
 }
