@@ -139,6 +139,17 @@ z-index:-1;"
 .disabled {
   color: #aaaaaa;
 }
+
+/* cc means "convention card" */
+.cc {
+  border-style: solid;
+  border-collapse: collapse;
+  border-width: 3px;
+  border-spacing: 0px;
+  border-color: black;
+  margin: 0px;
+  padding: 0px;
+}
 `)
 	s := getSettings(req)
 	switch s.Style {
