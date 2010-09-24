@@ -133,16 +133,13 @@ func htmlbid(bid string) string {
 	if len(bid) != 2 {
 		panic("bad bidlength in htmlbid") // this means a bug!
 	}
-	out := bid[0:1]
-	switch bid[1] {
-	case 'S': out += bridge.SuitColorHTML[bridge.Spades]
-	case 'C': out += bridge.SuitColorHTML[bridge.Clubs]
-	case 'N': out += bridge.SuitColorHTML[bridge.NoTrump]
-	case 'D': out += bridge.SuitColorHTML[bridge.Diamonds]
-	case 'H': out += bridge.SuitColorHTML[bridge.Hearts]
-	default: out = bid
+	for sv,sch := range bridge.SuitLetter {
+		if bid[1] == sch[0] {
+			return fmt.Sprintf(`<span class="%s">%c%s</span>`,
+				bridge.SuitName[sv], bid[0], bridge.SuitHTML[sv])
+		}
 	}
-	return out
+	return bid;
 }
 
 func showbids(c io.Writer, clientname string) os.Error {
