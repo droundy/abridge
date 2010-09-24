@@ -45,7 +45,7 @@ func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Se
 		var x bridge.Table
 		hands[clientname] = x, false
 		defer header(c, req, "Enter your next hand")()
-		askhands(c, clientname)
+		askhands(c, req, clientname)
 		return
 	}
 
@@ -61,7 +61,7 @@ func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Se
 		ts = bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
 	}
 	defer header(c, req, "Bridge bidder")()
-	bidbox(c, clientname, bidfor)
+	bidbox(c, req, clientname, bidfor)
 	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
 	fmt.Fprintln(c, stats.HTML())
 	fmt.Fprintln(c, stats.ExampleHTML())
@@ -140,12 +140,12 @@ func bidder(c *http.Conn, req *http.Request) {
 		clientname = fmt.Sprintf("client=%d", last_client)
 	}
 	defer header(c, req, "Enter your hand")()
-	askhands(c, clientname)
+	askhands(c, req, clientname)
 }
 
 
-func askhands(c io.Writer, clientname string) os.Error {
-	fmt.Fprintln(c, `<form method="post"><fieldset><table><tr><td></td><td align="center">`)
+func askhands(c io.Writer, req *http.Request, clientname string) os.Error {
+	fmt.Fprintln(c, `<form method="post" action="%s"><div><table><tr><td></td><td align="center">`, req.URL.Path)
 	askonehand(c, bridge.North, clientname)
 	fmt.Fprintln(c, `</td></tr><tr><td align="center">`)
 	askonehand(c, bridge.West, clientname)
@@ -166,7 +166,7 @@ func askhands(c io.Writer, clientname string) os.Error {
 	fmt.Fprintln(c, `<br/>`)
 	fmt.Fprintln(c, `<input type="submit" value="Enter" />`)
 	fmt.Fprintf(c, `<input type="hidden" name="client" value="%s" />`, clientname)
-	fmt.Fprintln(c, `</fieldset></form>`)
+	fmt.Fprintln(c, `</div></form>`)
 	return nil
 }
 

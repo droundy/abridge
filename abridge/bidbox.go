@@ -5,11 +5,13 @@ import (
 	"regexp"
 	"os"
 	"io"
+	"http"
 	"github.com/droundy/bridge"
 )
 
-func bidbox(c io.Writer, clientname string, bidfor bridge.Seat) os.Error {
-	fmt.Fprintln(c, `<div id="bidbox"><form method="post">`)
+func bidbox(c io.Writer, req *http.Request, clientname string, bidfor bridge.Seat) os.Error {
+	
+	fmt.Fprintf(c, `<form method="post" action="%s"><div id="bidbox">`, req.URL.Path)
 	candouble := regexp.MustCompile(".[CDHSN]( P P)?$").MatchString(bids[clientname])
 	canredouble := regexp.MustCompile(" X( P P)?$").MatchString(bids[clientname])
 	fmt.Fprintln(c, `<table><tr>
@@ -49,11 +51,11 @@ func bidbox(c io.Writer, clientname string, bidfor bridge.Seat) os.Error {
 		if dealer[clientname] != bridge.Seat(s) && bids[clientname] == "" {
 			fmt.Fprintf(c, `<input type="submit" name="dealer" value="%s" />`, v)
 		} else {
-			fmt.Fprintf(c, `<input type="submit" disabled="1" value="%s" />`, v)
+			fmt.Fprintf(c, `<input type="submit" disabled="disabled" value="%s" />`, v)
 		}
 	}
 	fmt.Fprintf(c, `<input type="hidden" name="bidfor" value="%d" />`, int(bidfor))
 	fmt.Fprintf(c, `<input type="hidden" name="client" value="%s" />`, clientname)
-	fmt.Fprintln(c, `</form></div>`)
+	fmt.Fprintln(c, `</div></form>`)
 	return nil
 }

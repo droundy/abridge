@@ -89,7 +89,7 @@ func analyzer(c *http.Conn, req *http.Request) {
 	fmt.Println(req.Method, req.RawURL)
 	defer header(c, req, "Bridge bidding")()
 
-	bidbox(c, clientname, 0) // the second argument is bogus (but allows reusing bidbox)
+	bidbox(c, req, clientname, 0) // the second argument is bogus (but allows reusing bidbox)
 	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
 	fmt.Fprintln(c, ts.HTML())
 	printstatistics(c, ts)
@@ -145,8 +145,11 @@ func htmlbid(bid string) string {
 }
 
 func showbids(c io.Writer, clientname string) os.Error {
-	fmt.Fprintln(c, `<div id="bidtable"><table><tr><td>South</td><td>West</td><td>North</td><td>East</td></tr><tr>`)
+	fmt.Fprintln(c, `<div id="bidtable"><table><tr><td>South</td><td>West</td><td>North</td><td>East</td>`)
 	for i:=bridge.Seat(0); i<dealer[clientname]; i++ {
+		if (i + dealer[clientname]) & 3 == 0 {
+			fmt.Fprintln(c, `</tr><tr>`)
+		}
 		fmt.Fprintln(c, `<td align="center">-</td>`)		
 	}
 	for i:=bridge.Seat(0); i<bridge.Seat(len(bids[clientname])/2); i++ {
@@ -154,12 +157,6 @@ func showbids(c io.Writer, clientname string) os.Error {
 			fmt.Fprintln(c, `</tr><tr>`)
 		}
 		fmt.Fprintln(c, `<td align="center">`, htmlbid(bids[clientname][2*i:2*i+2]), `</td>`)
-	}
-	for i:=bridge.Seat(len(bids[clientname])/2); i<5; i++ {
-		if (i + dealer[clientname]) & 3 == 0 {
-			fmt.Fprintln(c, `</tr><tr>`)
-		}
-		fmt.Fprintln(c, `<td align="center"><span style="color:white">.</span></td>`)
 	}
 	fmt.Fprintln(c, `</tr></table></div>`)
 	return nil
