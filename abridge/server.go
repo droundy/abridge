@@ -15,6 +15,7 @@ func main() {
 	http.HandleFunc("/bidder", bidder)
 	http.HandleFunc("/bidforme", bidforme)
 	http.HandleFunc("/about", about)
+	http.HandleFunc("/settings", settings)
 	http.HandleFunc("/favicon.ico", faviconServer)
 	http.HandleFunc("/style.css", styleServer)
 	http.HandleFunc("/", analyzer)
@@ -72,12 +73,12 @@ func analyzer(c *http.Conn, req *http.Request) {
 			if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
 				dealer[clientname] = bridge.StringToSeat(d[0])
 			}
-			for k,v := range req.Form {
-				fmt.Println(k, v)
-			}
-			for k,v := range req.Header {
-				fmt.Println("Header: ", k, v)
-			}
+			//for k,v := range req.Form {
+			//	fmt.Println(k, v)
+			//}
+			//for k,v := range req.Header {
+			//	fmt.Println("Header: ", k, v)
+			//}
 		} else {
 			fmt.Println("No client name.")
 		}

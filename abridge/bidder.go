@@ -145,7 +145,7 @@ func bidder(c *http.Conn, req *http.Request) {
 
 
 func askhands(c io.Writer, req *http.Request, clientname string) os.Error {
-	fmt.Fprintln(c, `<form method="post" action="%s"><div><table><tr><td></td><td align="center">`, req.URL.Path)
+	fmt.Fprintf(c, `<form method="post" action="%s"><div><table><tr><td></td><td align="center">`, req.URL.Path)
 	askonehand(c, bridge.North, clientname)
 	fmt.Fprintln(c, `</td></tr><tr><td align="center">`)
 	askonehand(c, bridge.West, clientname)

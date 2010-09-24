@@ -128,7 +128,7 @@ func bidforme(c *http.Conn, req *http.Request) {
 
 
 func askhand(c io.Writer, req *http.Request, seat bridge.Seat, clientname string) os.Error {
-	fmt.Fprintln(c, `<form method="post" action="%s"><div>`, req.URL.Path)
+	fmt.Fprintf(c, `<form method="post" action="%s"><div>`, req.URL.Path)
 	t := hands[clientname]
 	if t[seat] != 13 {
 		fmt.Fprintln(c, `<table>`)

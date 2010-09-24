@@ -124,12 +124,36 @@ top:0; left:0;
 z-index:-1;"
 }
 
-.clubs {
+.notrump {
   color: #000000;
 }
 
+.disablednotrump {
+  color: #aaaaaa;
+}
+
+.disabled {
+  color: #aaaaaa;
+}
+`)
+	s := getSettings(req)
+	switch s.Style {
+	case "four color":
+		fmt.Fprint(c, `
+.clubs {
+  color: #009900;
+}
+
+.disabledclubs {
+  color: #aaccaa;
+}
+
 .diamonds {
-  color: #ff0000;
+  color: #ffaa00;
+}
+
+.disableddiamonds {
+  color: #ffcc99;
 }
 
 .hearts {
@@ -140,18 +164,6 @@ z-index:-1;"
   color: #000000;
 }
 
-.notrump {
-  color: #000000;
-}
-
-.disabledclubs {
-  color: #aaaaaa;
-}
-
-.disableddiamonds {
-  color: #ffaaaa;
-}
-
 .disabledhearts {
   color: #ffaaaa;
 }
@@ -159,14 +171,40 @@ z-index:-1;"
 .disabledspades {
   color: #aaaaaa;
 }
-
-.disablednotrump {
-  color: #aaaaaa;
-}
-
-.disabled {
-  color: #aaaaaa;
-}
-
 `)
+	default:
+		fmt.Fprint(c, `
+.clubs {
+  color: #000000;
+}
+
+.disabledclubs {
+  color: #aaaaaa;
+}
+
+.diamonds {
+  color: #ff0000;
+}
+
+.disableddiamonds {
+  color: #ffaaaa;
+}
+
+.hearts {
+  color: #ff0000;
+}
+
+.disabledhearts {
+  color: #ffaaaa;
+}
+
+.spades {
+  color: #000000;
+}
+
+.disabledspades {
+  color: #aaaaaa;
+}
+`)
+	}
 }
