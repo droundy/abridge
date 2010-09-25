@@ -28,8 +28,6 @@ func bidForMeNow(c *http.Conn, req *http.Request, clientname string) {
 	default:
 		fmt.Println("I don't recognize", bid[0])
 	}
-	fmt.Println("Bids are", bids[clientname])
-	fmt.Println("allbids are", bids)
 
 	if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
 		dealer[clientname] = bridge.StringToSeat(d[0])

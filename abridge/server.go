@@ -57,8 +57,6 @@ func analyzer(c *http.Conn, req *http.Request) {
 			default:
 				fmt.Println("I don't recognize", bid[0])
 			}
-			fmt.Println("Bids are", bids[clientname])
-			fmt.Println("allbids are", bids)
 			if _,ok := req.Form["undo"]; ok && len(bids[clientname]) >= 2 {
 				bids[clientname] = bids[clientname][0:len(bids[clientname])-2]
 			}
