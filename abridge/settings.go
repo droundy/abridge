@@ -257,7 +257,10 @@ func conventionCard(c *http.Conn, p Settings) {
 	</td></tr>
 
 	<tr><td colspan="2" class="cc">
-	<center><strong>slam conventions</strong></center>
+	<center><strong>Slam conventions</strong></center>
+  {.section Options}
+  Blackwood <input type="checkbox" name="Blackwood" {Blackwood}/>
+  {.end}
 	</td></tr>
 	<tr><td colspan="2" class="cc">
 	<center><strong>leads and carding</strong></center>

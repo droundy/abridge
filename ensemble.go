@@ -121,7 +121,8 @@ func (e *Ensemble) HtmlSeat(seat Seat) string {
 	for sv := uint(Spades); sv <= Spades; sv-- {
 		//out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + " " + e.SuitLength(seat,sv).HTML()
 		out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + " "
-		smin := Suit(15)
+		smin := Suit(Ace + King + Queen + Jack)
+		
 		meanhcp := float64(0)
 		for _,t := range e.tables {
 			s := Suit(t[seat]>>(8*sv))
@@ -347,6 +348,16 @@ func (e *Ensemble) SuitHCP(seat Seat, suits [4]bool) (r PointRange) {
 	}
 	r.Mean /= float64(len(e.tables))
 	return
+}
+
+func (e *Ensemble) FindFit(seat Seat) (suit uint) {
+	pard := (seat + 2) & 3
+	for suit=Clubs; suit<NoTrump; suit++ {
+		if e.SuitLength(seat, suit).Min + e.SuitLength(pard, suit).Min >= 8 {
+			return suit
+		}
+	}
+	return NoTrump // slightly lame!
 }
 
 func makeEnsemble(num int) *Ensemble {

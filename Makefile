@@ -20,6 +20,7 @@ GOFILES=\
 	natural.go\
 	ensemblecache.go\
 	conventioncard.go\
+	slam.go\
 
 include $(GOROOT)/src/Make.pkg
 
