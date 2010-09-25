@@ -153,3 +153,83 @@ var ThreeLevelOvercall = BiddingRule{
 		}
 	}, nil,
 }
+
+var DirectOneNTOvercall = BiddingRule{
+	"Direct 1NT overcall",
+	regexp.MustCompile("^( P)*1([CDHS])1N$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
+		hcpmin := cc.Pts["DirectOvercallNTmin"]
+		hcpmax := cc.Pts["DirectOvercallNTmax"]
+		fivecardmajor := cc.Options["OneNT5CardMajor"]
+		theirsuit := stringToSuitNumber(ms[2])
+		return func(h Hand) (badness Score, explanation string) {
+			hcp := h.HCP()
+			dist := h.DistPoints()
+			cardsintheirsuit := Suit(h >> (8*theirsuit))
+			ptsintheirsuit := PointCount[cardsintheirsuit] - DistPoints[cardsintheirsuit]
+			if ptsintheirsuit < 2 {
+				// We don't have a stopper in their suit!
+				badness += Score(2 - ptsintheirsuit)*PointValueProblem
+			}
+			if hcp > hcpmax {
+				badness += Score(hcp-hcpmax)*PointValueProblem
+			} else if hcp < hcpmin {
+				badness += Score(hcpmin-hcp)*PointValueProblem
+			}
+			if dist > 1 {
+				badness += Score(dist-1)*PointValueProblem
+			}
+			ls := byte(h>>28) & 15
+			lh := byte(h>>20) & 15
+			if !fivecardmajor {
+				if ls > 4 {
+					badness += Score(ls-4)*SuitLengthProblem
+				}
+				if lh > 4 {
+					badness += Score(lh-4)*SuitLengthProblem
+				}
+			}
+			return
+		}
+	}, nil,
+}
+
+var BalancingOneNTOvercall = BiddingRule{
+	"Balancing 1NT overcall",
+	regexp.MustCompile("^1([CDHS]) P P1N$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
+		hcpmin := cc.Pts["BalancingOvercallNTmin"]
+		hcpmax := cc.Pts["BalancingOvercallNTmax"]
+		fivecardmajor := cc.Options["OneNT5CardMajor"]
+		theirsuit := stringToSuitNumber(ms[1])
+		return func(h Hand) (badness Score, explanation string) {
+			hcp := h.HCP()
+			dist := h.DistPoints()
+			cardsintheirsuit := Suit(h >> (8*theirsuit))
+			ptsintheirsuit := PointCount[cardsintheirsuit] - DistPoints[cardsintheirsuit]
+			if ptsintheirsuit < 1 {
+				// We don't have even a marginal stopper in their suit!
+				badness += Score(1 - ptsintheirsuit)*PointValueProblem
+			}
+			if hcp > hcpmax {
+				badness += Score(hcp-hcpmax)*PointValueProblem
+			} else if hcp < hcpmin {
+				badness += Score(hcpmin-hcp)*PointValueProblem
+			}
+			if dist > 1 {
+				badness += Score(dist-1)*PointValueProblem
+			}
+			ls := byte(h>>28) & 15
+			lh := byte(h>>20) & 15
+			if !fivecardmajor {
+				if ls > 4 {
+					badness += Score(ls-4)*SuitLengthProblem
+				}
+				if lh > 4 {
+					badness += Score(lh-4)*SuitLengthProblem
+				}
+			}
+			return
+		}
+	}, nil,
+}

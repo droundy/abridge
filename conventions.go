@@ -70,11 +70,12 @@ var Convention = []BiddingRule{ PassOfForcing,
 	StrongTwoResponse,
 	CheapNTRebid, CheapRebid, RebidSuit, Splinter,
 	MajorSupport, MajorInvitation,
-	Jacobi, JacobiResponse, JacobiRejection,
+	Jacobi, JacobiResponse, JacobiSuperAccept, JacobiRejection,
 	OneNT, Stayman, StaymanResponse, StaymanTwo, StaymanTwoResponse, TwoNT, Gambling3NT,
 	OneLevelOvercall, PreemptOvercall,
 	// The following need to follow PreemptOvercall:
 	TwoLevelOvercall, ThreeLevelOvercall,
+	DirectOneNTOvercall, BalancingOneNTOvercall,
 	PassOvercall, PassHigherOvercall,
 	TakeOutDouble, NewSuitForcing, Forced, Natural, LimitPass }
 

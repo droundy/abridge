@@ -83,11 +83,12 @@ func settings(c *http.Conn, req *http.Request) {
 			}
 		}
 		if x,ok := req.Form["Jacobi"]; ok {
+			fmt.Println("Jacobi stuff is", x, "with len", len(x))
 			switch len(x) {
 			case 2: p.Card.Options["Jacobi"] = true;
+			case 1: p.Card.Options["Jacobi"] = !p.Card.Options["Jacobi"]
 			case 0: p.Card.Options["Jacobi"] = false;
 			}
-			p.Card.Options["Jacobi"] = !p.Card.Options["Jacobi"]
 		} else {
 			p.Card.Options["Jacobi"] = false
 		}
@@ -152,9 +153,9 @@ func conventionCard(c *http.Conn, p Settings) {
 	Negative:<br/>
 	Responsive:<br/>
 	</td><td class="cc">
-	<center><strong class="unimplemented">Notrump overcalls</strong></center>
+	<center><strong>Notrump overcalls</strong></center>
 
-  <strong class="unimplemented">Direct:</strong>
+  <strong>Direct:</strong>
 {.section Pts}
   <input type="text" name="DirectOvercallNTmin" maxlength="2" size="2" value="{DirectOvercallNTmin}"/> to
   <input type="text" name="DirectOvercallNTmax" maxlength="2" size="2" value="{DirectOvercallNTmax}"/>
@@ -164,7 +165,7 @@ func conventionCard(c *http.Conn, p Settings) {
 {.end}
   <br/>
 
-  <strong class="unimplemented">Balancing:</strong>
+  <strong>Balancing:</strong>
 {.section Pts}
   <input type="text" name="BalancingOvercallNTmin" maxlength="2" size="2" value="{BalancingOvercallNTmin}"/> to
   <input type="text" name="BalancingOvercallNTmax" maxlength="2" size="2" value="{BalancingOvercallNTmax}"/>
@@ -282,7 +283,7 @@ func conventionCard(c *http.Conn, p Settings) {
 	</td></tr>
 
 	<tr class="cc"><td colspan="2" class="cc">
-	<center><strong>No trump opening bids</strong></center>
+	<center><strong>Notrump opening bids</strong></center>
 	<table width="100%" border="0">
     <tr><td width="33%" align="center">
           1NT

@@ -6,12 +6,17 @@ import (
 
 var Jacobi = BiddingRule{
 	"Jacobi transfer (forcing)",
-	regexp.MustCompile("^( P)*1N P2([DH])$"),
+	regexp.MustCompile("^(..)?( P..)?1N P2([DH])$"),
 	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (s Score, e string)) {
 		if !cc.Options["Jacobi"] {
 			return nil
 		}
-		mysuit := stringToSuitNumber(ms[2])+1
+		isovercall := (len(ms[1]) > 0 && ms[1] != " P") || (len(ms[2]) > 0 && ms[2][2:] != " P")
+		if isovercall && !cc.Options["NTOvercallSystemsOn"] {
+			// Systems *not* on after overcall
+			return nil
+		}
+		mysuit := stringToSuitNumber(ms[3])+1
 		return func(h Hand) (badness Score, explanation string) {
 			mysuitlen := byte(h>>(4+mysuit*8)) & 15
 			if mysuitlen < 5 {
@@ -24,12 +29,17 @@ var Jacobi = BiddingRule{
 
 var JacobiResponse = BiddingRule{
 	"Jacobi response",
-	regexp.MustCompile("^( P)*1N P2([DH]) P2([HS])$"),
+	regexp.MustCompile("^(..)?( P..)?1N P2([DH]) P2([HS])$"),
 	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
 		if !cc.Options["Jacobi"] {
 			return nil
 		}
-		if ms[2] == "D" && ms[3] == "S" {
+		isovercall := (len(ms[1]) > 0 && ms[1] != " P") || (len(ms[2]) > 0 && ms[2][2:] != " P")
+		if isovercall && !cc.Options["NTOvercallSystemsOn"] {
+			// Systems *not* on after overcall
+			return nil
+		}
+		if ms[3] == "D" && ms[4] == "S" {
 			return nil
 		}
 		return func(h Hand) (Score,string) {
@@ -40,17 +50,22 @@ var JacobiResponse = BiddingRule{
 
 var JacobiSuperAccept = BiddingRule{
 	"Jacobi super accept",
-	regexp.MustCompile("^( P)*1N P2([DH]) P3([HS])$"),
+	regexp.MustCompile("^(..)?( P..)?1N P2([DH]) P3([HS])$"),
 	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
 		if !cc.Options["Jacobi"] {
 			return nil
 		}
-		sv := stringToSuitNumber(ms[3])
-		if ms[2] == "D" && sv == Spades {
+		isovercall := (len(ms[1]) > 0 && ms[1] != " P") || (len(ms[2]) > 0 && ms[2][2:] != " P")
+		if isovercall && !cc.Options["NTOvercallSystemsOn"] {
+			// Systems *not* on after overcall
+			return nil
+		}
+		sv := stringToSuitNumber(ms[4])
+		if ms[3] == "D" && sv == Spades {
 			return nil
 		}
 		return func(h Hand) (badness Score, explanation string) {
-			ns := byte(h << (4+8*sv)) & 15
+			ns := byte(h >> (4+8*sv)) & 15
 			if ns < 4 {
 				badness += Score(4-ns)*SuitLengthProblem
 			}
@@ -65,12 +80,17 @@ var JacobiSuperAccept = BiddingRule{
 
 var JacobiRejection = BiddingRule{
 	"Jacobi rejection (bad bid)",
-	regexp.MustCompile("^( P)*1N P2([DH]) P..$"),
+	regexp.MustCompile("^(..)?( P..)?1N P2([DH]) P..$"),
 	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
 		if !cc.Options["Jacobi"] {
 			return nil
 		}
-		mysuit := stringToSuitNumber(ms[2])+1
+		isovercall := (len(ms[1]) > 0 && ms[1] != " P") || (len(ms[2]) > 0 && ms[2][2:] != " P")
+		if isovercall && !cc.Options["NTOvercallSystemsOn"] {
+			// Systems *not* on after overcall
+			return nil
+		}
+		mysuit := stringToSuitNumber(ms[3])+1
 		return func(h Hand) (badness Score, explanation string) {
 			mysuitlen := byte(h>>(4+mysuit*8)) & 15
 			if mysuitlen > 2 {
@@ -83,9 +103,14 @@ var JacobiRejection = BiddingRule{
 
 var Stayman = BiddingRule{
 	"Stayman (forcing)",
-	regexp.MustCompile("^( P)*1N P2C$"),
+	regexp.MustCompile("^(..)?( P..)?1N P2C$"),
 	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
 		if !cc.Options["Stayman"] {
+			return nil
+		}
+		isovercall := (len(ms[1]) > 0 && ms[1] != " P") || (len(ms[2]) > 0 && ms[2][2:] != " P")
+		if isovercall && !cc.Options["NTOvercallSystemsOn"] {
+			// Systems *not* on after overcall
 			return nil
 		}
 		return func(h Hand) (badness Score, explanation string) {
@@ -96,39 +121,52 @@ var Stayman = BiddingRule{
 
 var StaymanTwo = BiddingRule{
 	"Stayman (forcing)",
-	regexp.MustCompile("^( P)*2N P3C$"),
+	regexp.MustCompile("^(..)?( P..)?2N P3C$"),
 	Stayman.mkscore, nil,
 }
 
 var StaymanResponse = BiddingRule{
 	"Stayman response",
-	regexp.MustCompile("^( P)*1N P2C P2([DHS])$"),
+	regexp.MustCompile("^(..)?( P..)?1N P2C P2([DHS])$"),
 	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
 		if !cc.Options["Stayman"] {
 			return nil
 		}
-		return func(h Hand) (badness Score, explanation string) {
-			lh := byte(h>>20) & 15
-			ls := byte(h>>28) & 15
-			switch ms[2] {
-			case "D":
+		isovercall := (len(ms[1]) > 0 && ms[1] != " P") || (len(ms[2]) > 0 && ms[2][2:] != " P")
+		if isovercall && !cc.Options["NTOvercallSystemsOn"] {
+			// Systems *not* on after overcall
+			return nil
+		}
+		switch ms[3] {
+		case "D":
+			return func(h Hand) (badness Score, explanation string) {
+				lh := byte(h>>20) & 15
+				ls := byte(h>>28) & 15
 				if lh > 3 {
 					badness += Score(lh - 3)*SuitLengthProblem
 				}
 				if ls > 3 {
 					badness += Score(ls - 3)*SuitLengthProblem
 				}
-			case "H":
+				return
+			}
+		case "H":
+			return func(h Hand) (badness Score, explanation string) {
+				lh := byte(h>>20) & 15
 				if lh < 4 {
 					badness += Score(4 - lh)*SuitLengthProblem
 				}
-			case "S":
-				if lh > 3 {
-					badness += Score(lh - 3)*SuitLengthProblem
-				}
-				if ls < 4 {
-					badness += Score(4 - ls)*SuitLengthProblem
-				}
+				return
+			}
+		}
+		return func(h Hand) (badness Score, explanation string) {
+			lh := byte(h>>20) & 15
+			ls := byte(h>>28) & 15
+			if lh > 3 {
+				badness += Score(lh - 3)*SuitLengthProblem
+			}
+			if ls < 4 {
+				badness += Score(4 - ls)*SuitLengthProblem
 			}
 			return
 		}
@@ -137,7 +175,7 @@ var StaymanResponse = BiddingRule{
 
 var StaymanTwoResponse = BiddingRule{
 	"Stayman",
-	regexp.MustCompile("^( P)*2N P3C P3([DHS])$"),
+	regexp.MustCompile("^(..)?( P..)?2N P3C P3([DHS])$"),
 	StaymanResponse.mkscore, nil,
 }
 

@@ -66,6 +66,11 @@ var LimitPass = BiddingRule {
 	"Limiting pass",
 	regexp.MustCompile("^(..)?(..)?(..)?(.[^P]......)* P$"),
 	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (s Score, e string)) {
+		if len(ms[0]) > 8 && ms[0][len(ms[0])-5] == 'P' {
+			// We have already bid, and our partner passed, so we can always
+			// pass now.
+			return nil
+		}
 		possbids := PossibleNondoubleBids(ms[0])
 		allrules := make([]*ScoringRule,0,len(possbids))
 		allbids := make([]string,0,len(possbids))
@@ -78,11 +83,19 @@ var LimitPass = BiddingRule {
 			}
 		}
 		return func(h Hand) (badness Score, explanation string) {
+			pts := h.PointCount()
+			if pts < 6 {
+				// We can always safely pass with less than 6 points!
+				return
+			}
 			for i,r := range allrules {
 				sc,_ := r.score(h)
 				if sc == 0 {
-					badness += 137
+					// We can't be sure of the problem, but probably we need
+					// fewer points, so let's bias the search that direction!
+					badness += 137 + Score(pts-5)*PointValueProblem
 					explanation += allbids[i] + " is a better bid\n"
+					return
 				}
 			}
 			return
