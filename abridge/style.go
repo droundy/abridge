@@ -144,7 +144,7 @@ z-index:-1;"
 .cc {
   border-style: solid;
   border-collapse: collapse;
-  border-width: 3px;
+  border-width: 2px;
   border-spacing: 0px;
   border-color: black;
   margin: 0px;
