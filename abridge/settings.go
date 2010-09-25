@@ -63,9 +63,9 @@ func settings(c *http.Conn, req *http.Request) {
 		if s,ok := req.Form["style"]; ok {
 			p.Style = s[0]
 		}
-		for k,v := range req.Form {
-			fmt.Println("Got key", k, "and value", v)
-		}
+		//for k,v := range req.Form {
+		//	fmt.Println("Got key", k, "and value", v)
+		//}
 		if x,ok := req.Form["GeneralApproach"]; ok {
 			p.Card.GeneralApproach = x[0]
 		}
@@ -78,9 +78,21 @@ func settings(c *http.Conn, req *http.Request) {
 				}
 			}
 		}
+		if x,ok := req.Form["Jacobi"]; ok {
+			switch len(x) {
+			case 2: p.Card.Options["Jacobi"] = true;
+			case 0: p.Card.Options["Jacobi"] = false;
+			}
+			p.Card.Options["Jacobi"] = !p.Card.Options["Jacobi"]
+		} else {
+			p.Card.Options["Jacobi"] = false
+		}
 		for k := range bridge.DefaultConvention.Options {
-			_,ok := req.Form[k]
-			p.Card.Options[k] = ok
+			// There are two Jacobi checkboxes, so I treat it specially...
+			if k != "Jacobi" {
+				_,ok := req.Form[k]
+				p.Card.Options[k] = ok
+			}
 		}
 		for k := range bridge.DefaultConvention.Radio {
 			if x,ok := req.Form[k]; ok {
