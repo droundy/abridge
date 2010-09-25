@@ -9,7 +9,11 @@ func init() {
 		for {
 			select {
 			case wr := <- cache_ensemble:
-				mycache[wr.bid] = wr.e, wr.e != nil
+				if wr.bid == "" && wr.e == nil {
+					mycache = make(map[string]*Ensemble)
+				} else {
+					mycache[wr.bid] = wr.e, wr.e != nil
+				}
 			case r := <- seek_ensemble:
 				if e,ok := mycache[r.bid]; ok {
 					r.answer <- e
@@ -49,4 +53,8 @@ func lookupEnsembleFromCache(bid string) (*Ensemble, bool) {
 
 func ClearBid(bid string) {
 	cacheEnsemble(bid, nil)
+}
+
+func ClearCache() {
+	cacheEnsemble("", nil)
 }

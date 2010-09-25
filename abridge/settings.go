@@ -59,6 +59,9 @@ func checkRadio(c bool) string {
 
 func settings(c *http.Conn, req *http.Request) {
 	p := getSettings(req)
+	// Since we may have cached things based on old card (or someone
+	// else's card!), we should clear out the cache.
+	bridge.ClearCache()
 	if _,ok := req.Form["amsubmitting"]; ok {
 		if s,ok := req.Form["style"]; ok {
 			p.Style = s[0]
