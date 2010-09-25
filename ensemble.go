@@ -119,7 +119,54 @@ func (e *Ensemble) HtmlSeat(seat Seat) string {
 	out += fmt.Sprintf("<tr><td>   <em>%d-%d Points</em></td></tr>\n", e.PointCount(seat).Min, e.PointCount(seat).Max)
 	out += fmt.Sprintf("<tr><td>   <em>%d-%d HCP</em></td></tr>\n", e.HCP(seat).Min, e.HCP(seat).Max)
 	for sv := uint(Spades); sv <= Spades; sv-- {
-		out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + " " + e.SuitLength(seat,sv).HTML()
+		//out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + " " + e.SuitLength(seat,sv).HTML()
+		out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + " "
+		smin := Suit(15)
+		meanhcp := float64(0)
+		for _,t := range e.tables {
+			s := Suit(t[seat]>>(8*sv))
+			smin = smin & s
+			meanhcp += float64(HCP[s])
+		}
+		smin = smin + (13 << 4) // Pretend we have 13 cards
+		meanhcp /= float64(len(e.tables))
+		extrapts := Points(meanhcp - float64(HCP[smin]) + 0.4)
+		cardstr := []byte(smin.String())
+		for i,c := range cardstr {
+			if c == 'x' {
+				switch {
+				case extrapts >= 4 && smin & Ace == 0:
+					cardstr[i] = 'a'
+					smin += Ace
+					extrapts -= 4
+				case extrapts >= 3 && smin & King == 0:
+					cardstr[i] = 'k'
+					smin += King
+					extrapts -= 3
+				case extrapts >= 2 && smin & Queen == 0:
+					cardstr[i] = 'q'
+					smin += Queen
+					extrapts -= 2
+				case extrapts >= 1 && smin & Jack == 0:
+					cardstr[i] = 'j'
+					extrapts -= 1
+				default: break
+				}
+			}
+		}
+		i := byte(0)
+		for ; i<e.SuitLength(seat,sv).Min; i++ {
+			out += "<strong>"+string(cardstr[0:1])+"</strong>"
+			cardstr = cardstr[1:]
+		}
+		for ; float64(i)+0.5 < e.SuitLength(seat,sv).Mean; i++ {
+			out += string(cardstr[0:1])
+			cardstr = cardstr[1:]
+		}
+		for ; i < e.SuitLength(seat,sv).Max; i++ {
+			out += "<em>"+string(cardstr[0:1])+"</em>"
+			cardstr = cardstr[1:]
+		}
 		out += `</div></td></tr>`
 	}
 	out += "</table></div>\n"
