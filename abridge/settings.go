@@ -175,10 +175,10 @@ func conventionCard(c *http.Conn, p Settings) {
 	</td></tr>
 
 	<tr><td class="cc">
-	<center><strong class="unimplemented">Simple overcall</strong></center>
+	<center><strong>Simple overcall</strong></center>
   {.section Pts}
   1 level <input type="text" name="Overcallmin" maxlength="2" size="2" value="{Overcallmin}"/> to
-  <input type="text" name="Overcallmax" maxlength="2" size="2" value="{Overcallmax}"/>
+  <input type="text" name="Overcallmax" maxlength="2" size="2" value="{Overcallmax}"/> HCP
   <br/>
   {.end}
   {.section Options}

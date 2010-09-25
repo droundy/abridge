@@ -22,8 +22,8 @@ Pts: map[string]Points{
 		"TwoNTmax": 22,
 		"OneNTover1Cmin": 6,
 		"OneNTover1Cmax": 9,
-		"Overcallmin": 10,
-		"Overcallmax": 18,
+		"Overcallmin": 6,
+		"Overcallmax": 17,
 	},
 Options: map[string]bool{
 		"Stayman": true,

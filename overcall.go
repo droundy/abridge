@@ -40,20 +40,44 @@ var PassHigherOvercall = BiddingRule{
 
 var OneLevelOvercall = BiddingRule{
 	"One-level overcall",
-	regexp.MustCompile("^( P)*1[CDH]( P..)?1([DHS])$"), nil,
-	func (bidder Seat, h Hand, ms []string, cc ConventionCard, e *Ensemble) (badness Score, explanation string) {
-		pts := h.PointCount()
-		if pts < 13 {
-			badness += Fudge
-		}
-		if pts < 12 {
-			badness += Score(12-pts)*PointValueProblem
+	regexp.MustCompile("^( P)*1[CDH]( P..)?1([DHS])$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
+		if !cc.Options["Jacobi"] {
+			return nil
 		}
 		mysuit := stringToSuitNumber(ms[3])
-		mysuitlen := byte(h >> (4 + mysuit*8)) & 15
-		if mysuitlen < 5 {
-			badness += Score(5 - mysuitlen)*SuitLengthProblem
+		hcpmin := cc.Pts["Overcallmin"]
+		hcpmax := cc.Pts["Overcallmax"]
+		suitpromise := byte(5)
+		if cc.Options["FourCardOvercalls"] {
+			suitpromise = 4
 		}
-		return
-	},
+		minpts := Points(13)
+		hcpbadness := PointValueProblem
+		if cc.Options["VeryLightOvercalls"] {
+			hcpbadness = Fudge
+			minpts = 7
+		}
+		return func(h Hand) (badness Score, explanation string) {
+			pts := h.PointCount()
+			hcp := h.HCP()
+			if pts < minpts {
+				badness += Fudge
+			}
+			if pts < minpts - 1 {
+				badness += Score(minpts-1-pts)*PointValueProblem
+			}
+			if hcp < hcpmin {
+				badness += Score(hcpmin-hcp)*hcpbadness
+			}
+			if hcp > hcpmax {
+				badness += Score(hcp-hcpmax)*hcpbadness
+			}
+			mysuitlen := byte(h >> (4 + mysuit*8)) & 15
+			if mysuitlen < suitpromise {
+				badness += Score(suitpromise - mysuitlen)*SuitLengthProblem
+			}
+			return
+		}
+	}, nil,
 }
