@@ -199,9 +199,10 @@ func conventionCard(c *http.Conn, p Settings) {
 	</td></tr>
 
 	<tr><td class="cc">
-	<center><strong class="unimplemented">Jump overcall</strong></center>
+	<center><strong>Jump overcall</strong></center>
   {.section Radio}
-  Strong <input type="radio" name="JumpOvercall" value="Strong" {JumpOvercall|Strong}/>
+  <span class="unimplemented">Strong</span>
+    <input type="radio" name="JumpOvercall" value="Strong" {JumpOvercall|Strong}/>
   Intermediate
     <input type="radio" name="JumpOvercall" value="Intermediate" {JumpOvercall|Intermediate}/>
   Weak <input type="radio" name="JumpOvercall" value="Weak" {JumpOvercall|Weak}/>

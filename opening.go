@@ -11,6 +11,7 @@ func stringToSuitNumber(s string) uint {
 	case "H","h": return Hearts
 	case "D","d": return Diamonds
 	case "C","c": return Clubs
+	case "N","n": return NoTrump
 	}
 	panic(fmt.Sprint("Bad string in stringToSuitNumber: ", s))
 	return 0
@@ -77,9 +78,29 @@ var Opening = BiddingRule{
 var PreemptOvercall = BiddingRule{
 	"Preemptive overcall of suit bid",
 	// preempts over 1NT should be stronger and/or longer...
-	regexp.MustCompile("^( P)*1[CDHS](3)([CDHS])$"),
-	nil,
-	Preempt.score, // preemptive overcalls at 3 level are like ordinary preempts.
+	regexp.MustCompile("^(.. P)?([12])([CDHSN])( P P)?([23])([CDHS])$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (func(Hand) (Score,string)) {
+		if cc.Radio["JumpOvercall"] == "Weak" {
+			theirsuit := stringToSuitNumber(ms[3])
+			mysuit := stringToSuitNumber(ms[6])
+			if mysuit == theirsuit {
+				return nil // It's a cue bid!
+			}
+			mynum := ms[5][0]-'0'
+			theirnum := ms[2][0]-'0'
+			if mynum == theirnum {
+				return nil // It's not a jump
+			}
+			if mynum == theirnum+1 && mysuit < theirsuit {
+				return nil // It's not a jump
+			}
+			// Reorder matches for an ordinary preempt
+			ms[2] = ms[5]
+			ms[3] = ms[6]
+			return Preempt.mkscore(bidder, ms, cc, e)
+		}
+		return nil
+	}, nil, // preemptive overcalls at 3 level are like ordinary preempts.
 }
 
 var Preempt = BiddingRule{
