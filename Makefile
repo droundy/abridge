@@ -19,6 +19,7 @@ GOFILES=\
 	rebid.go\
 	natural.go\
 	ensemblecache.go\
+	conventioncard.go\
 
 include $(GOROOT)/src/Make.pkg
 

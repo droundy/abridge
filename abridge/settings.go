@@ -12,26 +12,31 @@ import (
 
 type Settings struct {
 	Style string
-	Card ConventionCard
+	Card bridge.ConventionCard
+}
+
+var DefaultSettings = Settings{
+Style: "two color",
+Card: bridge.DefaultConvention,
 }
 
 func getSettings(req *http.Request) (p Settings) {
 	req.ParseForm()
-	p = Settings{Style: "two color", Card: DefaultConvention}
+	p = DefaultSettings
 	prefstr, _ := req.Header["Cookie"] // I don't care about errors!
 	// fmt.Println("Trying to unmarshall string", prefstr)
 	json.Unmarshal([]byte(prefstr), &p) // I don't care about errors!
-	for k,v := range DefaultConvention.Pts {
+	for k,v := range bridge.DefaultConvention.Pts {
 		if _,ok := p.Card.Pts[k]; !ok {
 			p.Card.Pts[k] = v
 		}
 	}
-	for k,v := range DefaultConvention.Options {
+	for k,v := range bridge.DefaultConvention.Options {
 		if _,ok := p.Card.Options[k]; !ok {
 			p.Card.Options[k] = v
 		}
 	}
-	for k,v := range DefaultConvention.Radio {
+	for k,v := range bridge.DefaultConvention.Radio {
 		if _,ok := p.Card.Radio[k]; !ok {
 			p.Card.Radio[k] = v
 		}
@@ -58,13 +63,13 @@ func settings(c *http.Conn, req *http.Request) {
 		if s,ok := req.Form["style"]; ok {
 			p.Style = s[0]
 		}
-		//for k,v := range req.Form {
-		//	fmt.Println("Got key", k, "and value", v)
-		//}
+		for k,v := range req.Form {
+			fmt.Println("Got key", k, "and value", v)
+		}
 		if x,ok := req.Form["GeneralApproach"]; ok {
 			p.Card.GeneralApproach = x[0]
 		}
-		for k := range DefaultConvention.Pts {
+		for k := range bridge.DefaultConvention.Pts {
 			if x,ok := req.Form[k]; ok {
 				pts,e := strconv.Atoi(x[0])
 				if e == nil && bridge.Points(pts) != p.Card.Pts[k] {
@@ -73,15 +78,19 @@ func settings(c *http.Conn, req *http.Request) {
 				}
 			}
 		}
-		for k := range DefaultConvention.Options {
+		for k := range bridge.DefaultConvention.Options {
 			_,ok := req.Form[k]
 			p.Card.Options[k] = ok
 		}
-		for k := range DefaultConvention.Radio {
+		for k := range bridge.DefaultConvention.Radio {
 			if x,ok := req.Form[k]; ok {
 				p.Card.Radio[k] = x[0]
 			}
 		}
+	}
+	if _,ok := req.Form["revert"]; ok {
+		fmt.Println("Reverting to defaults...")
+		p = DefaultSettings
 	}
 
 	p.Set(c)
@@ -108,64 +117,9 @@ four-color suits (which will also test that I'm using CSS consistently).
 	conventionCard(c, p)
 
 	fmt.Fprintln(c, `<input type="submit" value="Save settings" />`)
+	fmt.Fprintln(c, `<input type="submit" name="revert" value="Revert to default" />`)
 	fmt.Fprintln(c, `</div></form>`)
 	fmt.Fprintln(c, `</div>`)
-}
-
-type ConventionCard struct {
-	Name string
-	GeneralApproach string
-	Pts map[string]bridge.Points
-	Options map[string]bool
-	Radio map[string]string
-}
-
-var DefaultConvention = ConventionCard {
-Name: "Default",
-GeneralApproach: "David's",
-Pts: map[string]bridge.Points{
-		"DirectOvercallNTmin": 15,
-		"DirectOvercallNTmax": 17,
-		"BalancingOvercallNTmin": 15,
-		"BalancingOvercallNTmax": 17,
-		"OneNTmin": 15,
-		"OneNTmax": 17,
-		"TwoNTmin": 20,
-		"TwoNTmax": 22,
-		"OneNTover1Cmin": 6,
-		"OneNTover1Cmax": 9,
-		"Overcallmin": 10,
-		"Overcallmax": 18,
-	},
-Options: map[string]bool{
-		"Stayman": true,
-		"Jacobi": true,
-		"NTOvercallSystemsOn": true,
-		"OneNT5CardMajor": false,
-		"JacobiTransfer2NT": true,
-		"Texas": false,
-		"Splinter": true,
-		"Jacobi2NT": false,
-		"Bypass4diamonds": true,
-		"VeryLightOpenings": false,
-		"VeryLightThirdHand": false,
-		"VeryLightOvercalls": false,
-		"VeryLightPreempts": true,
-		"StrongTwoClubs": true,
-		"StrongTwos": false,
-		"FourCardOvercalls": false,
-	},
-Radio: map[string]string{
-		"MajorDoubleRaise": "Invitational",
-		"MajorAfterOvercall": "Invitational",
-		"MinorDoubleRaise": "Invitational",
-		"MinorAfterOvercall": "Invitational",
-		"OvercallNewSuit": "Force",
-		"MinorCuebid": "Michaels",
-		"MajorCuebid": "Michaels",
-		"WeakThree": "Light",
-		"JumpOvercall": "Weak",
-	},
 }
 
 func conventionCard(c *http.Conn, p Settings) {
