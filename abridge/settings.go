@@ -444,8 +444,14 @@ func conventionCard(c *http.Conn, p Settings) {
 
 	<tr class="cc"><td colspan="2" class="cc">
 	
-	<center><strong>Describe</strong></center>
-	
+	`+htmlbid("2C")+`
+  <br/>
+	`+htmlbid("2D")+`
+  <br/>
+	`+htmlbid("2H")+`
+  <br/>
+	`+htmlbid("2S")+`
+  <br/>
 	</td></tr>
 
 	</table></td>
