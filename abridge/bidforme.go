@@ -138,8 +138,17 @@ func askhand(c io.Writer, req *http.Request, seat bridge.Seat, clientname string
 	} else {
 		fmt.Fprintln(c, "Hand already entered!")
 	}
-	fmt.Fprintln(c, `<input type="submit" value="Enter" />`)
-	fmt.Fprintln(c, `<input type="hidden" name="dealer" value="W" />`)
+
+	fmt.Fprintln(c, `Dealer: `)
+	for s:=bridge.Seat(0); s<4; s++ {
+		fmt.Fprintf(c, `<input type="radio" name="dealer" value="%s"`, s.String())
+		if (dealer[clientname] == s) {
+			fmt.Fprint(c, ` checked="checked"`)
+		}
+		fmt.Fprintln(c, `/> `, s.String())
+	}
+
+	fmt.Fprintln(c, `<br/><input type="submit" value="Enter" />`)
 	fmt.Fprintf(c, `<input type="hidden" name="client" value="%s" />`, clientname)
 	fmt.Fprintln(c, `</div></form>`)
 	return nil
