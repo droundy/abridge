@@ -30,8 +30,8 @@ func (s Score) min(s2 Score) Score {
 type BiddingRule struct {
 	name string
 	match *regexp.Regexp
-	mkscore func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (badness Score, explanation string))
-	score func(bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string)
+	mkscore func (bidder Seat, ms []string, c ConventionCard, e *Ensemble) (score func(h Hand) (badness Score, explanation string))
+	score func(bidder Seat, h Hand, ms []string, c ConventionCard, e *Ensemble) (badness Score, explanation string)
 }
 
 type ScoringRule struct {
@@ -76,7 +76,7 @@ var Convention = []BiddingRule{ PassOfForcing,
 	PassOvercall, PassHigherOvercall,
 	TakeOutDouble, NewSuitForcing, Forced, Natural, LimitPass }
 
-func makeScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule {
+func makeScoringRule(bidder Seat, bid string, cc ConventionCard, e *Ensemble) *ScoringRule {
 	if sc,ok := e.scorers[bid]; ok {
 		return sc
 	}
@@ -85,12 +85,12 @@ func makeScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule {
 		if ms != nil {
 			if c.mkscore == nil {
 				score := func(h Hand) (Score,string) {
-					return c.score(bidder, h, ms, e)
+					return c.score(bidder, h, ms, cc, e)
 				}
 				e.scorers[bid] = &ScoringRule{c.name, score}
 				return e.scorers[bid]
 			} else {
-				if sc := c.mkscore(bidder, ms, e); sc != nil {
+				if sc := c.mkscore(bidder, ms, cc, e); sc != nil {
 					e.scorers[bid] = &ScoringRule{c.name, sc}
 					return e.scorers[bid]
 				}
@@ -100,7 +100,7 @@ func makeScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule {
 	return nil
 }
 
-func makeUnforcedScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule {
+func makeUnforcedScoringRule(bidder Seat, bid string, cc ConventionCard, e *Ensemble) *ScoringRule {
 	if sc,ok := e.unforced[bid]; ok {
 		return sc
 	}
@@ -109,12 +109,12 @@ func makeUnforcedScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule 
 		if ms != nil && c.name != "Forced" {
 			if c.mkscore == nil {
 				score := func(h Hand) (Score,string) {
-					return c.score(bidder, h, ms, e)
+					return c.score(bidder, h, ms, cc, e)
 				}
 				e.unforced[bid] = &ScoringRule{c.name, score}
 				return e.unforced[bid]
 			} else {
-				if sc := c.mkscore(bidder, ms, e); sc != nil {
+				if sc := c.mkscore(bidder, ms, cc, e); sc != nil {
 					e.unforced[bid] = &ScoringRule{c.name, sc}
 					return e.unforced[bid]
 				}
@@ -124,9 +124,9 @@ func makeUnforcedScoringRule(bidder Seat, bid string, e *Ensemble) *ScoringRule 
 	return nil
 }
 
-func RateBid(h Hand, bid string) (badness Score, explanation string, convention string) {
-	e := GetValidTables(South, bid[0:len(bid)-2], 200)
-	rule := makeScoringRule(Seat((len(bid)/2-1) % 4), bid, e)
+func RateBid(h Hand, bid string, cc ConventionCard) (badness Score, explanation string, convention string) {
+	e := GetValidTables(South, bid[0:len(bid)-2], 200, cc)
+	rule := makeScoringRule(Seat((len(bid)/2-1) % 4), bid, cc, e)
 	return simpleScore(h, rule)
 }
 
@@ -159,7 +159,7 @@ func TableScore(t Table, bidders []Seat, rules []*ScoringRule) (badness Score, c
 }
 
 // The []string output describes the bids made...
-func GetValidTables(dealer Seat, bid string, num int) *Ensemble {
+func GetValidTables(dealer Seat, bid string, num int, cc ConventionCard) *Ensemble {
 	seats, bids := subBids(dealer, bid)
 	esold := makeEnsemble(num) // This is the ensemble before each bid
 	for i := range esold.tables {
@@ -169,7 +169,7 @@ func GetValidTables(dealer Seat, bid string, num int) *Ensemble {
 	rules := make([]*ScoringRule, 0, len(seats))
 	for bidnum := range seats {
 		rules = rules[0:bidnum+1]
-		rules[bidnum] = makeScoringRule((dealer + Seat(bidnum))%4, bids[bidnum], esold)
+		rules[bidnum] = makeScoringRule((dealer + Seat(bidnum))%4, bids[bidnum], cc, esold)
 		if ecached,ok := lookupEnsembleFromCache(bids[bidnum]); ok {
 			esold = ecached.RotateFromSouth(dealer)
 			continue

@@ -9,11 +9,11 @@ import (
 func main() {
 	sec, nsec, _ := os.Time()
 
-	ts := bridge.GetValidTables(0, " P P1C P1H P3H P4H P P P", 100)
+	ts := bridge.GetValidTables(0, " P P1C P1H P3H P4H P P P", 100, bridge.DefaultConvention)
 	fmt.Println("Conventions are:", ts.Conventions)
 	fmt.Println(ts)
 
-	ts = bridge.GetValidTables(0, " P 1C1H P2H P3H P4H P P P", 100)
+	ts = bridge.GetValidTables(0, " P 1C1H P2H P3H P4H P P P", 100, bridge.DefaultConvention)
 	fmt.Println("Conventions are:", ts.Conventions)
 	fmt.Println(ts)
 

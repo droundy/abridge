@@ -42,6 +42,7 @@ Options: map[string]bool{
 		"StrongTwoClubs": true,
 		"StrongTwos": false,
 		"FourCardOvercalls": false,
+		"Gambling3NT": true,
 	},
 Radio: map[string]string{
 		"MajorDoubleRaise": "Invitational",

@@ -40,7 +40,6 @@ func analyzer(c *http.Conn, req *http.Request) {
 		if ok {
 			clientname = xx[0]
 			bid,ok := req.Form["bid"]
-			fmt.Println("All bids were", bids)
 			switch {
 			case !ok || len(bid) != 1:
 			case bid[0][1:] == bridge.SuitHTML[bridge.Clubs]:
@@ -91,7 +90,7 @@ func analyzer(c *http.Conn, req *http.Request) {
 	defer header(c, req, "Bridge bidding")()
 
 	bidbox(c, req, clientname, 0) // the second argument is bogus (but allows reusing bidbox)
-	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
+	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, getSettings(req).Card)
 	fmt.Fprintln(c, ts.HTML())
 	printstatistics(c, ts)
 	showbids(c, clientname)

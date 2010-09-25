@@ -11,7 +11,6 @@ import (
 // Bid the fourth hand...
 func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Seat) {
 	bid,ok := req.Form["bid"]
-	fmt.Println("All bids were", bids)
 	switch {
 	case !ok || len(bid) != 1:
 	case bid[0][1:] == bridge.SuitHTML[bridge.Clubs]:
@@ -50,19 +49,20 @@ func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Se
 	}
 
 	bidder := (dealer[clientname] + bridge.Seat(len(bids[clientname])/2)) % 4
-	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
+	cc := getSettings(req).Card
+	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, cc)
 	if bidder == bidfor {
 		fmt.Println("Bids are:", bids[clientname])
 		fmt.Println("Table is:")
 		fmt.Println(hands[clientname])
-		newbid, conv := bridge.PickBid(hands[clientname][bidfor], bidder, bids[clientname], ts)
+		newbid, conv := bridge.PickBid(hands[clientname][bidfor], bidder, bids[clientname], cc, ts)
 		bids[clientname] += newbid
 		fmt.Println("Bid using", conv)
-		ts = bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
+		ts = bridge.GetValidTables(dealer[clientname], bids[clientname], 100, cc)
 	}
 	defer header(c, req, "Bridge bidder")()
 	bidbox(c, req, clientname, bidfor)
-	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100)
+	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, cc)
 	fmt.Fprintln(c, stats.HTML())
 	fmt.Fprintln(c, stats.ExampleHTML())
 	showbids(c, clientname)

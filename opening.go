@@ -20,7 +20,7 @@ var Opening = BiddingRule{
 	"Opening",
 	regexp.MustCompile("^( P)*1([CDHS])$"),
 	nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
+	func (bidder Seat, h Hand, ms []string, c ConventionCard, e *Ensemble) (badness Score, explanation string) {
 		pts := h.PointCount()
 		if pts < 13 {
 			explanation = "Opening with 12 points is a fudge!\n"
@@ -84,14 +84,64 @@ var PreemptOvercall = BiddingRule{
 
 var Preempt = BiddingRule{
 	"Preempt",
-	regexp.MustCompile("^( P)*([23])([CDHS])$"),
-	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score,string)) {
+	regexp.MustCompile("^( P)*([234])([CDHS])$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (func(Hand) (Score,string)) {
 		if ms[2] == "2" && ms[3] == "C" {
 			return nil // it's not a weak two bid
 		}
-		goal := byte(6)
-		if ms[2] == "3" {
-			goal = 7
+		verylightpreempts := cc.Options["VeryLightPreempts"]
+		contract := int(ms[2][0] - '0')
+		goal := byte(contract + 4)
+		mysuit := stringToSuitNumber(ms[3])
+		if goal > 6 {
+			switch cc.Radio["WeakThree"] {
+			case "Sound":
+				return func(h Hand) (badness Score, explanation string) {
+					pts := h.PointCount()
+					hcp := h.HCP()
+					if pts > 12 {
+						badness += Score(pts-12)*PointValueProblem
+					} else if hcp < 5 {
+						badness += Score(5 - hcp)*PointValueProblem
+					}
+					cardsinsuit := Suit(h >> (8*mysuit))
+					numinsuit := byte(cardsinsuit >> 4) & 15
+					lev := SafeContractInThisSuit(bidder, h, mysuit, e)
+					if lev < contract - 3 {
+						badness += Score(contract - 3 - lev)*SuitLengthProblem
+					}
+					ptsinsuit := HCP[cardsinsuit]
+					if ptsinsuit < 4 {
+						badness += Score(4 - ptsinsuit)*PointValueProblem
+					}
+					if numinsuit < goal {
+						badness += Score(goal-numinsuit)*SuitLengthProblem
+					}
+					return
+				}
+			case "Light":
+				return func(h Hand) (badness Score, explanation string) {
+					pts := h.PointCount()
+					hcp := h.HCP()
+					if pts > 12 {
+						badness += Score(pts-12)*PointValueProblem
+					} else if hcp < 5 {
+						badness += Score(5 - hcp)*PointValueProblem
+					}
+					cardsinsuit := Suit(h >> (8*mysuit))
+					numinsuit := byte(cardsinsuit >> 4) & 15
+					ptsinsuit := HCP[cardsinsuit]
+					if ptsinsuit < 4 {
+						badness += Score(4 - ptsinsuit)*PointValueProblem
+					}
+					if numinsuit < goal {
+						badness += Score(goal-numinsuit)*SuitLengthProblem
+					}
+					return
+				}
+			case "VeryLight":
+				// I'll treat VeryLight same as weak twos.
+			}
 		}
 		return func(h Hand) (badness Score, explanation string) {
 			pts := h.PointCount()
@@ -101,12 +151,13 @@ var Preempt = BiddingRule{
 			} else if hcp < 5 {
 				badness += Score(5 - hcp)*PointValueProblem
 			}
-			numinsuit := goal
-			switch stringToSuitNumber(ms[3]) {
-			case Clubs: numinsuit = byte(h >> 4) & 15
-			case Spades: numinsuit = byte(h >> 28)
-			case Hearts: numinsuit = byte(h >> 20) & 15
-			case Diamonds: numinsuit = byte(h >> 12) & 15
+			cardsinsuit := Suit(h >> (8*mysuit))
+			numinsuit := byte(cardsinsuit >> 4) & 15
+			if !verylightpreempts {
+				ptsinsuit := HCP[cardsinsuit]
+				if ptsinsuit < 3 {
+					badness += Score(3 - ptsinsuit)*PointValueProblem
+				}
 			}
 			if numinsuit < goal {
 				badness += Score(goal-numinsuit)*SuitLengthProblem
@@ -121,7 +172,10 @@ var Preempt = BiddingRule{
 var StrongTwoClubs = BiddingRule{
 	"Strong two clubs (forcing)",
 	regexp.MustCompile("^( P)*2C$"),
-	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score, string)) {
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (func(Hand) (Score, string)) {
+		if !cc.Options["StrongTwoClubs"] {
+			return nil
+		}
 		return func(h Hand) (badness Score, explanation string) {
 			pts := h.PointCount()
 			if pts < 23 {
@@ -136,7 +190,7 @@ var PassOpening = BiddingRule{
 	"Pass opening",
 	regexp.MustCompile("^( P)* P$"),
 	nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
+	func (bidder Seat, h Hand, ms []string, c ConventionCard, e *Ensemble) (badness Score, explanation string) {
 		pts := h.PointCount()
 		hcp := h.HCP()
 		if pts > 12 {

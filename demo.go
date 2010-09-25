@@ -12,7 +12,7 @@ func TestBids(handstring string, good, bad []string) int {
 	fmt.Sscan(handstring, &h)
 	fmt.Print("\nTesting bids with hand:\n", h)
 	for _,g := range good {
-		sc,expl,con := bridge.RateBid(h, g)
+		sc,expl,con := bridge.RateBid(h, g, bridge.DefaultConvention)
 		fmt.Println("Good bid", g,"has score", sc,"using convention", con)
 		if sc != 0 {
 			fmt.Println("FAIL: But", g, "is an ok bid, which was rejected because:")
@@ -21,7 +21,7 @@ func TestBids(handstring string, good, bad []string) int {
 		}
 	}
 	for _,b := range bad {
-		sc,_,con := bridge.RateBid(h, b)
+		sc,_,con := bridge.RateBid(h, b, bridge.DefaultConvention)
 		fmt.Println("Bad bid", b,"has score", sc,"using convention", con)
 		if sc == 0 {
 			fmt.Println("FAIL: But", b, "is a bad bid!")
@@ -64,7 +64,7 @@ func main() {
 
 	exitval += TestBids("Qxxx qxxxx qx qj", []string{"1N P2D", "1N P2D P2H P2N"}, []string{"1N P2H", "1N P2D P2H P3N", "1N P2D P2H P3H", "1N P2D P2H P4H"})
 
-	ts := bridge.GetValidTables(bridge.South, "1C P1S P2S P", 100)
+	ts := bridge.GetValidTables(bridge.South, "1C P1S P2S P", 100, bridge.DefaultConvention)
 	fmt.Println(ts)
 
 	/*

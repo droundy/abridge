@@ -135,9 +135,9 @@ func conventionCard(c *http.Conn, p Settings) {
 	Negative:<br/>
 	Responsive:<br/>
 	</td><td class="cc">
-	<center><strong>Notrump overcalls</strong></center>
+	<center><strong class="unimplemented">Notrump overcalls</strong></center>
 
-  <strong>Direct:</strong>
+  <strong class="unimplemented">Direct:</strong>
 {.section Pts}
   <input type="text" name="DirectOvercallNTmin" maxlength="2" size="2" value="{DirectOvercallNTmin}"/> to
   <input type="text" name="DirectOvercallNTmax" maxlength="2" size="2" value="{DirectOvercallNTmax}"/>
@@ -147,7 +147,7 @@ func conventionCard(c *http.Conn, p Settings) {
 {.end}
   <br/>
 
-  <strong>Balancing:</strong>
+  <strong class="unimplemented">Balancing:</strong>
 {.section Pts}
   <input type="text" name="BalancingOvercallNTmin" maxlength="2" size="2" value="{BalancingOvercallNTmin}"/> to
   <input type="text" name="BalancingOvercallNTmax" maxlength="2" size="2" value="{BalancingOvercallNTmax}"/>
@@ -160,7 +160,7 @@ func conventionCard(c *http.Conn, p Settings) {
 	</td></tr>
 
 	<tr><td class="cc">
-	<center><strong>Simple overcall</strong></center>
+	<center><strong class="unimplemented">Simple overcall</strong></center>
   {.section Pts}
   1 level <input type="text" name="Overcallmin" maxlength="2" size="2" value="{Overcallmin}"/> to
   <input type="text" name="Overcallmax" maxlength="2" size="2" value="{Overcallmax}"/>
@@ -170,7 +170,7 @@ func conventionCard(c *http.Conn, p Settings) {
   often 4 cards <input type="checkbox" name="FourCardOvercalls" {FourCardOvercalls}/>
   very light style <input type="checkbox" name="VeryLightOvercalls" {VeryLightOvercalls}/>
   {.end}{.section Radio}
-  <center><strong>Responses</strong></center>
+  <center><strong class="unimplemented">Responses</strong></center>
   New suit: 
   Forcing <input type="radio" name="OvercallNewSuit" value="Force" {OvercallNewSuit|Force}/>
   NF <input type="radio" name="OvercallNewSuit" value="NotForce" {OvercallNewSuit|NotForce}/>
@@ -178,11 +178,11 @@ func conventionCard(c *http.Conn, p Settings) {
   <br/>
 
 	</td><td class="cc">
-	<center><strong>Defense vs notrump</strong></center>
+	<center><strong class="unimplemented">Defense vs notrump</strong></center>
 	</td></tr>
 
 	<tr><td class="cc">
-	<center><strong>Jump overcall</strong></center>
+	<center><strong class="unimplemented">Jump overcall</strong></center>
   {.section Radio}
   Strong <input type="radio" name="JumpOvercall" value="Strong" {JumpOvercall|Strong}/>
   Intermediate
@@ -212,7 +212,7 @@ func conventionCard(c *http.Conn, p Settings) {
 	</td></tr>
 
 	<tr><td class="cc">
-	<center><strong>Direct cuebid</strong></center>
+	<center><strong class="unimplemented">Direct cuebid</strong></center>
   {.section Radio}
   <table border="0" width="100%">
   <tr><td>Over:</td>
@@ -250,9 +250,9 @@ func conventionCard(c *http.Conn, p Settings) {
   <input type="text" name="GeneralApproach" size="50" value="{GeneralApproach}"/><br/>
   {.section Options}
   <strong>Very light:</strong>
-    Openings <input type="checkbox" name="VeryLightOpenings" {VeryLightOpenings}/>
+    <span  class="unimplemented">Openings <input type="checkbox" name="VeryLightOpenings" {VeryLightOpenings}/>
     3rd hand <input type="checkbox" name="VeryLightThirdHand" {VeryLightThirdHand}/>
-    Overcalls <input type="checkbox" name="VeryLightOvercalls" {VeryLightOvercalls}/>
+    Overcalls <input type="checkbox" name="VeryLightOvercalls" {VeryLightOvercalls}/></span>
     Preempts <input type="checkbox" name="VeryLightPreempts" {VeryLightPreempts}/>
   <br/>
   <strong>Forcing opening:</strong>
@@ -293,8 +293,8 @@ func conventionCard(c *http.Conn, p Settings) {
         </td><td>
            ` + htmlbid("3D") + `<input type="text" disabled="disabled" maxlength="10" size="10"/>
         </td><td>{.section Options}
-              Jacobi <input type="checkbox" name="JacobiTransfer2NT" {JacobiTransfer2NT}/>
-           Texas <input type="checkbox" name="Texas" {Texas}/>
+              <span class="unimplemented">Jacobi <input type="checkbox" name="JacobiTransfer2NT" {JacobiTransfer2NT}/>
+           Texas <input type="checkbox" name="Texas" {Texas}/></span>
          </td>{.end}
     </tr><tr>
       <td>5-card major common:{.section Options}
@@ -322,7 +322,7 @@ func conventionCard(c *http.Conn, p Settings) {
         `+htmlbid("4D")+`,`+htmlbid("4H")+` transfer:
         <input type="checkbox" disabled="disabled"/>
       </td><td>
-           <strong>3NT</strong>
+           <strong class="unimplemented">3NT</strong>
            <input type="text" name="ThreeNTmin" maxlength="2" size="2" value=""/> to
            <input type="text" name="ThreeNTmax" maxlength="2" size="2" value=""/>
        </td>
@@ -330,9 +330,9 @@ func conventionCard(c *http.Conn, p Settings) {
       <td>
         ` + htmlbid("2S") + `<input type="text" disabled="disabled" maxlength="10" size="10"/>
       </td><td>
-      </td><td>
-           Gambling <input type="checkbox" checked="checked" disabled="disabled"/>
-       </td>
+      </td><td>{.section Options}
+           Gambling <input type="checkbox" name="Gambling3NT" {Gambling3NT}/>
+       </td>{.end}
     </tr><tr>
       <td>
         ` + htmlbid("2N") + `<input type="text" disabled="disabled" maxlength="10" size="10"/>
@@ -355,7 +355,7 @@ func conventionCard(c *http.Conn, p Settings) {
       <td align="center"><input type="checkbox" disabled="disabled"/></td>
       <td align="center"><input type="checkbox" checked="checked" disabled="disabled"/></td></tr>
   </table>
-	<center><strong>Responses</strong></center>
+	<center><strong class="unimplemented">Responses</strong></center>
   Double raise:{.section Radio}
   Force <input type="radio" name="MajorDoubleRaise" value="Force" {MajorDoubleRaise|Force}/>
   Inv. <input type="radio" name="MajorDoubleRaise" value="Invitational" {MajorDoubleRaise|Invitational}/>
@@ -395,7 +395,7 @@ func conventionCard(c *http.Conn, p Settings) {
       <td align="center"><input type="checkbox" disabled="disabled"/></td>
   </tr>
   </table>
-	<center><strong>Responses</strong></center>
+	<center><strong class="unimplemented">Responses</strong></center>
   Double raise:{.section Radio}
   Force <input type="radio" name="MinorDoubleRaise" value="Force" {MinorDoubleRaise|Force}/>
   Inv. <input type="radio" name="MinorDoubleRaise" value="Invitational" {MinorDoubleRaise|Invitational}/>

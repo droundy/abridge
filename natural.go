@@ -6,11 +6,11 @@ import (
 	"fmt"
 )
 
-func PickBid(h Hand, bidder Seat, oldbid string, e *Ensemble) (bid string, convention string) {
+func PickBid(h Hand, bidder Seat, oldbid string, cc ConventionCard, e *Ensemble) (bid string, convention string) {
 	bid = " P"
 	pbids := PossibleNondoubleBids(oldbid)
 	for _,b := range pbids {
-		r := makeScoringRule(bidder, oldbid + b, e)
+		r := makeScoringRule(bidder, oldbid + b, cc, e)
 		if sc,_ := r.score(h); sc == 0 {
 			return b, r.name
 		}
@@ -51,7 +51,7 @@ func PossibleNondoubleBids(bid string) []string {
 var PassOfForcing = BiddingRule {
 	"Pass of forcing bid",
 	regexp.MustCompile("^(.+) P P$"),
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (s Score,e string)) {
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (s Score,e string)) {
 		if !strings.HasSuffix(e.Conventions[len(e.Conventions)-2], "(forcing)") {
 			return nil
 		}
@@ -65,12 +65,12 @@ var PassOfForcing = BiddingRule {
 var LimitPass = BiddingRule {
 	"Limiting pass",
 	regexp.MustCompile("^(..)?(..)?(..)?(.[^P]......)* P$"),
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (s Score, e string)) {
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (s Score, e string)) {
 		possbids := PossibleNondoubleBids(ms[0])
 		allrules := make([]*ScoringRule,0,len(possbids))
 		allbids := make([]string,0,len(possbids))
 		for _,b := range possbids {
-			if rule := makeScoringRule(bidder, ms[0] + b, e); rule != nil {
+			if rule := makeScoringRule(bidder, ms[0] + b, cc, e); rule != nil {
 				allrules = allrules[0:len(allrules)+1]
 				allrules[len(allrules)-1] = rule
 				allbids = allbids[0:len(allbids)+1]
@@ -140,7 +140,7 @@ func ScoreHands(h1, h2 Hand, bidlevel int, suitvalue uint) (badness Score) {
 	return
 }
 
-func WorstCaseScenario(bidder Seat, h Hand, bidlevel int, suitvalue uint, e *Ensemble) (badness Score, explanation string) {
+func WorstCaseScenario(bidder Seat, h Hand, bidlevel int, suitvalue uint, cc ConventionCard, e *Ensemble) (badness Score, explanation string) {
 	partner := (bidder+2)&3
 	worsthand := Hand(0)
 	for _,t := range e.tables {
@@ -163,7 +163,7 @@ func WorstCaseScenario(bidder Seat, h Hand, bidlevel int, suitvalue uint, e *Ens
 	return badness, worsthand.String()
 }
 
-func WorstCaseSuit(bidder Seat, h Hand, bidlevel int, suitvalue uint, e *Ensemble) (badness Score, explanation string) {
+func WorstCaseSuit(bidder Seat, h Hand, bidlevel int, suitvalue uint, cc ConventionCard, e *Ensemble) (badness Score, explanation string) {
 	partner := (bidder+2)&3
 	worsthand := Hand(0)
 	for _,t := range e.tables {
@@ -186,14 +186,32 @@ func WorstCaseSuit(bidder Seat, h Hand, bidlevel int, suitvalue uint, e *Ensembl
 	return badness, worsthand.String()
 }
 
+func SafeContractInThisSuit(bidder Seat, h Hand, suitvalue uint, e *Ensemble) (bidlevel int) {
+	partner := (bidder+2)&3
+	bidlevel = 7
+	for _,t := range e.tables {
+		b := Score(100)
+		for b > 0 && bidlevel > 0 {
+			b = ScoreHands(h, t[partner], bidlevel, suitvalue)
+			if b > 0 {
+				bidlevel--
+			}
+		}
+		if bidlevel <= 0 {
+			return
+		}
+	}
+	return
+}
+
 var TakeOutDouble = BiddingRule {
 	"Takeout double (forcing)",
 	regexp.MustCompile("^.*([123])([CDHSN])( P P)? X$"),	
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score,string)) {
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
 		suitvalue := stringToSuitNumber(ms[2])
 		bidlevel := int(ms[1][0] - '0') // the level they are bid to
 		return func(h Hand) (badness Score, explanation string) {
-			badness, explanation = WorstCaseSuit(bidder, h, bidlevel, suitvalue, e)
+			badness, explanation = WorstCaseSuit(bidder, h, bidlevel, suitvalue, cc, e)
 			if badness > 0 {
 				// We are willing to fudge by one point, since WorstCaseSuit
 				// is pretty pessimistic.  Better might be to use a median or
@@ -228,7 +246,7 @@ var TakeOutDouble = BiddingRule {
 var NewSuitForcing = BiddingRule {
 	"New suit (forcing)",
 	regexp.MustCompile("^.+(.)([^PX])( P)*(.)([CDHS])$"),	
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score,string)) {
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
 		suitvalue := stringToSuitNumber(ms[5])
 		bidlevel := int(ms[4][0] - '0') // the level we are bid to
 		oldlevel := int(ms[1][0] - '0') // the previous level bid
@@ -258,7 +276,7 @@ var NewSuitForcing = BiddingRule {
 		}
 		// At this point we know it's a "new suit forcing" bid.
 		return func(h Hand) (badness Score, explanation string) {
-			badness, explanation = WorstCaseScenario(bidder, h, bidlevel, suitvalue, e)
+			badness, explanation = WorstCaseScenario(bidder, h, bidlevel, suitvalue, cc, e)
 			suitlen := byte(h >> (4+8*suitvalue)) & 15
 			if suitlen < 4 {
 				badness += Score(4-suitlen)*SuitLengthProblem
@@ -271,7 +289,7 @@ var NewSuitForcing = BiddingRule {
 var Natural = BiddingRule{
 	"Natural",
 	regexp.MustCompile("(.)([^PX])$"),	
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score,string)) {
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
 		partner := (bidder+2)&3
 		// gamelevel is the bid needed for game.
 		gamelevel := 4
@@ -464,7 +482,7 @@ var Natural = BiddingRule{
 var Forced = BiddingRule{
 	"Forced",
 	regexp.MustCompile("(.+) P(.[^PX])$"),	
-	func (bidder Seat, ms []string, e *Ensemble) (score func(h Hand) (Score,string)) {
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
 		// FIXME: Forced ought perhaps to use WorstCaseScenario (or
 		// something like it) to see which undesirable bids might possibly
 		// lead to better contracts and favor those (e.g. to favor a suit
@@ -476,7 +494,7 @@ var Forced = BiddingRule{
 			return nil
 		}
 		//fmt.Println("Working on Forced...", ms[0])
-		scorer := makeUnforcedScoringRule(bidder, ms[0], e)
+		scorer := makeUnforcedScoringRule(bidder, ms[0], cc, e)
 		allbutme := ms[0][0:len(ms[0])-2]
 		pbids := PossibleNondoubleBids(allbutme)
 		hirules := make([]*ScoringRule,0,len(pbids))
@@ -486,7 +504,7 @@ var Forced = BiddingRule{
 		for i,b := range pbids {
 			if b != ms[2] {
 				//fmt.Println("Making rule for", allbutme + b)
-				if rule := makeUnforcedScoringRule(bidder, allbutme + b, e); rule != nil {
+				if rule := makeUnforcedScoringRule(bidder, allbutme + b, cc, e); rule != nil {
 					if i < 5 {
 						lowrules = lowrules[0:len(lowrules)+1]
 						lowrules[len(lowrules)-1] = rule

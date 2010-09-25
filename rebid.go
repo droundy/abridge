@@ -7,7 +7,7 @@ import (
 var RebidSuit = BiddingRule{
 	"Rebid in my suit after cheap unlimited response",
 	regexp.MustCompile("^( P)*1([CDHS]) P1([DHS]) P2([CDHS])$"),
-	func (bidder Seat, ms []string, e *Ensemble) (func(Hand) (Score,string)) {
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (func(Hand) (Score,string)) {
 		if ms[2] != ms[4] {
 			return nil // This isn't a rebid of my suit
 		}
@@ -36,7 +36,7 @@ var RebidSuit = BiddingRule{
 var CheapNTRebid = BiddingRule{
 	"Cheap no-trump rebid",
 	regexp.MustCompile("^( P)*1([CDH]) P1([DHS]) P1N$"), nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
+	func (bidder Seat, h Hand, ms []string, cc ConventionCard, e *Ensemble) (badness Score, explanation string) {
 		pts := h.PointCount()
 		opensuit := stringToSuitNumber(ms[2])
 		theirsuit := stringToSuitNumber(ms[3])
@@ -69,7 +69,7 @@ var CheapNTRebid = BiddingRule{
 var CheapRebid = BiddingRule{
 	"Cheap rebid (forcing)",
 	regexp.MustCompile("^( P)*1[CD] P1([DH]) P1([HS])$"), nil,
-	func (bidder Seat, h Hand, ms []string, e *Ensemble) (badness Score, explanation string) {
+	func (bidder Seat, h Hand, ms []string, cc ConventionCard, e *Ensemble) (badness Score, explanation string) {
 		theirsuit := stringToSuitNumber(ms[2])
 		mysuit := stringToSuitNumber(ms[3])
 		mysuitlen := byte(h >> (4 + mysuit*8)) & 15

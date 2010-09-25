@@ -140,6 +140,10 @@ z-index:-1;"
   color: #aaaaaa;
 }
 
+.unimplemented {
+  color: #aa00aa;
+}
+
 /* cc means "convention card" */
 .cc {
   border-style: solid;
