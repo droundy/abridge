@@ -73,6 +73,9 @@ func settings(c *http.Conn, req *http.Request) {
 		if x,ok := req.Form["GeneralApproach"]; ok {
 			p.Card.GeneralApproach = x[0]
 		}
+		if x,ok := req.Form["Name"]; ok {
+			p.Card.Name = x[0]
+		}
 		for k := range DefaultSettings.Card.Pts {
 			if x,ok := req.Form[k]; ok {
 				pts,e := strconv.Atoi(x[0])
@@ -262,7 +265,8 @@ func conventionCard(c *http.Conn, p Settings) {
 	</table></td>
 	
 	<td class="cc"><table width="100%" class="cc">
-  <tr class="cc"><td colspan="2" class="cc"><strong>Names:</strong> {Name}</td></tr>
+  <tr class="cc"><td colspan="2" class="cc"><strong>Names:</strong>
+      <input type="text" name="Name" size="50" value="{Name}"/></td></tr>
 	<tr class="cc"><td colspan="2" class="cc">
 
 	<center><strong>General approach</strong></center>
