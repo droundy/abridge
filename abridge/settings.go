@@ -117,16 +117,6 @@ func settings(c *http.Conn, req *http.Request) {
 	p.Set(c)
 	defer header(c, req, "aBridge settings")()
 	fmt.Fprintln(c, `<div class="textish">`)
-	fmt.Fprint(c, `
-
-<p> I am planning to add various configuration options here.  Ideally,
-we'll even support a nice convention card input interface.  For now,
-I'll probably just add a toggle to switch between two-color and
-four-color suits (which will also test that I'm using CSS consistently).
-
-</p>
-
-`)
 	fmt.Fprintf(c, `<form method="post" action="%s"><div>`, req.URL.Path)
 	fmt.Fprintln(c, `<fieldset><legend>Suit color style</legend>`)
 	for _,s := range []string{"two color", "four color"} {
