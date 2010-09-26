@@ -152,8 +152,9 @@ z-index:-1;"
   border-spacing: 0px;
   border-color: black;
   margin: 0px;
-  padding: 0px;
+  padding: 3px;
 }
+
 `)
 	s := getSettings(req)
 	switch s.Style {

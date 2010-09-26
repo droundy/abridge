@@ -15,5 +15,6 @@ GOFILES=\
 	bidder.go\
 	bidforme.go\
 	settings.go\
+	cardtemplate.go\
 
 include $(GOROOT)/src/Make.cmd
