@@ -301,11 +301,12 @@ var NewSuitForcing = BiddingRule {
 
 var Natural = BiddingRule{
 	"Natural",
-	regexp.MustCompile("(.)([^PX])$"),	
+	regexp.MustCompile("(.)([CDHSN])$"),	
 	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
 		partner := (bidder+2)&3
 		// gamelevel is the bid needed for game.
-		gamelevel := 4
+		mysuit := stringToSuitNumber(ms[2])
+		gamelevel := 5 - int(mysuit/2) // fun formula!  :)
 		// pointlevels are the points that are needed for various bids
 		pointlevels := suitlevels
 		num := int(ms[1][0] - '0') // the level we are bid to
@@ -314,17 +315,11 @@ var Natural = BiddingRule{
 		var theirsplinterrange PointRange
 		var splintersuit uint = 0
 		var splinterpts = Points(25)
-		var mysuit uint
 		switch ms[2] {
 		case "N":
-			// redefine gamelevel and pointlevels appropriately
-			gamelevel = 3
+			// redefine pointlevel appropriately
 			pointlevels = ntlevels
 		case "S","H","D","C":
-			mysuit = stringToSuitNumber(ms[2])
-			if mysuit < Hearts {
-				gamelevel = 5
-			}
 			if num > 4 {
 				// Special case for splinter slams and slam invites:
 				for i:=uint(Clubs); i<=Spades; i++ {

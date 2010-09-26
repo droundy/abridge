@@ -4,7 +4,7 @@ import (
 	"regexp"
 )
 
-var RebidSuit = BiddingRule{
+var TwoLevelRebidSuit = BiddingRule{
 	"Rebid in my suit after cheap unlimited response",
 	regexp.MustCompile("^( P)*1([CDHS]) P1([DHS]) P2([CDHS])$"),
 	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (func(Hand) (Score,string)) {
@@ -27,6 +27,59 @@ var RebidSuit = BiddingRule{
 			if theirsuitlen > 3 && theirsuit >= Hearts {
 				// If we have support for their major, say so!
 				badness += Score(theirsuitlen-3)*SuitLengthProblem
+			}
+			return
+		}
+	}, nil,
+}
+
+var RebidSuit = BiddingRule{
+	"Rebid my suit",
+	regexp.MustCompile("^.*([12])([CDHS])......([123])([CDHS])$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (func(Hand) (Score,string)) {
+		if ms[2] != ms[4] {
+			return nil // This isn't a rebid of my suit
+		}
+		if ms[3][0] != ms[1][0] + 1 {
+			return nil // This is a jump rebid, which is something else entirely!
+		}
+		for i:=len(ms[0])-5; i>0; i -= 8 {
+			pardbid := ms[0][i:i+1]
+			if pardbid == ms[2] {
+				return nil // Partner has bid my suit.
+			}
+		}
+		num := int(ms[3][0]) - '0'
+		mysuit := stringToSuitNumber(ms[2])
+		gamelevel := 5 - int(mysuit/2)
+		pard := (bidder+2)&3
+		mymin := e.SuitLength(bidder, mysuit).Min
+		pardmin := e.SuitLength(pard, mysuit).Min
+		if mymin + 1 + pardmin >= 8 {
+			// We either already know we have a fit, or *I* already know we
+			// have a fit, and either way, the bid is an ordinary "Natural"
+			// bid.
+			return nil
+		}
+		pardpts := e.PointCount(pard)
+		return func(h Hand) (badness Score, explanation string) {
+			mysuitlen := byte(h >> (4+mysuit*8)) & 15
+			pts := h.PointCount()
+			if pts + pardpts.Min < suitlevels[num] {
+				// We'd better have the points to play at this level!
+				badness += Score(suitlevels[num]-pts-pardpts.Min)*PointValueProblem
+			}
+			if pardmin + mysuitlen >= 8 {
+				if pts + pardpts.Min >= suitlevels[num+1] && num < gamelevel && pts + pardpts.Max >= suitlevels[gamelevel] {
+					// I should have bid higher, since we might have reached game! (and it was safe)
+					
+				}
+			}
+			if pts > 15 {
+				badness += Score(pts-15)*PointValueProblem
+			}
+			if mysuitlen <  mymin + 1 {
+				badness += Score(1 + mymin - mysuitlen)*SuitLengthProblem
 			}
 			return
 		}
