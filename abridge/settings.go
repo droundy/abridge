@@ -13,31 +13,35 @@ import (
 type Settings struct {
 	Style string
 	Card bridge.ConventionCard
+	Cards map[string]bridge.ConventionCard
 }
 
-var DefaultSettings = Settings{
-Style: "two color",
-Card: bridge.DefaultConvention(),
+func DefaultSettings() Settings {
+	return Settings{
+	Style: "two color",
+	Card: bridge.DefaultConvention(),
+	Cards: make(map[string]bridge.ConventionCard),
+	}
 }
 
 func getSettings(req *http.Request) (p Settings) {
 	req.ParseForm()
-	p = DefaultSettings
+	p = DefaultSettings()
 	p.Card = bridge.DefaultConvention() // so we have fresh maps!
 	prefstr, _ := req.Header["Cookie"] // I don't care about errors!
 	// fmt.Println("Trying to unmarshall string", prefstr)
 	json.Unmarshal([]byte(prefstr), &p) // I don't care about errors!
-	for k,v := range DefaultSettings.Card.Pts {
+	for k,v := range bridge.DefaultConvention().Pts {
 		if _,ok := p.Card.Pts[k]; !ok {
 			p.Card.Pts[k] = v
 		}
 	}
-	for k,v := range DefaultSettings.Card.Options {
+	for k,v := range bridge.DefaultConvention().Options {
 		if _,ok := p.Card.Options[k]; !ok {
 			p.Card.Options[k] = v
 		}
 	}
-	for k,v := range DefaultSettings.Card.Radio {
+	for k,v := range bridge.DefaultConvention().Radio {
 		if _,ok := p.Card.Radio[k]; !ok {
 			p.Card.Radio[k] = v
 		}
@@ -76,7 +80,7 @@ func settings(c *http.Conn, req *http.Request) {
 		if x,ok := req.Form["Name"]; ok {
 			p.Card.Name = x[0]
 		}
-		for k := range DefaultSettings.Card.Pts {
+		for k := range bridge.DefaultConvention().Pts {
 			if x,ok := req.Form[k]; ok {
 				pts,e := strconv.Atoi(x[0])
 				if e == nil && bridge.Points(pts) != p.Card.Pts[k] {
@@ -95,14 +99,14 @@ func settings(c *http.Conn, req *http.Request) {
 		} else {
 			p.Card.Options["Jacobi"] = false
 		}
-		for k := range DefaultSettings.Card.Options {
+		for k := range bridge.DefaultConvention().Options {
 			// There are two Jacobi checkboxes, so I treat it specially...
 			if k != "Jacobi" {
 				_,ok := req.Form[k]
 				p.Card.Options[k] = ok
 			}
 		}
-		for k := range DefaultSettings.Card.Radio {
+		for k := range bridge.DefaultConvention().Radio {
 			if x,ok := req.Form[k]; ok {
 				p.Card.Radio[k] = x[0]
 			}
@@ -110,8 +114,7 @@ func settings(c *http.Conn, req *http.Request) {
 	}
 	if _,ok := req.Form["revert"]; ok {
 		fmt.Println("Reverting to defaults...")
-		p = DefaultSettings
-		p.Card = bridge.DefaultConvention()
+		p = DefaultSettings()
 	}
 
 	p.Set(c)
