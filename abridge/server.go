@@ -87,13 +87,18 @@ func analyzer(c *http.Conn, req *http.Request) {
 	fmt.Println(req.Method, req.RawURL)
 	defer header(c, req, "Bridge bidding")()
 
-	bidbox(c, req, clientname, 0) // the second argument is bogus (but allows reusing bidbox)
-	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, getSettings(req).Card)
+	fmt.Fprintln(c, `<table width="100%"><tr>`)
+	fmt.Fprintln(c, `<td rowspan="1">`)
+	bidbox(c, req, clientname, 0) // the second last is bogus (but allows reusing bidbox)
+	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, getSettings(req).Card)	
+	fmt.Fprintln(c, `</td><td rowspan="2">`)
 	fmt.Fprintln(c, ts.HTML())
-	printstatistics(c, ts)
+	fmt.Fprintln(c, `</td><td rowspan="3">`)
 	showbids(c, clientname)
+	fmt.Fprintln(c, `</td></tr></table>`)
 	showconventions(c, clientname, ts.Conventions)
 	fmt.Fprintln(c, ts.ExampleHTML())
+	printstatistics(c, ts)
 }
 
 func showconventions(c io.Writer, clientname string, conventions []string) os.Error {

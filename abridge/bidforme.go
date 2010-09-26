@@ -65,16 +65,21 @@ func bidForMeNow(c *http.Conn, req *http.Request, clientname string) {
 		ts = bridge.GetValidTables(dealer[clientname], bids[clientname], 100, cc)
 	}
 	defer header(c, req, "Bridge bidder")()
+
+	fmt.Fprintln(c, `<table width="100%"><tr>`)
+	fmt.Fprintln(c, `<td rowspan="1">`)
 	bidbox(c, req, clientname, bridge.South)
-	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, cc)
-	fmt.Fprintln(c, `<table><tr><td>`)
-	fmt.Fprintln(c, hands[clientname][0].HTML("My hand"))
-	fmt.Fprintln(c, `</td><td>`)
+	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, getSettings(req).Card)	
+	fmt.Fprintln(c, `</td><td rowspan="2">`)
 	fmt.Fprintln(c, stats.HTML())
-	fmt.Fprintln(c, `</td></tr></table>`)
-	fmt.Fprintln(c, stats.ExampleHTML())
+	fmt.Fprintln(c, `</td><td rowspan="1">`)
+	fmt.Fprintln(c, hands[clientname][0].HTML("My hand"))
+	fmt.Fprintln(c, `</td><td rowspan="3">`)
 	showbids(c, clientname)
-	showconventions(c, clientname, ts.Conventions)
+	fmt.Fprintln(c, `</td></tr></table>`)
+	showconventions(c, clientname, stats.Conventions)
+	fmt.Fprintln(c, stats.ExampleHTML())
+	printstatistics(c, ts)
 }
 
 // Bid my hand...

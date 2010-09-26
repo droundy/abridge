@@ -59,12 +59,19 @@ func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Se
 		ts = bridge.GetValidTables(dealer[clientname], bids[clientname], 100, cc)
 	}
 	defer header(c, req, "Bridge bidder")()
-	bidbox(c, req, clientname, bidfor)
-	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, cc)
+
+	fmt.Fprintln(c, `<table width="100%"><tr>`)
+	fmt.Fprintln(c, `<td rowspan="1">`)
+	bidbox(c, req, clientname, bidfor) // the second argument is bogus (but allows reusing bidbox)
+	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, getSettings(req).Card)	
+	fmt.Fprintln(c, `</td><td rowspan="2">`)
 	fmt.Fprintln(c, stats.HTML())
-	fmt.Fprintln(c, stats.ExampleHTML())
+	fmt.Fprintln(c, `</td><td rowspan="3">`)
 	showbids(c, clientname)
-	showconventions(c, clientname, ts.Conventions)
+	fmt.Fprintln(c, `</td></tr></table>`)
+	showconventions(c, clientname, stats.Conventions)
+	fmt.Fprintln(c, stats.ExampleHTML())
+	printstatistics(c, ts)
 }
 
 // Bid the fourth hand...
