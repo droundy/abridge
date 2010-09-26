@@ -140,11 +140,8 @@ func htmlbid(bid string) string {
 }
 
 func showbids(c io.Writer, clientname string) os.Error {
-	fmt.Fprintln(c, `<div id="bidtable"><table><tr><td>South</td><td>West</td><td>North</td><td>East</td>`)
+	fmt.Fprintln(c, `<div id="bidtable"><table><tr><td>South</td><td>West</td><td>North</td><td>East</td></tr><tr>`)
 	for i:=bridge.Seat(0); i<dealer[clientname]; i++ {
-		if (i + dealer[clientname]) & 3 == 0 {
-			fmt.Fprintln(c, `</tr><tr>`)
-		}
 		fmt.Fprintln(c, `<td align="center">-</td>`)		
 	}
 	for i:=bridge.Seat(0); i<bridge.Seat(len(bids[clientname])/2); i++ {
