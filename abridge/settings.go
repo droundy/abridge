@@ -179,6 +179,8 @@ var myformatter = template.FormatterMap(map[string]func(io.Writer, interface{}, 
 	"Weak": compareStringThing,
 	"Intermediate": compareStringThing,
 	"Strong": compareStringThing,
+	"OneLevel": compareStringThing,
+	"TwoLevel": compareStringThing,
 })
 
 func compareStringThing(c io.Writer, v interface{}, format string) {

@@ -28,6 +28,7 @@ func DefaultConvention() (out ConventionCard) {
 	out.Options["Stayman"] = true
 	out.Options["Jacobi"] = true
 	out.Options["Blackwood"] = true
+	out.Options["Gerber"] = false
 	out.Options["NTOvercallSystemsOn"] = true
 	out.Options["OneNT5CardMajor"] = false
 	out.Options["JacobiTransfer2NT"] = true
@@ -53,5 +54,7 @@ func DefaultConvention() (out ConventionCard) {
 	out.Radio["MajorCuebid"] = "Michaels"
 	out.Radio["WeakThree"] = "Light"
 	out.Radio["JumpOvercall"] = "Weak"
+	out.Radio["JumpShiftOverTOX"] = "Weak"
+	out.Radio["NewSuitForcingOverTOX"] = "TwoLevel"
 	return
 }

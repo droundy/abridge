@@ -151,7 +151,8 @@ var cctemplate = `
 	    <center><strong>Simple overcall</strong></center>
       {.section Pts}
       1 level <input type="text" name="Overcallmin" maxlength="2" size="2" value="{Overcallmin}"/> to
-      <input type="text" name="Overcallmax" maxlength="2" size="2" value="{Overcallmax}"/> HCP
+      <input type="text" name="Overcallmax" maxlength="2" size="2"
+      value="{Overcallmax}"/> HCP (usually)
       <br/>
       {.end}
       {.section Options}
@@ -179,6 +180,22 @@ var cctemplate = `
     </td>
     <td rowspan="3" class="cc">
 	    <center><strong>over opps t/o double</strong></center>
+      {.section Radio}
+      <span class="unimplemented">New suit forcing:</span>
+      1 level
+      <input type="radio" name="NewSuitForcingOverTOX" value="OneLevel" {NewSuitForcingOverTOX|OneLevel}/>
+      2 level
+      <input type="radio" name="NewSuitForcingOverTOX" value="TwoLevel" {NewSuitForcingOverTOX|TwoLevel}/>
+      <br/>
+      <span class="unimplemented">Jump shift:</span>
+      Forcing
+      <input type="radio" name="JumpShiftOverTOX" value="Force" {JumpShiftOverTOX|Force}/>
+      Inv.
+      <input type="radio" name="JumpShiftOverTOX" value="Invitational" {JumpShiftOverTOX|Invitational}/>
+      Weak
+      <input type="radio" name="JumpShiftOverTOX" value="Weak" {JumpShiftOverTOX|Weak}/>
+      <br/>
+      {.end}
     </td>
   </tr>
   <tr>
@@ -278,7 +295,7 @@ var cctemplate = `
 	    <center><strong class="unimplemented">Direct cuebid</strong></center>
       {.section Radio}
       <table border="0" width="100%">
-        <tr><td>Over:</td>
+        <tr><td align="right">Over:</td>
           <td align="center">Minor</td>
           <td align="center" >Major</td>
         </tr><tr><td>Natural</td>
@@ -301,7 +318,8 @@ var cctemplate = `
     <td colspan="2" class="cc">
 	    <center><strong>Slam conventions</strong></center>
       {.section Options}
-      Blackwood <input type="checkbox" name="Blackwood" {Blackwood}/>
+      <span class="unimplemented">Gerber</span> <input type="checkbox" name="Gerber" {Gerber}/>
+      4NT: Blackwood <input type="checkbox" name="Blackwood" {Blackwood}/>
       {.end}
     </td>
   </tr>
