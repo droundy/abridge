@@ -292,7 +292,7 @@ var cctemplate = `
   </tr>
   <tr>
     <td rowspan="1" class="cc">
-	    <center><strong class="unimplemented">Direct cuebid</strong></center>
+	    <center><strong>Direct cuebid</strong></center>
       {.section Radio}
       <table border="0" width="100%">
         <tr><td align="right">Over:</td>
@@ -301,7 +301,7 @@ var cctemplate = `
         </tr><tr><td>Natural</td>
           <td align="center"><input type="radio" name="MinorCuebid" value="Natural" {MinorCuebid|Natural}/></td>
           <td align="center"><input type="radio" name="MajorCuebid" value="Natural" {MajorCuebid|Natural}/></td>
-        </tr><tr><td>Strong T/O</td>
+        </tr><tr><td class="unimplemented">Strong T/O</td>
           <td align="center"><input type="radio" name="MinorCuebid" value="StrongTO" {MinorCuebid|StrongTO}/></td>
           <td align="center"><input type="radio" name="MajorCuebid" value="StrongTO" {MajorCuebid|StrongTO}/></td> 
         </tr><tr><td>Michaels</td>

@@ -38,6 +38,115 @@ var PassHigherOvercall = BiddingRule{
 	},
 }
 
+var MichaelsCuebidMinorQueryResponse = BiddingRule{
+	"Answering about Michaels minor suit",
+	regexp.MustCompile("^.*1([HS])2([HS])..2N..3([CD])$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
+		if ms[1] != ms[2] {
+			return nil // not the same suit
+		}
+		if cc.Radio["MajorCuebid"] != "Michaels" {
+			return nil // We aren't playing Michaels
+		}
+		ourminor := stringToSuitNumber(ms[3])
+		return func(h Hand) (badness Score, explanation string) {
+			length := (h >> (4+8*ourminor)) & 15
+			if length < 5 {
+				badness += Score(5-length)*SuitLengthProblem
+			}
+			return
+		}
+	}, nil,
+}
+
+var MichaelsCuebidMinorQuery = BiddingRule{
+	"Asking about Michaels minor suit (forcing)",
+	regexp.MustCompile("^.*1([HS])2([HS])..2N$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
+		if ms[1] != ms[2] {
+			return nil // not the same suit
+		}
+		if cc.Radio["MajorCuebid"] != "Michaels" {
+			return nil // We aren't playing Michaels
+		}
+		return func(h Hand) (badness Score, explanation string) {
+			// This is a forcing bid, so it doesn't deny a major fit.  It
+			// also doesn't promise a minor fit, as we may be thinking about
+			// slam (and looking for a cross-ruff).
+
+			// So all we promise is that we're confident that we can make
+			// *some* sort of a contract above this level!
+			return WorstCaseSuit(bidder, h, 2, NoTrump, cc, e)
+		}
+	}, nil,
+}
+
+var MichaelsCuebid = BiddingRule{
+	"Michaels cue bid (forcing)",
+	regexp.MustCompile("^.*1([CDHS])2([CDHS])$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (Score,string)) {
+		if ms[1] != ms[2] {
+			return nil // not the same suit
+		}
+		theirsuit := stringToSuitNumber(ms[2])
+		minpts := Points(13)
+		// Listen to the convention card:
+		if theirsuit < Hearts && cc.Radio["MinorCuebid"] != "Michaels" {
+			return nil
+		} else if theirsuit < Hearts {
+			return func(h Hand) (badness Score, explanation string) {
+				pts := h.PointCount()
+				if pts < minpts {
+					badness += Fudge
+				}
+				if pts < minpts - 1 {
+					badness += Score(minpts-1-pts)*PointValueProblem
+				}
+				length := (h >> 28) & 15
+				if length < 5 {
+					badness += Score(5-length)*SuitLengthProblem
+				}
+				length = (h >> 20) & 15
+				if length < 5 {
+					badness += Score(5-length)*SuitLengthProblem
+				}
+				return
+			}
+		} else if cc.Radio["MajorCuebid"] != "Michaels" {
+			return nil
+		}
+		return func(h Hand) (badness Score, explanation string) {
+			pts := h.PointCount()
+			if pts < minpts {
+				badness += Fudge
+			}
+			if pts < minpts - 1 {
+				badness += Score(minpts-1-pts)*PointValueProblem
+			}
+			if theirsuit != Spades {
+				length := (h >> 28) & 15
+				if length < 5 {
+					badness += Score(5-length)*SuitLengthProblem
+				}
+			} else {
+				length := (h >> 20) & 15
+				if length < 5 {
+					badness += Score(5-length)*SuitLengthProblem
+				}
+			}
+			lengthc := (h >> 4) & 15
+			length := (h >> 12) & 15
+			if length < lengthc {
+				length = lengthc
+			}
+			if length < 5 {
+				badness += Score(5-length)*SuitLengthProblem
+			}
+			return
+		}
+	}, nil,
+}
+
 var OneLevelOvercall = BiddingRule{
 	"One-level overcall",
 	regexp.MustCompile("^( P)*1[CDH]( P..)?1([DHS])$"),
