@@ -11,7 +11,7 @@ import (
 func conventionCard(c *http.Conn, p Settings) {
 	fmt.Fprintln(c, `<script type="text/javascript">
 function submitform() {
-    document.forms["settings"].submit();
+    document.forms["catchall"].submit();
 }
 </script>
 `)
