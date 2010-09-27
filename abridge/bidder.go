@@ -47,7 +47,7 @@ func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Se
 	}
 
 	bidder := (dealer[clientname] + bridge.Seat(len(bids[clientname])/2)) % 4
-	cc := getSettings(req).Card
+	cc := *getSettings(req).Card()
 	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, cc)
 	if bidder == bidfor {
 		fmt.Println("Bids are:", bids[clientname])
@@ -63,7 +63,7 @@ func bidfor(c *http.Conn, req *http.Request, clientname string, bidfor bridge.Se
 	fmt.Fprintln(c, `<table width="100%"><tr>`)
 	fmt.Fprintln(c, `<td rowspan="1">`)
 	bidbox(c, req, clientname, bidfor) // the second argument is bogus (but allows reusing bidbox)
-	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, getSettings(req).Card)	
+	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, *getSettings(req).Card())	
 	fmt.Fprintln(c, `</td><td rowspan="2">`)
 	fmt.Fprintln(c, stats.HTML())
 	fmt.Fprintln(c, `</td><td rowspan="3">`)

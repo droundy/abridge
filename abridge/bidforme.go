@@ -53,7 +53,7 @@ func bidForMeNow(c *http.Conn, req *http.Request, clientname string) {
 	}
 
 	bidder := (dealer[clientname] + bridge.Seat(len(bids[clientname])/2)) % 4
-	cc := getSettings(req).Card
+	cc := *getSettings(req).Card()
 	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, cc)
 	if bidder == bridge.South {
 		fmt.Println("Bids are:", bids[clientname])
@@ -69,7 +69,7 @@ func bidForMeNow(c *http.Conn, req *http.Request, clientname string) {
 	fmt.Fprintln(c, `<table width="100%"><tr>`)
 	fmt.Fprintln(c, `<td rowspan="1">`)
 	bidbox(c, req, clientname, bridge.South)
-	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, getSettings(req).Card)	
+	stats := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, *getSettings(req).Card())	
 	fmt.Fprintln(c, `</td><td rowspan="2">`)
 	fmt.Fprintln(c, stats.HTML())
 	fmt.Fprintln(c, `</td><td rowspan="1">`)

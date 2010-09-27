@@ -15,7 +15,7 @@ function submitform() {
 }
 </script>
 `)
-	e := template.MustParse(cctemplate, htmlcardformatter).Execute(p.Card, c)
+	e := template.MustParse(cctemplate, htmlcardformatter).Execute(p.Card(), c)
 	if e != nil {
 		fmt.Println("Template error:", e)
 	}

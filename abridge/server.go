@@ -90,7 +90,7 @@ func analyzer(c *http.Conn, req *http.Request) {
 	fmt.Fprintln(c, `<table width="100%"><tr>`)
 	fmt.Fprintln(c, `<td rowspan="1">`)
 	bidbox(c, req, clientname, 0) // the second last is bogus (but allows reusing bidbox)
-	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, getSettings(req).Card)	
+	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, *getSettings(req).Card())	
 	fmt.Fprintln(c, `</td><td rowspan="2">`)
 	fmt.Fprintln(c, ts.HTML())
 	fmt.Fprintln(c, `</td><td rowspan="3">`)
