@@ -8,6 +8,25 @@ type ConventionCard struct {
 	Radio map[string]string
 }
 
+func (x *ConventionCard) SameAs(y *ConventionCard) bool {
+	for k,v := range x.Pts {
+		if y.Pts[k] != v {
+			return false
+		}
+	}
+	for k,v := range x.Options {
+		if y.Options[k] != v {
+			return false
+		}
+	}
+	for k,v := range x.Radio {
+		if y.Radio[k] != v {
+			return false
+		}
+	}
+	return true
+}
+
 func DefaultConvention() (out ConventionCard) {
 	out.Name = "Default"
 	out.GeneralApproach = "David's standard American"

@@ -175,7 +175,7 @@ func GetValidTables(dealer Seat, bid string, num int, cc ConventionCard) *Ensemb
 	for bidnum := range seats {
 		rules = rules[0:bidnum+1]
 		rules[bidnum] = makeScoringRule((dealer + Seat(bidnum))%4, bids[bidnum], cc, esold)
-		if ecached,ok := lookupEnsembleFromCache(bids[bidnum]); ok {
+		if ecached,ok := lookupEnsembleFromCache(bids[bidnum], cc); ok {
 			esold = ecached.RotateFromSouth(dealer)
 			continue
 		}
@@ -207,7 +207,7 @@ func GetValidTables(dealer Seat, bid string, num int, cc ConventionCard) *Ensemb
 			es.tables[i] = t
 			es.Conventions = conventions
 		}
-		cacheEnsemble(bids[bidnum], es.RotateToSouth(dealer))
+		cacheEnsemble(bids[bidnum], cc, es.RotateToSouth(dealer))
 		esold = es
 	}
 	return esold // return final ensemble (which is now old)
