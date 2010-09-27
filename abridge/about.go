@@ -6,7 +6,7 @@ import (
 )
 
 func about(c *http.Conn, req *http.Request) {
-	defer header(c, req, "About aBridge")()
+	defer header(c, getTransitoryData(req), "About aBridge")()
 	fmt.Fprint(c, `
 <div class="textish">
 <p>

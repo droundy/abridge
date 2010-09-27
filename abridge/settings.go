@@ -139,9 +139,9 @@ func settings(c *http.Conn, req *http.Request) {
 	}
 
 	p.Set(c)
-	defer header(c, req, "aBridge settings")()
+	defer header(c, getTransitoryData(req), "aBridge settings")()
 	fmt.Fprintln(c, `<div class="textish">`)
-	fmt.Fprintf(c, `<form id="settings" method="post" action="%s"><div>`, req.URL.Path)
+	fmt.Fprintf(c, `<div>`)
 	fmt.Fprintln(c, `<fieldset><legend>Suit color style</legend>`)
 	for _,s := range []string{"two color", "four color"} {
 		fmt.Fprintf(c, `<input type="radio" name="style" onchange="submitform()" title="foobar" value="%s"%s/>%s`,
@@ -167,6 +167,5 @@ func settings(c *http.Conn, req *http.Request) {
 
 	fmt.Fprintln(c, `<input type="submit" value="Save settings" />`)
 	fmt.Fprintln(c, `<input type="submit" name="revert" value="Revert to default" />`)
-	fmt.Fprintln(c, `</div></form>`)
-	fmt.Fprintln(c, `</div>`)
+	fmt.Fprintln(c, `</div></div>`)
 }

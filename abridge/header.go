@@ -6,15 +6,15 @@ import (
 	//"github.com/ajstarks/svgo"
 )
 
-func link(c *http.Conn, req *http.Request, url, label string) {
-	if req.URL.Path == url {
+func link(c *http.Conn, dat *TransitoryData, url, label string) {
+	if dat.Url == url {
 		fmt.Fprintf(c, `<a class="x">%s</a>`, label)
 	} else {
 		fmt.Fprintf(c, `<a href="%s">%s</a>`, url, label)
 	}
 }
 
-func header(c *http.Conn, req *http.Request, title string) (footer func()) {
+func header(c *http.Conn, dat *TransitoryData, title string) (footer func()) {
 	c.SetHeader("Content-Type", "application/xhtml+xml")
 	fmt.Fprintf(c, `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
@@ -30,28 +30,32 @@ func header(c *http.Conn, req *http.Request, title string) (footer func()) {
 </head>
 
 <body id="body">`, title)
+
+	fmt.Fprintf(c, `<form id="catchall" method="post" action="%s">`, dat.Url)
 	fmt.Fprintln(c, `
+
 
 <div id="links">
 <ul class="navbar"><li>`)
-	link(c, req, "/", "Analyze bids")
+	link(c, dat, "/", "Analyze bids")
 	fmt.Fprintln(c, `</li><li>`)
-	link(c, req, "/bidder", "Bid fourth hand")
+	link(c, dat, "/bidder", "Bid fourth hand")
 	fmt.Fprintln(c, `</li><li>`)
-	link(c, req, "/bidforme", "Bid for me")
+	link(c, dat, "/bidforme", "Bid for me")
 	fmt.Fprintln(c, `</li><li>`)
-	link(c, req, "/settings", "Settings")
+	link(c, dat, "/settings", "Settings")
 	fmt.Fprintln(c, `</li><li>`)
-	link(c, req, "/about", "About aBridge")
+	link(c, dat, "/about", "About aBridge")
 	fmt.Fprintln(c, `</li></ul>`)
 	fmt.Fprintln(c, `</div>`)
 
 	return func() {
 		// This is the footer... which is intended to be deferred.
 
+		dat.Save(c)
 		fmt.Fprintln(c, `
 
-</body></html>`)
+</form></body></html>`)
 	}
 }
 

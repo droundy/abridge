@@ -25,89 +25,72 @@ func main() {
 	}
 }
 
-var max_clients = 1024
-var last_client = 0
-var bids = make(map[string]string)
-var hands = make(map[string]bridge.Table)
-var dealer = make(map[string]bridge.Seat)
-
 // Analyze a bid sequence...
 func analyzer(c *http.Conn, req *http.Request) {
-	clientname := ""
-	if req.Method == "POST" {
-		req.ParseForm()
-		xx,ok := req.Form["client"]
-		if ok {
-			clientname = xx[0]
-			bid,ok := req.Form["bid"]
-			switch {
-			case !ok || len(bid) != 1:
-			case bid[0][1:] == bridge.SuitHTML[bridge.Clubs]:
-				bids[clientname] = bids[clientname] + bid[0][0:1] + "C"
-			case bid[0][1:] == bridge.SuitHTML[bridge.Diamonds]:
-				bids[clientname] = bids[clientname] + bid[0][0:1] + "D"
-			case bid[0][1:] == bridge.SuitHTML[bridge.Hearts]:
-				bids[clientname] = bids[clientname] + bid[0][0:1] + "H"
-			case bid[0][1:] == bridge.SuitHTML[bridge.Spades]:
-				bids[clientname] = bids[clientname] + bid[0][0:1] + "S"
-			case bid[0][1:] == bridge.SuitHTML[bridge.NoTrump]:
-				bids[clientname] = bids[clientname] + bid[0][0:1] + "N"
-			case len(bid[0]) == 2:
-				bids[clientname] = bids[clientname] + bid[0]
-			default:
-				fmt.Println("I don't recognize", bid[0])
-			}
-			if _,ok := req.Form["undo"]; ok && len(bids[clientname]) >= 2 {
-				bids[clientname] = bids[clientname][0:len(bids[clientname])-2]
-			}
-			if _,ok := req.Form["clear"]; ok {
-				bids[clientname] = ""
-				dealer[clientname] = (dealer[clientname] + 1) % 4
-			}
-			if _,ok := req.Form["refresh"]; ok {
-				bridge.ClearBid(bids[clientname])
-			}
-			if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
-				dealer[clientname] = bridge.StringToSeat(d[0])
-			}
-			//for k,v := range req.Form {
-			//	fmt.Println(k, v)
-			//}
-			//for k,v := range req.Header {
-			//	fmt.Println("Header: ", k, v)
-			//}
-		} else {
-			fmt.Println("No client name.")
-		}
+	dat := getTransitoryData(req)
+
+	bid,ok := req.Form["bid"]
+	switch {
+	case !ok || len(bid) != 1:
+	case bid[0][1:] == bridge.SuitHTML[bridge.Clubs]:
+		dat.Bids = dat.Bids + bid[0][0:1] + "C"
+	case bid[0][1:] == bridge.SuitHTML[bridge.Diamonds]:
+		dat.Bids = dat.Bids + bid[0][0:1] + "D"
+	case bid[0][1:] == bridge.SuitHTML[bridge.Hearts]:
+		dat.Bids = dat.Bids + bid[0][0:1] + "H"
+	case bid[0][1:] == bridge.SuitHTML[bridge.Spades]:
+		dat.Bids = dat.Bids + bid[0][0:1] + "S"
+	case bid[0][1:] == bridge.SuitHTML[bridge.NoTrump]:
+		dat.Bids = dat.Bids + bid[0][0:1] + "N"
+	case len(bid[0]) == 2:
+		dat.Bids = dat.Bids + bid[0]
+	default:
+		fmt.Println("I don't recognize", bid[0])
 	}
-	if clientname == "" {
-		last_client = (last_client + 1) % max_clients
-		clientname = fmt.Sprintf("client=%d", last_client)
+	if _,ok := req.Form["undo"]; ok && len(dat.Bids) >= 2 {
+		dat.Bids = dat.Bids[0:len(dat.Bids)-2]
 	}
+	if _,ok := req.Form["clear"]; ok {
+		dat.Bids = ""
+		dat.Dealer = (dat.Dealer + 1) % 4
+	}
+	if _,ok := req.Form["refresh"]; ok {
+		bridge.ClearBid(dat.Bids)
+	}
+	if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
+		dat.Dealer = bridge.StringToSeat(d[0])
+	}
+	//for k,v := range req.Form {
+	//	fmt.Println(k, v)
+	//}
+	//for k,v := range req.Header {
+	//	fmt.Println("Header: ", k, v)
+	//}
+
 	fmt.Println(req.Method, req.RawURL)
-	defer header(c, req, "Bridge bidding")()
+	defer header(c, dat, "Bridge bidding")()
 
 	fmt.Fprintln(c, `<table width="100%"><tr>`)
 	fmt.Fprintln(c, `<td rowspan="1">`)
-	bidbox(c, req, clientname, 0) // the second last is bogus (but allows reusing bidbox)
-	ts := bridge.GetValidTables(dealer[clientname], bids[clientname], 100, *getSettings(req).Card())	
+	bidbox(c, req, dat)
+	ts := bridge.GetValidTables(dat.Dealer, dat.Bids, 100, *getSettings(req).Card())	
 	fmt.Fprintln(c, `</td><td rowspan="2">`)
 	fmt.Fprintln(c, ts.HTML())
 	fmt.Fprintln(c, `</td><td rowspan="3">`)
-	showbids(c, clientname)
+	showbids(c, dat)
 	fmt.Fprintln(c, `</td></tr></table>`)
-	showconventions(c, clientname, ts.Conventions)
+	showconventions(c, dat, ts.Conventions)
 	fmt.Fprintln(c, ts.ExampleHTML())
 	printstatistics(c, ts)
 }
 
-func showconventions(c io.Writer, clientname string, conventions []string) os.Error {
+func showconventions(c io.Writer, dat *TransitoryData, conventions []string) os.Error {
 	if len(conventions) == 0 {
 		return nil
 	}
 	fmt.Fprintln(c, `<div id="conventions"><h3>Conventions</h3>`)
 	for i,cc := range conventions {
-		fmt.Fprintln(c, htmlbid(bids[clientname][2*i:2*i+2]), "=", cc, "<br/>")
+		fmt.Fprintln(c, htmlbid(dat.Bids[2*i:2*i+2]), "=", cc, "<br/>")
 	}
 	fmt.Fprintln(c, `</div>`)
 	return nil
@@ -144,16 +127,16 @@ func htmlbid(bid string) string {
 	return bid;
 }
 
-func showbids(c io.Writer, clientname string) os.Error {
+func showbids(c io.Writer, dat *TransitoryData) os.Error {
 	fmt.Fprintln(c, `<div id="bidtable"><table><tr><td>South</td><td>West</td><td>North</td><td>East</td></tr><tr>`)
-	for i:=bridge.Seat(0); i<dealer[clientname]; i++ {
+	for i:=bridge.Seat(0); i<dat.Dealer; i++ {
 		fmt.Fprintln(c, `<td align="center">-</td>`)		
 	}
-	for i:=bridge.Seat(0); i<bridge.Seat(len(bids[clientname])/2); i++ {
-		if (i + dealer[clientname]) & 3 == 0 {
+	for i:=bridge.Seat(0); i<bridge.Seat(len(dat.Bids)/2); i++ {
+		if (i + dat.Dealer) & 3 == 0 {
 			fmt.Fprintln(c, `</tr><tr>`)
 		}
-		fmt.Fprintln(c, `<td align="center">`, htmlbid(bids[clientname][2*i:2*i+2]), `</td>`)
+		fmt.Fprintln(c, `<td align="center">`, htmlbid(dat.Bids[2*i:2*i+2]), `</td>`)
 	}
 	fmt.Fprintln(c, `</tr></table></div>`)
 	return nil
