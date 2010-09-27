@@ -1,8 +1,69 @@
 package main
 
 import (
+	"fmt"
+	"io"
+	"http"
+	"template"
 	"github.com/droundy/bridge"
 )
+
+func conventionCard(c *http.Conn, p Settings) {
+	fmt.Fprintln(c, `<script type="text/javascript">
+function submitform() {
+    document.forms["settings"].submit();
+}
+</script>
+`)
+	e := template.MustParse(cctemplate, htmlcardformatter).Execute(p.Card, c)
+	if e != nil {
+		fmt.Println("Template error:", e)
+	}
+}
+
+// The following is a formatter for converting bridge.ConventionCard
+// information into usable HTML.
+var htmlcardformatter = template.FormatterMap(map[string]func(io.Writer, interface{}, string){
+	"checked": func(c io.Writer, v interface{}, format string) {
+		if b,ok := v.(bool); ok && b {
+			fmt.Fprint(c, ` checked="checked"`)
+			fmt.Fprint(c, ` onchange="submitform()"`)
+		}
+	},
+  "html": template.HTMLFormatter,
+  "str":  template.StringFormatter,
+	"": func(c io.Writer, v interface{}, format string) {
+		if b,ok := v.(bool); ok {
+			if b {
+				fmt.Fprint(c, ` checked="checked"`)
+			}
+			fmt.Fprint(c, ` onchange="submitform()"`)
+			return
+		}
+		template.StringFormatter(c, v, format)
+	},
+	"Sound": compareStringThing,
+	"Light": compareStringThing,
+	"VeryLight": compareStringThing,
+	"Natural": compareStringThing,
+	"StrongTO": compareStringThing,
+	"Michaels": compareStringThing,
+	"NotForce": compareStringThing,
+	"Force": compareStringThing,
+	"Invitational": compareStringThing,
+	"Weak": compareStringThing,
+	"Intermediate": compareStringThing,
+	"Strong": compareStringThing,
+	"OneLevel": compareStringThing,
+	"TwoLevel": compareStringThing,
+})
+
+func compareStringThing(c io.Writer, v interface{}, format string) {
+	if b,ok := v.(string); ok && b == format {
+		fmt.Fprint(c, ` checked="checked"`)
+	}
+	fmt.Fprint(c, ` onchange="submitform()"`)
+}
 
 var cctemplate = `
 <input type="hidden" name="amsubmitting" value="true"/>
@@ -52,7 +113,7 @@ var cctemplate = `
       <strong>Very light:</strong>
       <span  class="unimplemented">Openings <input type="checkbox" name="VeryLightOpenings" {VeryLightOpenings}/>
         3rd hand <input type="checkbox" name="VeryLightThirdHand" {VeryLightThirdHand}/>
-        Overcalls <input type="checkbox" name="VeryLightOvercalls" {VeryLightOvercalls}/></span>
+        Overcalls <input type="checkbox" name="VeryLightOvercalls" value="2a" {VeryLightOvercalls}/></span>
       Preempts <input type="checkbox" name="VeryLightPreempts" {VeryLightPreempts}/>
       <br/>
       <strong>Forcing opening:</strong>
@@ -157,7 +218,7 @@ var cctemplate = `
       {.end}
       {.section Options}
       often 4 cards <input type="checkbox" name="FourCardOvercalls" {FourCardOvercalls}/>
-      very light style <input type="checkbox" name="VeryLightOvercalls" {VeryLightOvercalls}/>
+      very light style <input type="checkbox" name="VeryLightOvercalls" value="2b" {VeryLightOvercalls}/>
       {.end}{.section Radio}
       <center><strong class="unimplemented">Responses</strong></center>
       New suit: 

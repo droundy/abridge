@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"http"
-	"template"
 	"json"
 	"strconv"
 	"github.com/droundy/bridge"
@@ -89,20 +87,15 @@ func settings(c *http.Conn, req *http.Request) {
 				}
 			}
 		}
-		if x,ok := req.Form["Jacobi"]; ok {
-			fmt.Println("Jacobi stuff is", x, "with len", len(x))
-			switch len(x) {
-			case 2: p.Card.Options["Jacobi"] = true;
-			case 1: p.Card.Options["Jacobi"] = !p.Card.Options["Jacobi"]
-			case 0: p.Card.Options["Jacobi"] = false;
-			}
-		} else {
-			p.Card.Options["Jacobi"] = false
-		}
 		for k := range bridge.DefaultConvention().Options {
 			// There are two Jacobi checkboxes, so I treat it specially...
-			if k != "Jacobi" {
-				_,ok := req.Form[k]
+			vs,ok := req.Form[k]
+			if ok && len(vs) == 1 && vs[0][0] == '2' {
+				// There are two checkboxes for this one, so checking just
+				// one of them means we're trying to change it!
+				fmt.Println(k, "stuff is", vs)
+				p.Card.Options[k] = !p.Card.Options[k]
+			} else {
 				p.Card.Options[k] = ok
 			}
 		}
@@ -120,10 +113,10 @@ func settings(c *http.Conn, req *http.Request) {
 	p.Set(c)
 	defer header(c, req, "aBridge settings")()
 	fmt.Fprintln(c, `<div class="textish">`)
-	fmt.Fprintf(c, `<form method="post" action="%s"><div>`, req.URL.Path)
+	fmt.Fprintf(c, `<form id="settings" method="post" action="%s"><div>`, req.URL.Path)
 	fmt.Fprintln(c, `<fieldset><legend>Suit color style</legend>`)
 	for _,s := range []string{"two color", "four color"} {
-		fmt.Fprintf(c, `<input type="radio" name="style" title="foobar" value="%s"%s/>%s`,
+		fmt.Fprintf(c, `<input type="radio" name="style" onchange="submitform()" title="foobar" value="%s"%s/>%s`,
 			s, checkRadio(p.Style == s), s)
 	}
 	fmt.Fprintln(c, `</fieldset>`)
@@ -134,50 +127,4 @@ func settings(c *http.Conn, req *http.Request) {
 	fmt.Fprintln(c, `<input type="submit" name="revert" value="Revert to default" />`)
 	fmt.Fprintln(c, `</div></form>`)
 	fmt.Fprintln(c, `</div>`)
-}
-
-func conventionCard(c *http.Conn, p Settings) {
-	e := template.MustParse(cctemplate, myformatter).Execute(p.Card, c)
-	if e != nil {
-		fmt.Println("Template error:", e)
-	}
-}
-
-var myformatter = template.FormatterMap(map[string]func(io.Writer, interface{}, string){
-	"checked": func(c io.Writer, v interface{}, format string) {
-		if b,ok := v.(bool); ok && b {
-			fmt.Fprint(c, `checked="checked"`)
-		}
-	},
-  "html": template.HTMLFormatter,
-  "str":  template.StringFormatter,
-	"": func(c io.Writer, v interface{}, format string) {
-		if b,ok := v.(bool); ok {
-			if b {
-				fmt.Fprint(c, `checked="checked"`)
-			}
-			return
-		}
-		template.StringFormatter(c, v, format)
-	},
-	"Sound": compareStringThing,
-	"Light": compareStringThing,
-	"VeryLight": compareStringThing,
-	"Natural": compareStringThing,
-	"StrongTO": compareStringThing,
-	"Michaels": compareStringThing,
-	"NotForce": compareStringThing,
-	"Force": compareStringThing,
-	"Invitational": compareStringThing,
-	"Weak": compareStringThing,
-	"Intermediate": compareStringThing,
-	"Strong": compareStringThing,
-	"OneLevel": compareStringThing,
-	"TwoLevel": compareStringThing,
-})
-
-func compareStringThing(c io.Writer, v interface{}, format string) {
-	if b,ok := v.(string); ok && b == format {
-		fmt.Fprint(c, `checked="checked"`)
-	}
 }
