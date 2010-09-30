@@ -5,7 +5,7 @@ import (
 	"http"
 )
 
-func about(c *http.Conn, req *http.Request) {
+func about(c http.ResponseWriter, req *http.Request) {
 	defer header(c, getTransitoryData(req), "About aBridge")()
 	fmt.Fprint(c, `
 <div class="textish">

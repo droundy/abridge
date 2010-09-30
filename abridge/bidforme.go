@@ -9,7 +9,7 @@ import (
 )
 
 // Bid the fourth hand...
-func bidForMeNow(c *http.Conn, req *http.Request, dat *TransitoryData) {
+func bidForMeNow(c http.ResponseWriter, req *http.Request, dat *TransitoryData) {
 	bid,ok := req.Form["bid"]
 	switch {
 	case !ok || len(bid) != 1:
@@ -85,7 +85,7 @@ func bidForMeNow(c *http.Conn, req *http.Request, dat *TransitoryData) {
 }
 
 // Bid my hand...
-func bidforme(c *http.Conn, req *http.Request) {
+func bidforme(c http.ResponseWriter, req *http.Request) {
 	dat := getTransitoryData(req)
 
 	for k,v := range req.Form {

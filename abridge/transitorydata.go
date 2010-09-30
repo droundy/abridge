@@ -27,7 +27,7 @@ func getTransitoryData(req *http.Request) (d *TransitoryData) {
 	return
 }
 
-func (t *TransitoryData) Save(c *http.Conn) {
+func (t *TransitoryData) Save(c http.ResponseWriter) {
 	bytes,_ := json.Marshal(t)
 	fmt.Fprintf(c, `<input type="hidden" name="transitorydata" value="%s" />`, strings.Replace(string(bytes),"\"","'",-1))
 	fmt.Fprintln(c)

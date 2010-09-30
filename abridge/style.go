@@ -5,7 +5,7 @@ import (
   "http"
 )
 
-func styleServer(c *http.Conn, req *http.Request) {
+func styleServer(c http.ResponseWriter, req *http.Request) {
 	c.SetHeader("Content-Type", "text/css")
 	fmt.Fprint(c, `
 html {

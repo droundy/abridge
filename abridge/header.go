@@ -6,7 +6,7 @@ import (
 	//"github.com/ajstarks/svgo"
 )
 
-func link(c *http.Conn, dat *TransitoryData, url, label string) {
+func link(c http.ResponseWriter, dat *TransitoryData, url, label string) {
 	if dat.Url == url {
 		fmt.Fprintf(c, `<a class="x">%s</a>`, label)
 	} else {
@@ -14,7 +14,7 @@ func link(c *http.Conn, dat *TransitoryData, url, label string) {
 	}
 }
 
-func header(c *http.Conn, dat *TransitoryData, title string) (footer func()) {
+func header(c http.ResponseWriter, dat *TransitoryData, title string) (footer func()) {
 	c.SetHeader("Content-Type", "application/xhtml+xml")
 	fmt.Fprintf(c, `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"

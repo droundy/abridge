@@ -8,7 +8,7 @@ import (
 	"github.com/droundy/bridge"
 )
 
-func conventionCard(c *http.Conn, p Settings) {
+func conventionCard(c http.ResponseWriter, p Settings) {
 	fmt.Fprintln(c, `<script type="text/javascript">
 function submitform() {
     document.forms["catchall"].submit();

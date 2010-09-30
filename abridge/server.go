@@ -26,7 +26,7 @@ func main() {
 }
 
 // Analyze a bid sequence...
-func analyzer(c *http.Conn, req *http.Request) {
+func analyzer(c http.ResponseWriter, req *http.Request) {
 	dat := getTransitoryData(req)
 
 	bid,ok := req.Form["bid"]

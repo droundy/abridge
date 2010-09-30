@@ -56,7 +56,7 @@ func getSettings(req *http.Request) (p Settings) {
 	return p
 }
 
-func (s *Settings) Set(c *http.Conn) {
+func (s *Settings) Set(c http.ResponseWriter) {
 	if s.WhichCard != s.Card().Name {
 		c := s.Card()
 		s.Cards[s.WhichCard] = nil, false
@@ -74,7 +74,7 @@ func checkRadio(c bool) string {
 	return ""
 }
 
-func settings(c *http.Conn, req *http.Request) {
+func settings(c http.ResponseWriter, req *http.Request) {
 	p := getSettings(req)
 	if _,ok := req.Form["amsubmitting"]; ok {
 		if s,ok := req.Form["style"]; ok {
