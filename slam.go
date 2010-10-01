@@ -84,8 +84,12 @@ var Gerber = BiddingRule{
 		if !cc.Options["Gerber"] {
 			return nil
 		}
-		if strings.HasSuffix(e.Conventions[len(e.Conventions)-2], "(forcing)") {
+		if len(e.Conventions) > 1 && strings.HasSuffix(e.Conventions[len(e.Conventions)-2], "(forcing)") {
 			// Any forcing bid can't be natural (and can't lead to Gerber)
+			return nil
+		}
+		if len(e.Conventions) > 1 && e.Conventions[len(e.Conventions)-2] == "Gambling 3NT" {
+			// Can't do Gerber in response to a gambling 3NT bid
 			return nil
 		}
 		return func(h Hand) (badness Score, explanation string) {

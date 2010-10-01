@@ -256,6 +256,7 @@ var Gambling3NT = BiddingRule{
 					badness += Score(7 - (d>>4))*SuitLengthProblem
 				}
 				if (d & 15 < 14) {
+					// We must have AKQ in our suit!
 					badness += Score(14 - (d&15))*BigFudge
 				}
 			} else {
@@ -263,8 +264,173 @@ var Gambling3NT = BiddingRule{
 					badness += Score(7 - (c>>4))*SuitLengthProblem
 				}
 				if (c & 15 < 14) {
+					// We must have AKQ in our suit!
 					badness += Score(14 - (c&15))*BigFudge
 				}
+			}
+			return
+		}
+	}, nil,
+}
+
+var Gambling3NTforcingquery = BiddingRule{
+	"Gambling 3NT query (forcing)",
+	regexp.MustCompile("^( P)*3N P4C$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (s Score, e string)) {
+		if !cc.Options["Gambling3NT"] {
+			return nil
+		}
+		return func(h Hand) (badness Score, explanation string) {
+			ntsafe := SafeContractInThisSuit(bidder, h, NoTrump, e)
+			if ntsafe > 2 {
+				badness += Score(ntsafe - 2)*SuitLengthProblem
+			}
+			nc := byte(h >> 4) & 15
+			nd := byte(h >> 12) & 15
+			if nc < 1 {
+				badness += SuitLengthProblem
+			}
+			if nd < 1 {
+				badness += SuitLengthProblem
+			}
+			partner := (bidder+2)&3
+			// FIXME: The following should take into account that if I have
+			// more than a jack in clubs or diamonds, my partner's long suit
+			// must be the other one.
+			worstscore := Score(0)
+			for _,t := range e.tables {
+				best := ScoreHands(h, t[partner], 5, Clubs)
+				bd := ScoreHands(h, t[partner], 4, Diamonds) // Response is 4D or 5C
+				if bd < best {
+					best = bd
+				} 
+				if best > worstscore {
+					worstscore = best
+				}
+			}
+			badness += worstscore
+			return
+		}
+	}, nil,
+}
+
+
+var Gambling3NTquery = BiddingRule{
+	"Gambling 3NT query",
+	regexp.MustCompile("^( P)*3N P([567])C$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (s Score, e string)) {
+		if !cc.Options["Gambling3NT"] {
+			return nil
+		}
+		bidlevel := int(ms[2][0]-'0')
+		return func(h Hand) (badness Score, explanation string) {
+			ntsafe := SafeContractInThisSuit(bidder, h, NoTrump, e)
+			if ntsafe > 2 {
+				badness += Score(ntsafe - 2)*SuitLengthProblem
+			}
+			nc := byte(h >> 4) & 15
+			nd := byte(h >> 12) & 15
+			if nc < 1 {
+				badness += SuitLengthProblem
+			}
+			if nd < 1 {
+				badness += SuitLengthProblem
+			}
+			partner := (bidder+2)&3
+			// FIXME: The following should take into account that if I have
+			// more than a jack in clubs or diamonds, my partner's long suit
+			// must be the other one.
+			worstscore := Score(0)
+			for _,t := range e.tables {
+				best := ScoreHands(h, t[partner], bidlevel, Clubs)
+				bd := ScoreHands(h, t[partner], bidlevel, Diamonds)
+				if bd < best {
+					best = bd
+				} 
+				if best > worstscore {
+					worstscore = best
+				}
+			}
+			badness += worstscore
+			return
+		}
+	}, nil,
+}
+
+var Gambling3NTresponse = BiddingRule{
+	"Gambling 3NT response",
+	regexp.MustCompile("^( P)*3N P([567])C P([567]D| P)$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (s Score, e string)) {
+		if !cc.Options["Gambling3NT"] {
+			return nil
+		}
+		if ms[3] == " P" {
+			return func(h Hand) (badness Score, explanation string) {
+				nc := byte(h >> 4) & 15
+				nd := byte(h >> 12) & 15
+				if nd > nc {
+					badness += Score(nd-nc)*SuitLengthProblem
+				}
+				return
+			}
+		}
+		if ms[3][0] != ms[2][0] {
+			// It's a weird jump!
+			return nil
+		}
+		return func(h Hand) (badness Score, explanation string) {
+			nc := byte(h >> 4) & 15
+			nd := byte(h >> 12) & 15
+			if nc > nd {
+				badness += Score(nc-nd)*SuitLengthProblem
+			}
+			return
+		}
+	}, nil,
+}
+
+var Gambling3NTforcedresponse = BiddingRule{
+	"Gambling 3NT forced response",
+	regexp.MustCompile("^( P)*3N P4C P([45]D|5C)$"),
+	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (s Score, e string)) {
+		if !cc.Options["Gambling3NT"] {
+			return nil
+		}
+		hcprange := e.HCP(bidder)
+		hcpinvite := (hcprange.Max - hcprange.Min)/2 + hcprange.Min
+		switch ms[2] {
+		case "4D":
+			return func(h Hand) (badness Score, explanation string) {
+				nc := byte(h >> 4) & 15
+				nd := byte(h >> 12) & 15
+				if nc > nd {
+					badness += Score(nc-nd)*SuitLengthProblem
+				}
+				hcp := h.HCP()
+				if hcp > hcpinvite {
+					badness += Score(hcp - hcpinvite)*PointValueProblem
+				}
+				return
+			}
+		case "5D":
+			return func(h Hand) (badness Score, explanation string) {
+				nc := byte(h >> 4) & 15
+				nd := byte(h >> 12) & 15
+				if nc > nd {
+					badness += Score(nc-nd)*SuitLengthProblem
+				}
+				hcp := h.HCP()
+				if hcp < hcpinvite + 1 {
+					badness += Score(hcpinvite + 1 - hcp)*PointValueProblem
+				}
+				return
+			}
+		}
+		return func(h Hand) (badness Score, explanation string) {
+			nc := byte(h >> 4) & 15
+			nd := byte(h >> 12) & 15
+			if nd > nc {
+				badness += Score(nd-nc)*SuitLengthProblem
 			}
 			return
 		}
