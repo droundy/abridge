@@ -51,7 +51,7 @@ func DefaultConvention() (out ConventionCard) {
 	out.Options["Stayman"] = true
 	out.Options["Jacobi"] = true
 	out.Options["Blackwood"] = true
-	out.Options["Gerber"] = false
+	out.Options["Gerber"] = true
 	out.Options["NTOvercallSystemsOn"] = true
 	out.Options["OneNT5CardMajor"] = false
 	out.Options["JacobiTransfer2NT"] = true

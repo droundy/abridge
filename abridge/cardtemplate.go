@@ -379,7 +379,7 @@ var cctemplate = `
     <td colspan="2" class="cc">
 	    <center><strong>Slam conventions</strong></center>
       {.section Options}
-      <span class="unimplemented">Gerber</span> <input type="checkbox" name="Gerber" {Gerber}/>
+      Gerber <input type="checkbox" name="Gerber" {Gerber}/>
       4NT: Blackwood <input type="checkbox" name="Blackwood" {Blackwood}/>
       {.end}
     </td>
