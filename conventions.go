@@ -192,7 +192,7 @@ func GetValidTables(dealer Seat, bid string, num int, cc [2]ConventionCard) *Ens
 			oldbadness,cs := TableScore(t, seats[0:bidnum+1], rules)
 			conventions = cs
 			badness := oldbadness
-			numswaps := 52*10
+			numswaps := 52*20
 			beta := Score(0.01)
 			maxbeta := Score(1)
 			betainc := Score(math.Pow(float64(maxbeta/beta), 1/float64(numswaps)))
