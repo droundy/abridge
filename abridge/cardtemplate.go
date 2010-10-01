@@ -112,8 +112,8 @@ var cctemplate = `
       {.section Options}
       <strong>Very light:</strong>
       <span  class="unimplemented">Openings <input type="checkbox" name="VeryLightOpenings" {VeryLightOpenings}/>
-        3rd hand <input type="checkbox" name="VeryLightThirdHand" {VeryLightThirdHand}/>
-        Overcalls <input type="checkbox" name="VeryLightOvercalls" value="2a" {VeryLightOvercalls}/></span>
+        3rd hand <input type="checkbox" name="VeryLightThirdHand" {VeryLightThirdHand}/></span>
+        Overcalls <input type="checkbox" name="VeryLightOvercalls" value="2a" {VeryLightOvercalls}/>
       Preempts <input type="checkbox" name="VeryLightPreempts" {VeryLightPreempts}/>
       <br/>
       <strong>Forcing opening:</strong>

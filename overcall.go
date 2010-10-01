@@ -199,6 +199,7 @@ var TwoLevelOvercall = BiddingRule{
 		hcpmax := cc.Pts["Overcallmax"]
 		hcpbadness := PointValueProblem
 		if cc.Options["VeryLightOvercalls"] {
+			minpts = 12
 			hcpbadness = Fudge
 		}
 		return func(h Hand) (badness Score, explanation string) {
