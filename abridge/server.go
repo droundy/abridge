@@ -54,12 +54,7 @@ func analyzer(c http.ResponseWriter, req *http.Request) {
 		dat.Bids = ""
 		dat.Dealer = (dat.Dealer + 1) % 4
 	}
-	if _,ok := req.Form["refresh"]; ok {
-		bridge.ClearBid(dat.Bids)
-	}
-	if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
-		dat.Dealer = bridge.StringToSeat(d[0])
-	}
+	readbidbox(req, dat)
 	//for k,v := range req.Form {
 	//	fmt.Println(k, v)
 	//}
@@ -73,7 +68,8 @@ func analyzer(c http.ResponseWriter, req *http.Request) {
 	fmt.Fprintln(c, `<table width="100%"><tr>`)
 	fmt.Fprintln(c, `<td rowspan="1">`)
 	bidbox(c, req, dat)
-	ts := bridge.GetValidTables(dat.Dealer, dat.Bids, 100, *getSettings(req).Card())	
+	cards := [2]bridge.ConventionCard{ *getSettings(req).Cards[dat.NScard], *getSettings(req).Cards[dat.EWcard] }
+	ts := bridge.GetValidTables(dat.Dealer, dat.Bids, 100, cards)
 	fmt.Fprintln(c, `</td><td rowspan="2">`)
 	fmt.Fprintln(c, ts.HTML())
 	fmt.Fprintln(c, `</td><td rowspan="3">`)

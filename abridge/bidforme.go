@@ -29,9 +29,7 @@ func bidForMeNow(c http.ResponseWriter, req *http.Request, dat *TransitoryData) 
 		fmt.Println("I don't recognize", bid[0])
 	}
 
-	if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
-		dat.Dealer = bridge.StringToSeat(d[0])
-	}
+	readbidbox(req, dat)
 	if _,ok := req.Form["undo"]; ok && len(dat.Bids) >= 2 {
 		dat.Bids = dat.Bids[0:len(dat.Bids)-2]
 		bidder := (dat.Dealer + bridge.Seat(len(dat.Bids)/2)) % 4
@@ -55,13 +53,13 @@ func bidForMeNow(c http.ResponseWriter, req *http.Request, dat *TransitoryData) 
 	}
 
 	bidder := (dat.Dealer + bridge.Seat(len(dat.Bids)/2)) % 4
-	cc := *getSettings(req).Card()
+	cc := [2]bridge.ConventionCard{ *getSettings(req).Cards[dat.NScard], *getSettings(req).Cards[dat.EWcard] }
 	ts := bridge.GetValidTables(dat.Dealer, dat.Bids, 100, cc)
 	if bidder == bridge.South {
 		fmt.Println("Bids are:", dat.Bids)
 		fmt.Println("Table is:")
 		fmt.Println(dat.Hands)
-		newbid, conv := bridge.PickBid(dat.Hands[bridge.South], bidder, dat.Bids, cc, ts)
+		newbid, conv := bridge.PickBid(dat.Hands[bridge.South], bidder, dat.Bids, cc[bidder&1], ts)
 		dat.Bids += newbid
 		fmt.Println("Bid using", conv)
 		ts = bridge.GetValidTables(dat.Dealer, dat.Bids, 100, cc)
@@ -71,7 +69,7 @@ func bidForMeNow(c http.ResponseWriter, req *http.Request, dat *TransitoryData) 
 	fmt.Fprintln(c, `<table width="100%"><tr>`)
 	fmt.Fprintln(c, `<td rowspan="1">`)
 	bidbox(c, req, dat)
-	stats := bridge.GetValidTables(dat.Dealer, dat.Bids, 100, *getSettings(req).Card())	
+	stats := bridge.GetValidTables(dat.Dealer, dat.Bids, 100, cc)
 	fmt.Fprintln(c, `</td><td rowspan="2">`)
 	fmt.Fprintln(c, stats.HTML())
 	fmt.Fprintln(c, `</td><td rowspan="1">`)

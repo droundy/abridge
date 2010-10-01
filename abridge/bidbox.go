@@ -9,7 +9,23 @@ import (
 	"github.com/droundy/bridge"
 )
 
+func readbidbox(req *http.Request, dat *TransitoryData) {
+	if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
+		dat.Dealer = bridge.StringToSeat(d[0])
+	}
+	if d, ok := req.Form["nscard"]; ok {
+		dat.NScard = d[0]
+	}
+	if d, ok := req.Form["ewcard"]; ok {
+		dat.EWcard = d[0]
+	}
+	if _,ok := req.Form["refresh"]; ok {
+		bridge.ClearBid(dat.Bids)
+	}
+}
+
 func bidbox(c io.Writer, req *http.Request, dat *TransitoryData) os.Error {
+	p := getSettings(req)
 	
 	fmt.Fprintf(c, `<div id="bidbox">`)
 	candouble := regexp.MustCompile(".[CDHSN]( P P)?$").MatchString(dat.Bids)
@@ -54,6 +70,35 @@ func bidbox(c io.Writer, req *http.Request, dat *TransitoryData) os.Error {
 			fmt.Fprintf(c, `<input type="submit" disabled="disabled" value="%s" />`, v)
 		}
 	}
+
+	// Set cards to default values, if they aren't yet initialized...
+	if _,ok := p.Cards[dat.NScard]; !ok {
+		dat.NScard = p.WhichCard
+	}
+	if _,ok := p.Cards[dat.EWcard]; !ok {
+		dat.EWcard = p.WhichCard
+	}
+	fmt.Fprintln(c, `<br/>NS: <select name="nscard">`)
+	for k := range p.Cards {
+		fmt.Fprint(c, `<option value="`, k, `"`)
+		if k == dat.NScard {
+			fmt.Fprint(c, ` selected="selected"`)
+		}
+		fmt.Fprintln(c, `>`, k, `</option>`)
+	}
+	fmt.Fprintln(c, `</select>`)
+
+	fmt.Fprintln(c, `EW: <select name="ewcard">`)
+	for k := range p.Cards {
+		fmt.Fprint(c, `<option value="`, k, `"`)
+		if k == dat.EWcard {
+			fmt.Fprint(c, ` selected="selected"`)
+		}
+		fmt.Fprintln(c, `>`, k, `</option>`)
+	}
+	fmt.Fprintln(c, `</select>`)
+
+
 	fmt.Fprintln(c, `</div>`)
 	return nil
 }

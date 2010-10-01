@@ -49,13 +49,14 @@ func bidfor(c http.ResponseWriter, req *http.Request, dat *TransitoryData) {
 	}
 
 	bidder := (dat.Dealer + bridge.Seat(len(dat.Bids)/2)) % 4
-	cc := *getSettings(req).Card()
+
+	cc := [2]bridge.ConventionCard{ *getSettings(req).Cards[dat.NScard], *getSettings(req).Cards[dat.EWcard] }
 	ts := bridge.GetValidTables(dat.Dealer, dat.Bids, 100, cc)
 	if bidder == dat.Bidfor {
 		fmt.Println("Bids are:", dat.Bids)
 		fmt.Println("Table is:")
 		fmt.Println(dat.Hands)
-		newbid, conv := bridge.PickBid(dat.Hands[dat.Bidfor], bidder, dat.Bids, cc, ts)
+		newbid, conv := bridge.PickBid(dat.Hands[dat.Bidfor], bidder, dat.Bids, cc[bidder&1], ts)
 		dat.Bids += newbid
 		fmt.Println("Bid using", conv)
 		ts = bridge.GetValidTables(dat.Dealer, dat.Bids, 100, cc)
@@ -65,7 +66,7 @@ func bidfor(c http.ResponseWriter, req *http.Request, dat *TransitoryData) {
 	fmt.Fprintln(c, `<table width="100%"><tr>`)
 	fmt.Fprintln(c, `<td rowspan="1">`)
 	bidbox(c, req, dat) // the second argument is bogus (but allows reusing bidbox)
-	stats := bridge.GetValidTables(dat.Dealer, dat.Bids, 100, *getSettings(req).Card())	
+	stats := bridge.GetValidTables(dat.Dealer, dat.Bids, 100, cc)
 	fmt.Fprintln(c, `</td><td rowspan="2">`)
 	fmt.Fprintln(c, stats.HTML())
 	fmt.Fprintln(c, `</td><td rowspan="3">`)
@@ -83,9 +84,7 @@ func bidder(c http.ResponseWriter, req *http.Request) {
 	for k,v := range req.Form {
 		fmt.Println("Form", k, "is", v)
 	}
-	if d, ok := req.Form["dealer"]; ok && len(d) == 1 {
-		dat.Dealer = bridge.StringToSeat(d[0])
-	}
+	readbidbox(req, dat)
 	if dat.AmBidding {
 		// We already have the hands, and can short-circuit right now
 		bidfor(c, req, dat)

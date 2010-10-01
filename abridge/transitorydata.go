@@ -14,6 +14,7 @@ type TransitoryData struct {
 	Dealer bridge.Seat
 	Bidfor bridge.Seat
 	AmBidding bool
+	NScard, EWcard string
 	Url string
 }
 

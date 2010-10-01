@@ -27,6 +27,10 @@ func (x *ConventionCard) SameAs(y *ConventionCard) bool {
 	return true
 }
 
+func DefaultConventions() [2]ConventionCard {
+	return [2]ConventionCard{DefaultConvention(), DefaultConvention()}
+}
+
 func DefaultConvention() (out ConventionCard) {
 	out.Name = "Default"
 	out.GeneralApproach = "David's standard American"

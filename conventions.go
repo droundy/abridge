@@ -129,9 +129,10 @@ func makeUnforcedScoringRule(bidder Seat, bid string, cc ConventionCard, e *Ense
 	return nil
 }
 
-func RateBid(h Hand, bid string, cc ConventionCard) (badness Score, explanation string, convention string) {
+func RateBid(h Hand, bid string, cc [2]ConventionCard) (badness Score, explanation string, convention string) {
 	e := GetValidTables(South, bid[0:len(bid)-2], 200, cc)
-	rule := makeScoringRule(Seat((len(bid)/2-1) % 4), bid, cc, e)
+	bidder := Seat((len(bid)/2-1) % 4)
+	rule := makeScoringRule(bidder, bid, cc[bidder&1], e)
 	return simpleScore(h, rule)
 }
 
@@ -164,7 +165,7 @@ func TableScore(t Table, bidders []Seat, rules []*ScoringRule) (badness Score, c
 }
 
 // The []string output describes the bids made...
-func GetValidTables(dealer Seat, bid string, num int, cc ConventionCard) *Ensemble {
+func GetValidTables(dealer Seat, bid string, num int, cc [2]ConventionCard) *Ensemble {
 	seats, bids := subBids(dealer, bid)
 	esold := makeEnsemble(num) // This is the ensemble before each bid
 	for i := range esold.tables {
@@ -174,8 +175,13 @@ func GetValidTables(dealer Seat, bid string, num int, cc ConventionCard) *Ensemb
 	rules := make([]*ScoringRule, 0, len(seats))
 	for bidnum := range seats {
 		rules = rules[0:bidnum+1]
-		rules[bidnum] = makeScoringRule((dealer + Seat(bidnum))%4, bids[bidnum], cc, esold)
-		if ecached,ok := lookupEnsembleFromCache(bids[bidnum], cc); ok {
+		bidder := (dealer + Seat(bidnum))%4
+		rules[bidnum] = makeScoringRule(bidder, bids[bidnum], cc[bidder&1], esold)
+		ccrot := cc
+		if bidder&1 != 0 {
+			ccrot = [2]ConventionCard{ cc[1], cc[0] }
+		}
+		if ecached,ok := lookupEnsembleFromCache(bids[bidnum], ccrot); ok {
 			esold = ecached.RotateFromSouth(dealer)
 			continue
 		}
@@ -207,7 +213,7 @@ func GetValidTables(dealer Seat, bid string, num int, cc ConventionCard) *Ensemb
 			es.tables[i] = t
 			es.Conventions = conventions
 		}
-		cacheEnsemble(bids[bidnum], cc, es.RotateToSouth(dealer))
+		cacheEnsemble(bids[bidnum], ccrot, es.RotateToSouth(dealer))
 		esold = es
 	}
 	return esold // return final ensemble (which is now old)
