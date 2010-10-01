@@ -122,33 +122,36 @@ func (e *Ensemble) HtmlSeat(seat Seat) string {
 		//out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + " " + e.SuitLength(seat,sv).HTML()
 		out += `<tr><td><div class="bridgecards">` + SuitColorHTML[sv] + " "
 		smin := Suit(Ace + King + Queen + Jack)
+		smax := Suit(0)
 		
 		meanhcp := float64(0)
 		for _,t := range e.tables {
 			s := Suit(t[seat]>>(8*sv))
 			smin = smin & s
+			smax = smax | s
 			meanhcp += float64(HCP[s])
 		}
 		smin = smin + (13 << 4) // Pretend we have 13 cards
+		smax = smax + (13 << 4) // Pretend we have 13 cards
 		meanhcp /= float64(len(e.tables))
 		extrapts := Points(meanhcp - float64(HCP[smin]) + 0.4)
 		cardstr := []byte(smin.String())
 		for i,c := range cardstr {
 			if c == 'x' {
 				switch {
-				case extrapts >= 4 && smin & Ace == 0:
+				case extrapts >= 4 && smin & Ace == 0 && smax & Ace != 0:
 					cardstr[i] = 'a'
 					smin += Ace
 					extrapts -= 4
-				case extrapts >= 3 && smin & King == 0:
+				case extrapts >= 3 && smin & King == 0 && smax & King != 0:
 					cardstr[i] = 'k'
 					smin += King
 					extrapts -= 3
-				case extrapts >= 2 && smin & Queen == 0:
+				case extrapts >= 2 && smin & Queen == 0 && smax & Queen != 0:
 					cardstr[i] = 'q'
 					smin += Queen
 					extrapts -= 2
-				case extrapts >= 1 && smin & Jack == 0:
+				case extrapts >= 1 && smin & Jack == 0 && smax & Jack != 0:
 					cardstr[i] = 'j'
 					extrapts -= 1
 				default: break
