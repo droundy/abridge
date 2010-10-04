@@ -305,7 +305,7 @@ var CheapNTResponse = BiddingRule{
 			// We missed an opening bid!
 			badness += Score(spadelen-2)*SuitLengthProblem
 		}
-		if opensuit == Hearts && heartlen > 2 && !(ms[3] == "S" && pts > 9) {
+		if opensuit == Hearts && heartlen > 2 && !(ms[2] == "S" && pts > 9) {
 			// We can only bid 1S if we really have good reason to force the
 			// bid... i.e. a strongish hand.
 			badness += Score(heartlen-2)*SuitLengthProblem

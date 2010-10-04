@@ -130,6 +130,44 @@ func makeUnforcedScoringRule(bidder Seat, bid string, cc ConventionCard, e *Ense
 	return nil
 }
 
+func RateNextBids(bid string, cc [2]ConventionCard) map[string]float64 {
+	e := GetValidTables(South, bid, 200, cc)
+	bv, bs := LastBid(bid)
+	out := make(map[string]float64)
+	out[" P"] = 0
+	candouble := regexp.MustCompile(".[CDHSN]( P P)?$").MatchString(bid)
+	canredouble := regexp.MustCompile(" X( P P)?$").MatchString(bid)
+	if candouble {
+		out[" X"] = 0
+	}
+	if canredouble {
+		out["XX"] = 0
+	}
+
+	for bidlevel:=bv;bidlevel<8;bidlevel++ {
+		for sv:=Color(Clubs); sv<=NoTrump; sv++ {
+			if bidlevel > bv || (bidlevel == bv && sv > bs) {
+				out[fmt.Sprintf("%d%v", bidlevel, SuitLetter[sv])] = 0
+			}
+		}
+	}
+	bidder := Seat((len(bid)/2) % 4)
+	for b := range out {
+		rule := makeScoringRule(bidder, bid + b, cc[bidder&1], e)
+		numbad := float64(0)
+		numgood := numbad
+		for _,t := range e.tables {
+			if badness,_,_ := simpleScore(t[bidder], rule); badness == 0 {
+				numgood++
+			} else {
+				numbad++
+			}
+		}
+		out[b] = numgood/(numbad + numgood)
+	}
+	return out
+}
+
 func RateBid(h Hand, bid string, cc [2]ConventionCard) (badness Score, explanation string, convention string) {
 	e := GetValidTables(South, bid[0:len(bid)-2], 200, cc)
 	bidder := Seat((len(bid)/2-1) % 4)
@@ -188,7 +226,8 @@ func GetValidTables(dealer Seat, bid string, num int, cc [2]ConventionCard) *Ens
 		}
 		es := makeEnsemble(num) // This is the ensemble after this bid
 		//fmt.Println("I am working on bid of", bids[bidnum])
-		for i,t := range esold.tables {
+		for i := range es.tables {
+			t := esold.tables[i % len(esold.tables)]
 			// Initialize ensemble based on previous bidding
 			oldbadness,cs := TableScore(t, seats[0:bidnum+1], rules)
 			conventions = cs
