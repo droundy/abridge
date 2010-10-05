@@ -226,6 +226,7 @@ func GetValidTables(dealer Seat, bid string, num int, cc [2]ConventionCard) *Ens
 		}
 		es := makeEnsemble(num) // This is the ensemble after this bid
 		//fmt.Println("I am working on bid of", bids[bidnum])
+		numgood := 0
 		for i := range es.tables {
 			t := esold.tables[i % len(esold.tables)]
 			// Initialize ensemble based on previous bidding
@@ -249,9 +250,23 @@ func GetValidTables(dealer Seat, bid string, num int, cc [2]ConventionCard) *Ens
 			}
 			if badness > 0 {
 				fmt.Printf("Badness %4g -> %4g for bid %s\n", oldbadness, badness, bids[bidnum])
+			} else {
+				numgood++
 			}
 			es.tables[i] = t
 			es.Conventions = conventions
+		}
+		if numgood > 2 {
+			// Cull out the bad deals, which didn't converge to an
+			// acceptable solution.
+			for i:=0; i<len(es.tables); i++ {
+				b,_ := TableScore(es.tables[i], seats[0:bidnum+1], rules[0:bidnum+1])
+				for b != 0 && i < len(es.tables) {
+					es.tables[i] = es.tables[len(es.tables)-1]
+					b,_ = TableScore(es.tables[i], seats[0:bidnum+1], rules[0:bidnum+1])
+					es.tables = es.tables[:len(es.tables)-1]
+				}
+			}
 		}
 		cacheEnsemble(bids[bidnum], ccrot, es.RotateToSouth(dealer))
 		esold = es
