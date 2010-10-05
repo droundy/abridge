@@ -20,7 +20,7 @@ func main() {
 	sec2, nsec2, _ := os.Time()
 	name, _ := os.Hostname()
 	dt := float64(sec2-sec) + 1e-9*float64(nsec2-nsec)
-	timelimits := map[string]float64{"collins": 1.7, "morland": 10, "bennet": 4}
+	timelimits := map[string]float64{"collins": 1.7, "morland": 8, "bennet": 4}
 	fmt.Println("It took ", dt,"seconds on", name)
 	expected, ok := timelimits[name]
 	if ok {
