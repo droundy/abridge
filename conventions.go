@@ -131,7 +131,7 @@ func makeUnforcedScoringRule(bidder Seat, bid string, cc ConventionCard, e *Ense
 }
 
 func RateNextBids(bid string, cc [2]ConventionCard) map[string]float64 {
-	e := GetValidTables(South, bid, 200, cc)
+	e := GetValidTables(South, bid, 100, cc)
 	bv, bs := LastBid(bid)
 	out := make(map[string]float64)
 	out[" P"] = 0
@@ -169,7 +169,7 @@ func RateNextBids(bid string, cc [2]ConventionCard) map[string]float64 {
 }
 
 func RateBid(h Hand, bid string, cc [2]ConventionCard) (badness Score, explanation string, convention string) {
-	e := GetValidTables(South, bid[0:len(bid)-2], 200, cc)
+	e := GetValidTables(South, bid[0:len(bid)-2], 100, cc)
 	bidder := Seat((len(bid)/2-1) % 4)
 	rule := makeScoringRule(bidder, bid, cc[bidder&1], e)
 	return simpleScore(h, rule)
