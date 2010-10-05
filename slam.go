@@ -3,7 +3,6 @@ package bridge
 import (
 	"regexp"
 	"strings"
-	"fmt"
 )
 
 var Blackwood = BiddingRule{
@@ -16,7 +15,7 @@ var Blackwood = BiddingRule{
 		suit := e.FindFit(bidder)
 		if suit == NoTrump {
 			// We haven't agreed on a fit, so this can't be Blackwood!
-			fmt.Println("There is no fit!")
+			//fmt.Println("There is no fit!")
 			return nil
 		}
 		return func(h Hand) (badness Score, explanation string) {

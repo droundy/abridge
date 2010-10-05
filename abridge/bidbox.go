@@ -37,6 +37,7 @@ func bidbox(c io.Writer, req *http.Request, dat *TransitoryData) os.Error {
 	}
 	fmt.Println("dat.Bids is", dat.Bids)
 	nextbids := bridge.RateNextBids(dat.Bids, cc)
+	go bridge.ContemplateBid(dat.Bids, cc)
 	
 	fmt.Fprintf(c, `<div id="bidbox" style="position:relative; left:0; right:0">`)
 
@@ -77,15 +78,15 @@ func bidbox(c io.Writer, req *http.Request, dat *TransitoryData) os.Error {
 		s.Circle(20, 18, 25, getgrad(p))
 	}
 	if p, ok := nextbids[" X"]; ok && p > 0 {
-		s.Circle(20+40, 18, 25, getgrad(p))
+		s.Circle(20+50, 18, 25, getgrad(p))
 	}
 	if p, ok := nextbids["XX"]; ok && p > 0 {
-		s.Circle(20+2*40, 18, 25, getgrad(p))
+		s.Circle(20+2*50, 18, 25, getgrad(p))
 	}
 	for bidlevel:=1;bidlevel<8;bidlevel++ {
 		yval := 14 + (30+4)*bidlevel
 		for sv:=bridge.Color(bridge.Clubs); sv<=bridge.NoTrump; sv++ {
-			xval := 20 + 40*int(sv)
+			xval := 20 + 50*int(sv)
 			if bidlevel > bv || (bidlevel == bv && sv > bs) {
 				b := fmt.Sprintf("%d%v", bidlevel, bridge.SuitLetter[sv])
 				if p := nextbids[b]; p > 0 {
@@ -97,7 +98,7 @@ func bidbox(c io.Writer, req *http.Request, dat *TransitoryData) os.Error {
 	}
 	s.End()
 
-	fmt.Fprintln(c, `<table width="200px"><tr>
+	fmt.Fprintln(c, `<table width="250px"><tr>
 <td><input type="submit" name="bid" value=" P" /></td>`)
 	if candouble {
 		fmt.Fprintln(c, `<td width="20%" align="center"><input type="submit" name="bid" value=" X" /></td>`)
