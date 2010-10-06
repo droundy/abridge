@@ -114,7 +114,23 @@ var Stayman = BiddingRule{
 			return nil
 		}
 		return func(h Hand) (badness Score, explanation string) {
-			return // Says nothing...
+			nh := byte(h>>20) & 15
+			ns := byte(h>>28) & 15
+			// Shouldn't bid Stayman with a five-card major unless we've
+			// also got the other major.
+			if nh > 4 && ns < 4 {
+				badness += Score(nh - 4 + 4 - ns)*SuitLengthProblem
+			}
+			if ns > 4 && nh < 4 {
+				badness += Score(ns - 4 + 4 - nh)*SuitLengthProblem
+			}
+			// We'd better have at least some sort of distribution...
+			pts := h.PointCount()
+			hcp := h.HCP()
+			if hcp >= pts {
+				badness += Score(hcp+1-pts)*PointValueProblem
+			}
+			return
 		}
 	}, nil,
 }
