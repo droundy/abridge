@@ -48,7 +48,7 @@ func bidbox(c io.Writer, req *http.Request, dat *TransitoryData) os.Error {
         <svg id="logo" xmlns="http://www.w3.org/2000/svg"
              xmlns:xlink="http://www.w3.org/1999/xlink"
              preserveAspectRatio="xMidYMid slice"
-             width="%d" height="%d">`, 205, 300)
+             width="%d" height="%d">`, 305, 300)
 	gradients := make(map[int]string)
 	getgrad := func(f float64) string {
 		intval := int(100*f)
