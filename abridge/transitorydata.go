@@ -25,6 +25,13 @@ func getTransitoryData(req *http.Request) (d *TransitoryData) {
 		json.Unmarshal([]byte(strings.Replace(xx[0],"'","\"",-1)), &d) // I don't care about errors!
 	}
 	d.Url = req.URL.Path
+	s := getSettings(req)
+	if _,ok := s.Cards[d.NScard]; !ok {
+		d.NScard = s.WhichCard
+	}
+	if _,ok := s.Cards[d.EWcard]; !ok {
+		d.EWcard = s.WhichCard
+	}
 	return
 }
 
