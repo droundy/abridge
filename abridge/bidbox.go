@@ -26,6 +26,13 @@ func readbidbox(req *http.Request, dat *TransitoryData) {
 }
 
 func bidbox(c io.Writer, req *http.Request, dat *TransitoryData) os.Error {
+	fmt.Fprintln(c, `<script type="text/javascript">
+function speakbid(x) {
+    var snd = new Audio("speech/" + x + ".wav");
+    snd.play();
+}
+</script>
+`)
 	p := getSettings(req)
 	candouble := regexp.MustCompile(".[CDHSN]( P P)?$").MatchString(dat.Bids)
 	canredouble := regexp.MustCompile(" X( P P)?$").MatchString(dat.Bids)
@@ -115,7 +122,7 @@ func bidbox(c io.Writer, req *http.Request, dat *TransitoryData) os.Error {
 		for sv:=bridge.Color(bridge.Clubs); sv<=bridge.NoTrump; sv++ {
 			fmt.Fprint(c, `<td height="30px" width="20%" align="center">`)
 			if bidlevel > bv || (bidlevel == bv && sv > bs) {
-				fmt.Fprintf(c, `<input type="submit" name="bid" class="%s" value="%d%v" /></td>`,
+				fmt.Fprintf(c, `<input onclick="speakbid(this.value)" type="submit" name="bid" class="%s" value="%d%v" /></td>`,
 					bridge.SuitName[sv], bidlevel, bridge.SuitHTML[sv])
 			} else {
 				fmt.Fprintf(c, `<span class="disabled%s">%d%v</span></td>`,

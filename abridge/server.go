@@ -18,6 +18,7 @@ func main() {
 	http.HandleFunc("/settings", settings)
 	http.HandleFunc("/favicon.ico", faviconServer)
 	http.HandleFunc("/style.css", styleServer)
+	http.HandleFunc("/speech/", wavServer)
 	http.HandleFunc("/", analyzer)
 	err := http.ListenAndServe("0.0.0.0:12345", nil)
 	if err != nil {

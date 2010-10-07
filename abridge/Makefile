@@ -17,5 +17,6 @@ GOFILES=\
 	settings.go\
 	cardtemplate.go\
 	transitorydata.go\
+	speak.go\
 
 include $(GOROOT)/src/Make.cmd

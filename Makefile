@@ -28,7 +28,10 @@ demo: demo.go $(pkgdir)/$(TARG).a
 	$(GC) -o demo.$(O) demo.go
 	$(LD) -o demo demo.$(O)
 
-abridge/server: $(pkgdir)/$(TARG).a abridge/*.go
+$(pkgdir)/$(TARG)/speech.a: $(pkgdir)/$(TARG).a speech/*.go
+	cd speech && make install
+
+abridge/server: $(pkgdir)/$(TARG).a $(pkgdir)/$(TARG)/speech.a abridge/*.go
 	cd abridge && make clean && make
 
 benchmark: benchmark.go $(pkgdir)/$(TARG).a
