@@ -3,6 +3,8 @@
 
 include $(GOROOT)/src/Make.inc
 
+DEPS=../speech ..
+
 TARG=server
 
 GOFILES=\
