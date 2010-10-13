@@ -10,5 +10,7 @@ TARG=server
 GOFILES=\
 	server.go\
 	clientdata.go\
+	home.go\
+	header.go\
 
 include $(GOROOT)/src/Make.cmd

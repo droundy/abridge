@@ -1,8 +1,15 @@
 package main
 
 import (
+	"regexp"
+	"sync"
 	"github.com/droundy/bridge"
 )
+
+type Rule struct {
+	Pattern *regexp.Regexp
+	Code func([]string) string
+}
 
 type ClientData struct {
 	MyPage string
@@ -17,27 +24,38 @@ type ClientData struct {
 	Write func(string)
 }
 
-func (dat *ClientData) Home() string {
-	return `
-<div id="header">
-  <a href="javascript:say('go home')">Home</a>
-  <a href="javascript:say('go analyze bids')">Analyze bids</a>
-  <a href="javascript:say('go bid fourth hand')">Bid fourth hand</a>
-</div>
+var EventHandlers = make(map[string][]Rule)
+var once sync.Once
+var isgo = regexp.MustCompile(`^go (.+)$`)
 
-<h1> Intro to aBridge</h1>
-
-This is a neat thing.
-<br/>
-
-  <input type='submit' onclick="say('hello world')" value='Hello.'/> 
-  <input type='submit' onclick="say('goodbye world')" value='Goodbye.'/> 
-`
+func (dat *ClientData) Page(evt string) string {
+	once.Do(func () {
+		EventHandlers["Home"] = []Rule {
+			Rule {
+			Pattern: regexp.MustCompile(`.*`),
+			Code: Home,
+			},
+		}
+	})
+	rs,ok := EventHandlers[dat.MyPage]
+	if !ok {
+		return "Error: bad dat.MyPage " + dat.MyPage
+	}
+	for _,r := range rs {
+		if ms := r.Pattern.FindStringSubmatch(evt); ms != nil {
+			return r.Code(ms)
+		}
+	}
+	return "Unknown event type: " + evt
 }
 
 func (dat *ClientData) Handle(evt string) {
+	if ms := isgo.FindStringSubmatch(evt); ms != nil {
+		dat.MyPage = ms[1]
+	}
 	out := ""
-	out += dat.Home()
+	out += dat.Header()
+	out += dat.Page(evt)
 	out += `<h3>` + evt + `</h3>`
 	dat.Write(out)
 }

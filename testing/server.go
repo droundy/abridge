@@ -14,7 +14,7 @@ func (dat *ClientData) Done(err os.Error) {
 func NewClient(write func(string)) easysocket.Handler {
 	dat := new(ClientData)
 	dat.Write = write
-	dat.MyPage = "home"
+	dat.MyPage = "Home"
 	dat.Handle("")
 	return dat
 }
