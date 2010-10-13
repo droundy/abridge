@@ -7,8 +7,17 @@ func (dat *ClientData) Header() string {
 		}
 		return `<a href="javascript:say('go ` + x + `')">` + x + `</a>` + "\n"
 	}
-	return `<div id="header">
-` + link("Home") + link("Analyze bids") + link("Bid fourth hand") + `
+	return `
+<link href="style.css" rel="stylesheet" type="text/css"/>
+
+<div id="links">
+  <ul class="navbar">
+    <li>` + link("Home") + ` </li>
+    <li>` + link("Analyze bids") + ` </li>
+    <li>` + link("Bid fourth hand") + ` </li>
+    <li>` + link("Bid for me") + ` </li>
+    <li>` + link("Settings") + ` </li>
+  </ul>
 </div>
 `
 }

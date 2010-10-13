@@ -1,19 +1,22 @@
 package main
 
 import (
+	"fmt"
 	"regexp"
 	"sync"
+	"strings"
 	"github.com/droundy/bridge"
 )
 
 type Rule struct {
 	Pattern *regexp.Regexp
-	Code func([]string) string
+	Code func(dat *ClientData, matches []string) string
 }
 
 type ClientData struct {
 	MyPage string
 
+	Cookie Settings
 	Bids string
 	Hands bridge.Table
 	Dealer bridge.Seat
@@ -36,6 +39,30 @@ func (dat *ClientData) Page(evt string) string {
 			Code: Home,
 			},
 		}
+		EventHandlers["Bid fourth hand"] = []Rule {
+			Rule {
+			Pattern: regexp.MustCompile(`.*`),
+			Code: Home,
+			},
+		}
+		EventHandlers["Analyze bids"] = []Rule {
+			Rule {
+			Pattern: regexp.MustCompile(`.*`),
+			Code: Home,
+			},
+		}
+		EventHandlers["Bid for me"] = []Rule {
+			Rule {
+			Pattern: regexp.MustCompile(`.*`),
+			Code: Home,
+			},
+		}
+		EventHandlers["Settings"] = []Rule {
+			Rule {
+			Pattern: regexp.MustCompile(`.*`),
+			Code: SettingsPage,
+			},
+		}
 	})
 	rs,ok := EventHandlers[dat.MyPage]
 	if !ok {
@@ -43,13 +70,23 @@ func (dat *ClientData) Page(evt string) string {
 	}
 	for _,r := range rs {
 		if ms := r.Pattern.FindStringSubmatch(evt); ms != nil {
-			return r.Code(ms)
+			return r.Code(dat, ms)
 		}
 	}
 	return "Unknown event type: " + evt
 }
 
 func (dat *ClientData) Handle(evt string) {
+	fmt.Println("Got event:", evt)
+	if evt == "First time" {
+		dat.Write("read-cookie")
+		return
+	} else if strings.HasPrefix(evt, "cookie is ") {
+		fmt.Println("got cookie:", evt)
+		dat.Cookie = readCookie(evt[len("cookie is "):])
+		dat.Write("write-cookie" + dat.Cookie.Write())
+		return
+	}
 	if ms := isgo.FindStringSubmatch(evt); ms != nil {
 		dat.MyPage = ms[1]
 	}

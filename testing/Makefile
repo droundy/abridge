@@ -11,6 +11,8 @@ GOFILES=\
 	server.go\
 	clientdata.go\
 	home.go\
+	settings.go\
 	header.go\
+	speak.go style.go favicon.go cookie.go\
 
 include $(GOROOT)/src/Make.cmd

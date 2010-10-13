@@ -84,6 +84,31 @@ func skeletonpage(req *http.Request) string {
 <head>
 <script type="text/javascript">
 
+// Define helper cookie functions:
+function createCookie(name,value,days) {
+	if (days) {
+		var date = new Date();
+		date.setTime(date.getTime()+(days*24*60*60*1000));
+		var expires = "; expires="+date.toGMTString();
+	}
+	else var expires = "";
+	document.cookie = name+"="+value+expires+"; path=/";
+}
+function readCookie(name) {
+	var nameEQ = name + "=";
+	var ca = document.cookie.split(';');
+	for(var i=0;i < ca.length;i++) {
+		var c = ca[i];
+		while (c.charAt(0)==' ') c = c.substring(1,c.length);
+		if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+	}
+	return null;
+}
+function eraseCookie(name) {
+	createCookie(name,"",-1);
+}
+
+// Set up the websocket
 if (! "WebSocket" in window) {
  // The browser doesn't support WebSocket
  alert("WebSocket NOT supported by your Browser!");
@@ -91,23 +116,42 @@ if (! "WebSocket" in window) {
 
 // Let us open a web socket
 var ws = new WebSocket("ws://localhost:12345` + path.Join(req.URL.Path,"socket") + `");
-ws.onmessage = function (evt) {
-   var received_msg = evt.data;
-   //alert("Message is received: " + received_msg);
-   document.getElementById("everything").innerHTML=received_msg;
-};
-say = function(txt) {
+function say(txt) {
    ws.send(txt + '\n')
-}
+};
 ws.onclose = function() {
    // websocket is closed.
    alert("Connection is closed..."); 
 };
+
+ws.onmessage = function (evt) {
+   if (evt.data.replace(/^\s+|\s+$/g,"") == 'read-cookie') {
+       var cookie = readCookie('WebSocketCookie');
+       if (cookie != null) {
+         say('cookie is ' + readCookie('WebSocketCookie'));
+       } else {
+         say('cookie is unknown')
+       }
+       return
+   }
+   if (evt.data.substr(0,12) == 'write-cookie') {
+      createCookie('WebSocketCookie', evt.data.substr(12), 365);
+      say('got cookie');
+      return
+   }
+   var everything = document.getElementById("everything")
+   if (everything == null) {
+     return
+   }
+   var received_msg = evt.data;
+   //alert("Message is received: " + received_msg);
+   everything.innerHTML=received_msg;
+};
+
 </script>
 </head>
 <body>
 <div id="everything">
-
 
   Everything goes here.
 </div>
