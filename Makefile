@@ -32,7 +32,10 @@ $(pkgdir)/$(TARG)/speech.a: $(pkgdir)/$(TARG).a speech/*.go
 	cd speech && make install
 
 abridge/server: $(pkgdir)/$(TARG).a $(pkgdir)/$(TARG)/speech.a abridge/*.go
-	cd abridge && make clean && make
+	cd abridge && make
+
+testing/server: $(pkgdir)/$(TARG).a $(pkgdir)/$(TARG)/speech.a testing/*.go
+	cd testing && make
 
 benchmark: benchmark.go $(pkgdir)/$(TARG).a
 	$(GC) -o benchmark.$(O) benchmark.go
