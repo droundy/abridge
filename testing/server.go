@@ -5,38 +5,42 @@ import (
 	"http"
 	//"time"
 	"github.com/droundy/bridge/easysocket"
+	"github.com/droundy/bridge"
 	"os"
 )
 
-// Echo the data received on the Web Socket.
-func BridgeServer(evts <-chan string, pages chan<- string, done <-chan os.Error) {
-	fmt.Println("about to send intro page...")
-	pages <- `
+type TransitoryData struct {
+	Bids string
+	Hands bridge.Table
+	Dealer bridge.Seat
+	Bidfor bridge.Seat
+	AmBidding bool
+	NScard, EWcard string
+	Url string
+	Write func(string)
+}
+
+func (dat *TransitoryData) Handle(evt string) {
+	dat.Write(`<h1>` + evt + `</h1>`)
+}
+
+func (dat *TransitoryData) Done(err os.Error) {
+	fmt.Println("All done!", err)
+}
+
+func NewClient(write func(string)) easysocket.Handler {
+	dat := new(TransitoryData)
+	dat.Write = write
+	write(`
 <h1> Intro to aBridge</h1>
 
 This is a neat thing.
-`
-	// The ticks gives a demo of how we could handle some sort of a
-	// timeout.
-	//ticks := time.NewTicker(10e9)
-	for {
-		select {
-		case x := <- evts:
-			fmt.Println("got event:", x)
-			pages <- `<h1>` + x + `</h1>`
-			//ticks.Stop()
-			//ticks = time.NewTicker(10e9) // Start counting again!
-		case err := <- done:
-			fmt.Println("All done!", err)
-			return
-		//case _ = <- ticks.C:
-		//	pages <- `I am getting bored...`
-		}
-	}
+`)
+	return dat
 }
 
 func main() {
-	easysocket.HandleChans("/", BridgeServer);
+	easysocket.Handle("/", NewClient);
 	err := http.ListenAndServe(":12345", nil);
 	if err != nil {
 		panic("ListenAndServe: " + err.String())
