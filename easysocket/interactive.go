@@ -106,18 +106,11 @@ ws.onclose = function() {
 </script>
 </head>
 <body>
-<div id="header">
-  <a href="javascript:say('go home')">Home</a>
-  <a href="javascript:say('go analyze bids')">Analyze bids</a>
-  <a href="javascript:say('go bid fourth hand')">Bid fourth hand</a>
-</div>
 <div id="everything">
 
 
   Everything goes here.
 </div>
-  <input type='submit' onclick="say('hello world')" value='Hello.'/> 
-  <input type='submit' onclick="say('goodbye world')" value='Goodbye.'/> 
 </body>
 </html>
 `
