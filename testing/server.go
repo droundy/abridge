@@ -36,7 +36,7 @@ This is a neat thing.
 }
 
 func main() {
-	easysocket.Handle("/", BridgeServer);
+	easysocket.HandleChans("/", BridgeServer);
 	err := http.ListenAndServe(":12345", nil);
 	if err != nil {
 		panic("ListenAndServe: " + err.String())
