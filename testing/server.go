@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 	"http"
-	"time"
+	//"time"
 	"github.com/droundy/bridge/easysocket"
-	//"io"
 	"os"
 )
 
@@ -17,19 +16,21 @@ func BridgeServer(evts <-chan string, pages chan<- string, done <-chan os.Error)
 
 This is a neat thing.
 `
-	ticks := time.NewTicker(10e9)
+	// The ticks gives a demo of how we could handle some sort of a
+	// timeout.
+	//ticks := time.NewTicker(10e9)
 	for {
 		select {
 		case x := <- evts:
 			fmt.Println("got event:", x)
 			pages <- `<h1>` + x + `</h1>`
-			ticks.Stop()
-			ticks = time.NewTicker(10e9) // Start counting again!
+			//ticks.Stop()
+			//ticks = time.NewTicker(10e9) // Start counting again!
 		case err := <- done:
 			fmt.Println("All done!", err)
 			return
-		case _ = <- ticks.C:
-			pages <- `I am getting bored...`
+		//case _ = <- ticks.C:
+		//	pages <- `I am getting bored...`
 		}
 	}
 }
