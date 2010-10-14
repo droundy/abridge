@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"github.com/droundy/bridge"
+)
+
 func checkRadio(c bool) string {
 	if c {
 		return ` checked="checked"`
@@ -7,9 +12,50 @@ func checkRadio(c bool) string {
 	return ""
 }
 
-func SettingsPage(dat *ClientData, evt []string) string {
-	return `This is a stand-in for a real settings page`
+func selected(c bool) string {
+	if c {
+		return ` selected="selected"`
+	}
+	return ""
+}
 
+func SettingsPage(dat *ClientData, evt []string) string {
+	switch evt[1] {
+	case "set style ":
+		dat.Cookie.Style = evt[2]
+		dat.WriteCookie()
+	case "set card ":
+		if _,ok := dat.Cookie.Cards[evt[2]]; !ok {
+			c := bridge.DefaultConvention()
+			dat.Cookie.Cards[evt[2]] = &c
+		}
+		dat.Cookie.WhichCard = evt[2]
+		dat.WriteCookie()
+	}
+	out := `
+<div class="textish">
+<div>
+<fieldset><legend>Suit color style</legend>
+`
+	for _,s := range []string{"two color", "four color"} {
+		out += fmt.Sprintf(`<input type="radio" name="style" onchange="say('set style %s')" value="%s"%s/>%s`,
+			s, s, checkRadio(dat.Cookie.Style == s), s)
+	}
+	out += `
+</fieldset>
+
+<select onchange="say('set card '+this.value)" name="whichcard">
+`
+	for k := range dat.Cookie.Cards {
+		out += fmt.Sprintf(`<option value="%s"%s> %s </option>`, k, selected(k == dat.Cookie.WhichCard), k)
+	}
+	out += `<option value="New convention card">New convention card...</option>
+</select>
+</div>
+</div>
+
+`
+	return out
 	/*
 	defer header(c, getTransitoryData(req), "aBridge settings")()
 	fmt.Fprintln(c, `<div class="textish">`)

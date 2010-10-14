@@ -59,12 +59,6 @@ func readCookie(cookie string) (p Settings) {
 }
 
 func (s *Settings) Write() string {
-	if s.WhichCard != s.Card().Name {
-		c := s.Card()
-		s.Cards[s.WhichCard] = nil, false
-		s.WhichCard = c.Name
-		s.Cards[s.WhichCard] = c
-	}
 	bytes,_ := json.Marshal(*s)
 	return string(bytes)
 }

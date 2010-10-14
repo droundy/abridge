@@ -59,7 +59,7 @@ func (dat *ClientData) Page(evt string) string {
 		}
 		EventHandlers["Settings"] = []Rule {
 			Rule {
-			Pattern: regexp.MustCompile(`.*`),
+			Pattern: regexp.MustCompile(`(set style |set card )?(.*)`),
 			Code: SettingsPage,
 			},
 		}
@@ -76,6 +76,10 @@ func (dat *ClientData) Page(evt string) string {
 	return "Unknown event type: " + evt
 }
 
+func (dat *ClientData) WriteCookie() {
+	dat.Write("write-cookie" + dat.Cookie.Write())
+}
+
 func (dat *ClientData) Handle(evt string) {
 	fmt.Println("Got event:", evt)
 	if evt == "First time" {
@@ -84,7 +88,7 @@ func (dat *ClientData) Handle(evt string) {
 	} else if strings.HasPrefix(evt, "cookie is ") {
 		fmt.Println("got cookie:", evt)
 		dat.Cookie = readCookie(evt[len("cookie is "):])
-		dat.Write("write-cookie" + dat.Cookie.Write())
+		dat.WriteCookie()
 		return
 	}
 	if ms := isgo.FindStringSubmatch(evt); ms != nil {
