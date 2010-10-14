@@ -3,7 +3,7 @@
 
 include $(GOROOT)/src/Make.inc
 
-DEPS=../easysocket ..
+DEPS=../easysocket ../speech ..
 
 TARG=server
 
@@ -13,6 +13,7 @@ GOFILES=\
 	home.go\
 	settings.go\
 	header.go\
+	cardtemplate.go\
 	speak.go style.go favicon.go cookie.go\
 
 include $(GOROOT)/src/Make.cmd

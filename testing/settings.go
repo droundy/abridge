@@ -55,6 +55,7 @@ func SettingsPage(dat *ClientData, evt []string) string {
 </div>
 
 `
+	out += conventionCard(dat.Cookie)
 	return out
 	/*
 	defer header(c, getTransitoryData(req), "aBridge settings")()
