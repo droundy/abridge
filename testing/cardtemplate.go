@@ -41,8 +41,8 @@ func htmlbid(bid string) string {
 var htmlcardformatter = template.FormatterMap(map[string]func(io.Writer, interface{}, string){
 	"checked": func(c io.Writer, v interface{}, format string) {
 		if b,ok := v.(bool); ok && b {
-			fmt.Fprint(c, ` checked="checked"`)
-			fmt.Fprint(c, ` onchange="submitform()"`)
+			fmt.Fprint(c, ` onchange="say('uncheck '+this.name)" checked="checked"`)
+			fmt.Fprintf(c, ` onchange="say('check '+this.name)"`)
 		}
 	},
   "html": template.HTMLFormatter,
@@ -50,9 +50,13 @@ var htmlcardformatter = template.FormatterMap(map[string]func(io.Writer, interfa
 	"": func(c io.Writer, v interface{}, format string) {
 		if b,ok := v.(bool); ok {
 			if b {
-				fmt.Fprint(c, ` checked="checked"`)
+				fmt.Fprint(c, ` onchange="say('uncheck '+this.name)" checked="checked"`)
 			}
-			fmt.Fprint(c, ` onchange="submitform()"`)
+			fmt.Fprint(c, ` onchange="say('check '+this.name)"`)
+			return
+		}
+		if p,ok := v.(bridge.Points); ok {
+			fmt.Fprintf(c,` onchange="say('setpts '+this.name+'='+this.value)" maxlength="2" size="2" value="%d"`, p)
 			return
 		}
 		template.StringFormatter(c, v, format)
@@ -77,12 +81,10 @@ func compareStringThing(c io.Writer, v interface{}, format string) {
 	if b,ok := v.(string); ok && b == format {
 		fmt.Fprint(c, ` checked="checked"`)
 	}
-	fmt.Fprint(c, ` onchange="submitform()"`)
+	fmt.Fprint(c, ` onchange="say('select '+this.name+'='+this.value)"`)
 }
 
 var cctemplate = `
-<input type="hidden" name="amsubmitting" value="true"/>
-
 <table class="cc" width="100%">
   <tr>
     <td style="width:25%" rowspan="4" class="cc">
@@ -96,8 +98,8 @@ var cctemplate = `
 
       <strong>Direct:</strong>
       {.section Pts}
-      <input type="text" name="DirectOvercallNTmin" maxlength="2" size="2" value="{DirectOvercallNTmin}"/> to
-      <input type="text" name="DirectOvercallNTmax" maxlength="2" size="2" value="{DirectOvercallNTmax}"/>
+      <input type="text" name="DirectOvercallNTmin" {DirectOvercallNTmin}/> to
+      <input type="text" name="DirectOvercallNTmax" {DirectOvercallNTmax}/>
       {.end}
       {.section Options}
       Systems on <input type="checkbox" name="NTOvercallSystemsOn" {NTOvercallSystemsOn}/>
@@ -106,8 +108,8 @@ var cctemplate = `
       
       <strong>Balancing:</strong>
       {.section Pts}
-      <input type="text" name="BalancingOvercallNTmin" maxlength="2" size="2" value="{BalancingOvercallNTmin}"/> to
-      <input type="text" name="BalancingOvercallNTmax" maxlength="2" size="2" value="{BalancingOvercallNTmax}"/>
+      <input type="text" name="BalancingOvercallNTmin" {BalancingOvercallNTmin}/> to
+      <input type="text" name="BalancingOvercallNTmax" {BalancingOvercallNTmax}/>
       <br/>
       {.end}
       
@@ -117,7 +119,7 @@ var cctemplate = `
     </td>
     <td style="width:50%" colspan="2" class="cc">
       <strong>Names:</strong>
-      <input type="text" name="Name" size="50" value="{Name}"/>
+      <input type="text" name="Name" onchange="say('rename to '+this.value)" size="50" value="{Name}"/>
     </td>
   </tr>
   <tr>
@@ -152,15 +154,15 @@ var cctemplate = `
           </td><td width="33%"></td><td>
             <strong>2NT</strong>
             {.section Pts}
-            <input type="text" name="TwoNTmin" maxlength="2" size="2" value="{TwoNTmin}"/> to
-            <input type="text" name="TwoNTmax" maxlength="2" size="2" value="{TwoNTmax}"/>
+            <input type="text" name="TwoNTmin" {TwoNTmin}/> to
+            <input type="text" name="TwoNTmax" {TwoNTmax}/>
             {.end}
           </td>
         </tr><tr>
           <td align="center">
             {.section Pts}
-            <input type="text" name="OneNTmin" maxlength="2" size="2" value="{OneNTmin}"/> to
-            <input type="text" name="OneNTmax" maxlength="2" size="2" value="{OneNTmax}"/>
+            <input type="text" name="OneNTmin" {OneNTmin}/> to
+            <input type="text" name="OneNTmax" {OneNTmax}/>
             {.end}
           </td><td>
             ` + htmlbid("3C") + `<input type="text" disabled="disabled" maxlength="10" size="10"/>
@@ -204,8 +206,8 @@ var cctemplate = `
             <input type="checkbox" disabled="disabled"/>
           </td><td>
             <strong class="unimplemented">3NT</strong>
-            <input type="text" name="ThreeNTmin" maxlength="2" size="2" value=""/> to
-            <input type="text" name="ThreeNTmax" maxlength="2" size="2" value=""/>
+            <input type="text" name="ThreeNTmin" disabled="disabled" maxlength="2" size="2" value=""/> to
+            <input type="text" name="ThreeNTmax" disabled="disabled" maxlength="2" size="2" value=""/>
           </td>
         </tr><tr>
           <td>
@@ -226,9 +228,8 @@ var cctemplate = `
     <td rowspan="1" class="cc">
 	    <center><strong>Simple overcall</strong></center>
       {.section Pts}
-      1 level <input type="text" name="Overcallmin" maxlength="2" size="2" value="{Overcallmin}"/> to
-      <input type="text" name="Overcallmax" maxlength="2" size="2"
-      value="{Overcallmax}"/> HCP (usually)
+      1 level <input type="text" name="Overcallmin" {Overcallmin}/> to
+      <input type="text" name="Overcallmax" {Overcallmax}/> HCP (usually)
       <br/>
       {.end}
       {.section Options}
@@ -360,8 +361,8 @@ var cctemplate = `
       <br/>{.end}
       {.section Pts}
       1NT/`+htmlbid("1C")+`
-      <input type="text" name="OneNTover1Cmin" maxlength="2" size="2" value="{OneNTover1Cmin}"/> to
-      <input type="text" name="OneNTover1Cmax" maxlength="2" size="2" value="{OneNTover1Cmax}"/>
+      <input type="text" name="OneNTover1Cmin" {OneNTover1Cmin}/> to
+      <input type="text" name="OneNTover1Cmax" {OneNTover1Cmax}/>
       <br/>
       {.end}
     </td>

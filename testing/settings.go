@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"github.com/droundy/bridge"
 )
 
@@ -21,6 +22,12 @@ func selected(c bool) string {
 
 func SettingsPage(dat *ClientData, evt []string) string {
 	switch evt[1] {
+	case "rename to ":
+		c := dat.Cookie.Card()
+		dat.Cookie.Cards[dat.Cookie.WhichCard] = c, false
+		dat.Cookie.Cards[evt[2]] = c
+		dat.Cookie.WhichCard = evt[2]
+		c.Name = evt[2]
 	case "set style ":
 		dat.Cookie.Style = evt[2]
 		dat.WriteCookie()
@@ -31,6 +38,17 @@ func SettingsPage(dat *ClientData, evt []string) string {
 		}
 		dat.Cookie.WhichCard = evt[2]
 		dat.WriteCookie()
+	case "check ":
+		dat.Cookie.Card().Options[evt[2]] = true
+	case "uncheck ":
+		dat.Cookie.Card().Options[evt[2]] = false
+	case "select ":
+		dat.Cookie.Card().Radio[evt[2]] = evt[3][1:]
+	case "setpts ":
+		v,err := strconv.Atoi(evt[3][1:])
+		if err == nil {
+			dat.Cookie.Card().Pts[evt[2]] = bridge.Points(v)
+		}
 	}
 	out := `
 <div class="textish">

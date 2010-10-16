@@ -59,7 +59,7 @@ func (dat *ClientData) Page(evt string) string {
 		}
 		EventHandlers["Settings"] = []Rule {
 			Rule {
-			Pattern: regexp.MustCompile(`(set style |set card )?(.*)`),
+			Pattern: regexp.MustCompile(`(set style |set card |check |uncheck |rename to |select |setpts )?([^=]*)(=.*)?`),
 			Code: SettingsPage,
 			},
 		}
