@@ -30,14 +30,12 @@ func SettingsPage(dat *ClientData, evt []string) string {
 		c.Name = evt[2]
 	case "set style ":
 		dat.Cookie.Style = evt[2]
-		dat.WriteCookie()
 	case "set card ":
 		if _,ok := dat.Cookie.Cards[evt[2]]; !ok {
 			c := bridge.DefaultConvention()
 			dat.Cookie.Cards[evt[2]] = &c
 		}
 		dat.Cookie.WhichCard = evt[2]
-		dat.WriteCookie()
 	case "check ":
 		dat.Cookie.Card().Options[evt[2]] = true
 	case "uncheck ":
@@ -49,6 +47,9 @@ func SettingsPage(dat *ClientData, evt []string) string {
 		if err == nil {
 			dat.Cookie.Card().Pts[evt[2]] = bridge.Points(v)
 		}
+	}
+	if evt[1] != "" {
+		dat.WriteCookie()
 	}
 	out := `
 <div class="textish">
