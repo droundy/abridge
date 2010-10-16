@@ -11,9 +11,11 @@ GOFILES=\
 	server.go\
 	clientdata.go\
 	home.go\
+	analyze-bids.go\
 	settings.go\
 	header.go\
 	cardtemplate.go\
+	bidbox.go\
 	speak.go style.go favicon.go cookie.go\
 
 include $(GOROOT)/src/Make.cmd

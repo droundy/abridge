@@ -31,6 +31,9 @@ var EventHandlers = make(map[string][]Rule)
 var once sync.Once
 var isgo = regexp.MustCompile(`^go (.+)$`)
 
+var bidexpression = regexp.MustCompile(`([^=]*)(=.*)?`)
+var settingexpression = regexp.MustCompile(`(set style |set card |check |uncheck |rename to |select |setpts )?([^=]*)(=.*)?`)
+
 func (dat *ClientData) Page(evt string) string {
 	once.Do(func () {
 		EventHandlers["Home"] = []Rule {
@@ -47,8 +50,8 @@ func (dat *ClientData) Page(evt string) string {
 		}
 		EventHandlers["Analyze bids"] = []Rule {
 			Rule {
-			Pattern: regexp.MustCompile(`.*`),
-			Code: Home,
+			Pattern: bidexpression,
+			Code: AnalyzeBids,
 			},
 		}
 		EventHandlers["Bid for me"] = []Rule {
@@ -59,7 +62,7 @@ func (dat *ClientData) Page(evt string) string {
 		}
 		EventHandlers["Settings"] = []Rule {
 			Rule {
-			Pattern: regexp.MustCompile(`(set style |set card |check |uncheck |rename to |select |setpts )?([^=]*)(=.*)?`),
+			Pattern: settingexpression,
 			Code: SettingsPage,
 			},
 		}
