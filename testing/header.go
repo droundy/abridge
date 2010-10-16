@@ -7,8 +7,12 @@ func (dat *ClientData) Header() string {
 		}
 		return `<a href="javascript:say('go ` + x + `')">` + x + `</a>` + "\n"
 	}
+	stylesheet := "style.css"
+	switch dat.Cookie.Style {
+	case "four color": stylesheet = "style-fourcolor.css"
+	}
 	return `
-<link href="style.css" rel="stylesheet" type="text/css"/>
+<link href="`+stylesheet+`" rel="stylesheet" type="text/css"/>
 
 <div id="links">
   <ul class="navbar">

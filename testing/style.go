@@ -7,6 +7,8 @@ import (
 
 func styleServer(c http.ResponseWriter, req *http.Request) {
 	c.SetHeader("Content-Type", "text/css")
+	url := req.URL.Path
+	fmt.Println("Looking for style: ", url)
 	fmt.Fprint(c, `
 html {
     margin: 0;
@@ -156,9 +158,8 @@ z-index:-1;"
 }
 
 `)
-	s := getSettings(req)
-	switch s.Style {
-	case "four color":
+	switch url {
+	case "/style-fourcolor.css":
 		fmt.Fprint(c, `
 .clubs {
   color: #009900;

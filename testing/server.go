@@ -23,6 +23,7 @@ func main() {
 	easysocket.Handle("/", NewClient)
 	http.HandleFunc("/favicon.ico", faviconServer)
 	http.HandleFunc("/style.css", styleServer)
+	http.HandleFunc("/style-fourcolor.css", styleServer)
 	http.HandleFunc("/speech/", wavServer)
 	err := http.ListenAndServe(":12345", nil);
 	if err != nil {
