@@ -197,7 +197,7 @@ var StaymanTwoResponse = BiddingRule{
 
 var OneNT = BiddingRule{
 	"1NT opening",
-	regexp.MustCompile("^( P)*1N$"), nil,
+	regexp.MustCompile("^(..)?( P..)?1N$"), nil,
 	func (bidder Seat, h Hand, ms []string, cc ConventionCard, e *Ensemble) (badness Score, explanation string) {
 		hcp := h.HCP()
 		dist := h.DistPoints()
@@ -225,7 +225,7 @@ var OneNT = BiddingRule{
 
 var TwoNT = BiddingRule{
 	"2NT opening",
-	regexp.MustCompile("^( P)*2N$"), nil,
+	regexp.MustCompile("^(..)?( P..)?2N$"), nil,
 	func (bidder Seat, h Hand, ms []string, cc ConventionCard, e *Ensemble) (badness Score, explanation string) {
 		hcp := h.HCP()
 		dist := h.DistPoints()
@@ -254,7 +254,7 @@ var TwoNT = BiddingRule{
 
 var Gambling3NT = BiddingRule{
 	"Gambling 3NT",
-	regexp.MustCompile("^( P)*3N$"),
+	regexp.MustCompile("^([ 1].)?( P[ 1].)?3N$"),
 	func (bidder Seat, ms []string, cc ConventionCard, e *Ensemble) (score func(h Hand) (s Score, e string)) {
 		if !cc.Options["Gambling3NT"] {
 			return nil
