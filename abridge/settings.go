@@ -140,7 +140,7 @@ func settings(c http.ResponseWriter, req *http.Request) {
 	fmt.Fprintln(c, `<div class="textish">`)
 	fmt.Fprintf(c, `<div>`)
 	fmt.Fprintln(c, `<fieldset><legend>Suit color style</legend>`)
-	for _,s := range []string{"two color", "four color"} {
+	for _,s := range []string{"two color", "four color", "alternate four color"} {
 		fmt.Fprintf(c, `<input type="radio" name="style" onchange="submitform()" title="foobar" value="%s"%s/>%s`,
 			s, checkRadio(p.Style == s), s)
 	}

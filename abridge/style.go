@@ -158,7 +158,7 @@ z-index:-1;"
 `)
 	s := getSettings(req)
 	switch s.Style {
-	case "four color":
+	case "alternate four color":
 		fmt.Fprint(c, `
 .clubs {
   color: #009900;
@@ -174,6 +174,40 @@ z-index:-1;"
 
 .disableddiamonds {
   color: #ffcc99;
+}
+
+.hearts {
+  color: #ff0000;
+}
+
+.spades {
+  color: #000000;
+}
+
+.disabledhearts {
+  color: #ffaaaa;
+}
+
+.disabledspades {
+  color: #aaaaaa;
+}
+`)
+	case "four color":
+		fmt.Fprint(c, `
+.clubs {
+  color: #009900;
+}
+
+.disabledclubs {
+  color: #aaccaa;
+}
+
+.diamonds {
+  color: #000099;
+}
+
+.disableddiamonds {
+  color: #aaaacc;
 }
 
 .hearts {
