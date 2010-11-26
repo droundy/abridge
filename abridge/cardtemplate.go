@@ -5,7 +5,7 @@ import (
 	"io"
 	"http"
 	"template"
-	"github.com/droundy/bridge"
+	"github.com/droundy/abridge"
 )
 
 func conventionCard(c http.ResponseWriter, p Settings) {

@@ -4,7 +4,7 @@ import (
 	"http"
 	"os"
 	"fmt"
-	"github.com/droundy/bridge/easysocket"
+	"github.com/droundy/abridge/easysocket"
 )
 
 func (dat *ClientData) Done(err os.Error) {

@@ -3,7 +3,7 @@
 
 include $(GOROOT)/src/Make.inc
 
-TARG=github.com/droundy/bridge
+TARG=github.com/droundy/abridge
 
 GOFILES=\
 	suit.go\

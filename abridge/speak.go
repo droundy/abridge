@@ -3,7 +3,7 @@ package main
 import (
 	"http"
 	"fmt"
-	"github.com/droundy/bridge/speech"
+	"github.com/droundy/abridge/speech"
 )
 
 func wavServer(c http.ResponseWriter, req *http.Request) {

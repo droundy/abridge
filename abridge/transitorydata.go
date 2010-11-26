@@ -5,7 +5,7 @@ import (
 	"http"
 	"json"
 	"strings"
-	"github.com/droundy/bridge"
+	"github.com/droundy/abridge"
 )
 
 type TransitoryData struct {

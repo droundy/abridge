@@ -6,7 +6,7 @@ import (
 	"os"
 	"io"
 	"http"
-	"github.com/droundy/bridge"
+	"github.com/droundy/abridge"
 	"github.com/ajstarks/svgo"
 )
 

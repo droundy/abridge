@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"os"
 	"io"
-	"github.com/droundy/bridge"
+	"github.com/droundy/abridge"
 	"github.com/ajstarks/svgo"
 )
 

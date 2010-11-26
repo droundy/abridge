@@ -5,7 +5,7 @@ import (
 	"os"
 	"exec"
 	"io/ioutil"
-	"github.com/droundy/bridge"
+	"github.com/droundy/abridge"
 )
 
 type answertype struct {

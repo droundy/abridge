@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"sync"
 	"strings"
-	"github.com/droundy/bridge"
+	"github.com/droundy/abridge"
 )
 
 type Rule struct {

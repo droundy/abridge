@@ -6,7 +6,7 @@ import (
 	"os"
   "http"
 	"log"
-	"github.com/droundy/bridge"
+	"github.com/droundy/abridge"
 )
 
 func main() {

@@ -3,7 +3,7 @@
 
 include $(GOROOT)/src/Make.inc
 
-TARG=github.com/droundy/bridge/speech
+TARG=github.com/droundy/abridge/speech
 
 GOFILES=\
 	speech.go\

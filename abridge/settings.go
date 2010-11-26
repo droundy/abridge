@@ -5,7 +5,7 @@ import (
 	"http"
 	"json"
 	"strconv"
-	"github.com/droundy/bridge"
+	"github.com/droundy/abridge"
 )
 
 type Settings struct {

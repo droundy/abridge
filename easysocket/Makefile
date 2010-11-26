@@ -3,7 +3,7 @@
 
 include $(GOROOT)/src/Make.inc
 
-TARG=github.com/droundy/bridge/easysocket
+TARG=github.com/droundy/abridge/easysocket
 
 GOFILES=\
 	interactive.go\

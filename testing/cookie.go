@@ -3,7 +3,7 @@ package main
 import (
 	"http"
 	"json"
-	"github.com/droundy/bridge"
+	"github.com/droundy/abridge"
 )
 
 type Settings struct {

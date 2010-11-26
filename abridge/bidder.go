@@ -5,7 +5,7 @@ import (
 	"io"
 	"fmt"
 	"http"
-	"github.com/droundy/bridge"
+	"github.com/droundy/abridge"
 )
 
 // Bid the fourth hand...

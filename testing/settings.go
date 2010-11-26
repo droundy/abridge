@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
-	"github.com/droundy/bridge"
+	"github.com/droundy/abridge"
 )
 
 func checkRadio(c bool) string {
