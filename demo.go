@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"github.com/droundy/bridge"
+	"github.com/droundy/abridge"
 )
 
 func TestBids(handstring string, good, bad []string) int {

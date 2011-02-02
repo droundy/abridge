@@ -23,24 +23,24 @@ function submitform() {
 
 // The following is a formatter for converting bridge.ConventionCard
 // information into usable HTML.
-var htmlcardformatter = template.FormatterMap(map[string]func(io.Writer, interface{}, string){
-	"checked": func(c io.Writer, v interface{}, format string) {
-		if b,ok := v.(bool); ok && b {
+var htmlcardformatter = template.FormatterMap {
+	"checked": func(c io.Writer, format string, v ...interface{}) {
+		if b,ok := v[0].(bool); ok && b {
 			fmt.Fprint(c, ` checked="checked"`)
 			fmt.Fprint(c, ` onchange="submitform()"`)
 		}
 	},
   "html": template.HTMLFormatter,
   "str":  template.StringFormatter,
-	"": func(c io.Writer, v interface{}, format string) {
-		if b,ok := v.(bool); ok {
+	"": func(c io.Writer, format string, v ...interface{}) {
+		if b,ok := v[0].(bool); ok {
 			if b {
 				fmt.Fprint(c, ` checked="checked"`)
 			}
 			fmt.Fprint(c, ` onchange="submitform()"`)
 			return
 		}
-		template.StringFormatter(c, v, format)
+		template.StringFormatter(c, format, v...)
 	},
 	"Sound": compareStringThing,
 	"Light": compareStringThing,
@@ -56,10 +56,10 @@ var htmlcardformatter = template.FormatterMap(map[string]func(io.Writer, interfa
 	"Strong": compareStringThing,
 	"OneLevel": compareStringThing,
 	"TwoLevel": compareStringThing,
-})
+}
 
-func compareStringThing(c io.Writer, v interface{}, format string) {
-	if b,ok := v.(string); ok && b == format {
+func compareStringThing(c io.Writer, format string, v ...interface{}) {
+	if b,ok := v[0].(string); ok && b == format {
 		fmt.Fprint(c, ` checked="checked"`)
 	}
 	fmt.Fprint(c, ` onchange="submitform()"`)

@@ -22,7 +22,7 @@ func main() {
 	http.HandleFunc("/", analyzer)
 	err := http.ListenAndServe("0.0.0.0:12345", nil)
 	if err != nil {
-		log.Exit("ListenAndServe: ", err.String())
+		log.Fatal("ListenAndServe: ", err.String())
 	}
 }
 

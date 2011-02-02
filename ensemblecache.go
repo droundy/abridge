@@ -36,11 +36,15 @@ func init() {
 					}
 				}
 				for b,p := range nextbids {
-					if newc,ok := <- contemplate_ensemble; ok && newc.bid != c.bid {
-						c = newc
-						// We want to quit early and start analyzing our exciting
-						// new bid!
-						continue bids
+					select {
+					case newc := <- contemplate_ensemble:
+						if newc.bid != c.bid {
+							c = newc
+							// We want to quit early and start analyzing our exciting
+							// new bid!
+							continue bids
+						}
+					default:
 					}
 					if p == max {
 						if p > 0 {
